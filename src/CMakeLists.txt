@@ -37,4 +37,4 @@ include_directories(
 )
 
 # Add modules with MEX to be built
-add_subdirectory("${PROJECT_SOURCE_DIR}/src/mex/special_quadrature")
+add_subdirectory("${PROJECT_SOURCE_DIR}/mex/special_quadrature")
