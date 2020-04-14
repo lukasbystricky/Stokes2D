@@ -30,6 +30,7 @@ Start Matlab and run `initpaths.m` to initialize the proper paths. Then run `dem
 
 ## To do
 
+* check OpenMP timings
 * support for confined, non-periodic geometries using FMM
 * RCIP for corner treatment
 * Navier-slip boundary conditions, adjoint double-layer potential
