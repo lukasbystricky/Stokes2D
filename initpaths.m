@@ -11,7 +11,4 @@ clc
 addpath(genpath('../FastTools2D/FMM/src/bin'))
 addpath(genpath('../FastTools2D/PeriodicEwald/src'))
 addpath(genpath('src'));
-addpath('examples');
-addpath('setups');
-addpath('bin');
-
+addpath(genpath('examples'));
