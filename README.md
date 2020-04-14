@@ -4,7 +4,7 @@ Code to solve the Stokes equations using boundary integral equations.
 
 ## Features
 * periodic domains, uses spectral Ewald to rapidly compute infinte sums
-* special quadrature for on-surface evaluation of single-layer potential as well as near surface evaluation of single- and double-layer potentials
+* special quadrature for on-surface evaluation of single-layer potential as well as near-surface evaluation of single- and double-layer potentials
 
 ## Compilation instructions
 
