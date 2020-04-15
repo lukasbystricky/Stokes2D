@@ -1,4 +1,14 @@
 function [U1c, U2c, X, Y, U1, U2] = evaluate_velocity(solution, N)
+%EVALUTATE_VELOCITY evaluates the velocity on a regular grid over the 
+%reference cell. Uses the stresslet identity to identify points inside the
+%domain.
+%
+% inputs:
+% -solution: structure containing the following fields
+%   -domain: a domain structure containing geometry information
+%   -q : density function, vector of size #npts by 2
+%   -eta: factor in front of SLP in combined-layer formulation
+% -N: number of points in each direction
 
 disp('Evaluating velocity...');
 
@@ -19,10 +29,12 @@ y = linspace(min(ysrc), max(ysrc), N);
 [X,Y] = meshgrid(x,y);
 
 [uslp1, uslp2] = StokesSLP_ewald_2p(xsrc, ysrc, X(:), Y(:),...
-                solution.q(:,1).*weights, solution.q(:,2).*weights, Lx, Ly, 'verbose', 1);
+                solution.q(:,1).*weights, solution.q(:,2).*weights, Lx, Ly,...
+                'verbose', 1);
             
 [udlp1, udlp2] = StokesDLP_ewald_2p(xsrc, ysrc, X(:), Y(:), n1, n2,...
-                solution.q(:,1).*weights, solution.q(:,2).*weights, Lx, Ly, 'verbose', 1);
+                solution.q(:,1).*weights, solution.q(:,2).*weights, Lx, Ly,...
+                'verbose', 1);
             
 disp('Beginning special quadrature...');
 
