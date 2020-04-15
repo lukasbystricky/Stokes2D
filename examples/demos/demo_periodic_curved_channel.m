@@ -1,3 +1,7 @@
+% Periodic pressure driven flow through a channel with non-flat walls. Here
+% we don't know the exact solution, but we can get an idea of the error by 
+% imposing shear flow boundary conditions, and zero pressure gradient.
+
 close all
 clearvars
 clc

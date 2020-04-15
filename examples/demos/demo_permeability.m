@@ -24,7 +24,8 @@ input_params.radii = input_params.box_size(1)*sqrt((1-phi)/pi);
 
 % for a single circle in a doubly periodic domain it doesn't matter where
 % the center is, we've placed in at the corner of the reference cell to
-% test the special quadrature
+% test the special quadrature, moving the center should not change the
+% results
 input_params.centers = input_params.box_size(1)/2 + ...
     1i * input_params.box_size(2)/2;
 
