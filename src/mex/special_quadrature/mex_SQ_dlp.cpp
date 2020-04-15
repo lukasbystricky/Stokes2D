@@ -104,7 +104,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
     double *xsrc, *ysrc, *xpsrc, *ypsrc, *quad_weights, *wazp;
     double *xsrc32, *ysrc32, *xpsrc32, *ypsrc32, *quad_weights32, *wazp32;
     double *panel_breaks_x, *panel_breaks_y, *q1, *q2, *u1tar, *u2tar, *meanlen;
-    int Ndrops, Nsolids;
+    int Ntar, Nsrc;
     double *out_u1, *out_u2, *nmodifs;
     double *pan2bndry, *bnds;
     
@@ -113,10 +113,10 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
     
     xtar = mxGetPr(prhs[0]);
     ytar = mxGetPi(prhs[0]);
-    Ndrops = mxGetM(prhs[0]);
+    Ntar = mxGetM(prhs[0]);
     xsrc = mxGetPr(prhs[1]);
     ysrc = mxGetPi(prhs[1]);
-    Nsolids = mxGetM(prhs[1]);
+    Nsrc = mxGetM(prhs[1]);
     xpsrc = mxGetPr(prhs[2]);
     ypsrc = mxGetPi(prhs[2]);
     quad_weights = mxGetPr(prhs[3]);
@@ -136,13 +136,13 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
     meanlen = mxGetPr(prhs[12]);
     
     if (ysrc == NULL) {
-        mwSize cs = Nsolids;
+        mwSize cs = Nsrc;
         ysrc = (double*) mxCalloc(cs,sizeof(double));
         ysrc32 = (double*) mxCalloc(cs*2,sizeof(double));
         
     }
     if (ypsrc == NULL) {
-        mwSize cs = Nsolids;
+        mwSize cs = Nsrc;
         ypsrc = (double*) mxCalloc(cs,sizeof(double));
         ypsrc32 = (double*) mxCalloc(cs*2,sizeof(double));
     }
@@ -163,7 +163,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
     
     bnds = mxGetPr(prhs[17]);
     
-    plhs[0] = mxCreateDoubleMatrix(Ndrops,1,mxCOMPLEX);
+    plhs[0] = mxCreateDoubleMatrix(Ntar,1,mxCOMPLEX);
     out_u1 = mxGetPr(plhs[0]);
     out_u2 = mxGetPi(plhs[0]);
     plhs[1] = mxCreateDoubleMatrix(1,1,mxREAL);
@@ -173,18 +173,18 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
     //our way past this, and write directly to us_re and us_im, but since
     //this memcpy is completely negligible time-wise we might as well do
     //things properly.
-    memcpy(out_u1,u1tar,Ndrops*sizeof(double));
-    memcpy(out_u2,u2tar,Ndrops*sizeof(double));
+    memcpy(out_u1,u1tar,Ntar*sizeof(double));
+    memcpy(out_u2,u2tar,Ntar*sizeof(double));
     
 //    double xmax = pi; double xmin = -pi; double ymax = pi; double ymin = -pi;
     double xmin = bnds[0];
     double ymin = bnds[2];
     
-    if (Nsolids == 0) //if no solids, return early
+    if (Nsrc == 0) //if no solids, return early
         return;
     
 #pragma omp parallel for
-    for(int j = 0;j<Ndrops;j++) {
+    for(int j = 0;j<Ntar;j++) {
         
         Complex nzpan[16], tz[16], tzp[16], tf[16];
         Complex tz32[32], tzp32[32], tf32[32];
