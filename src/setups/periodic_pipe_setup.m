@@ -9,7 +9,6 @@ problem.plot_domain = input_params.plot_domain;
 problem.periodic = 1;
 problem.pressure_gradient_x = input_params.pressure_drop_x / problem.Lx;
 problem.pressure_gradient_y = input_params.pressure_drop_y / problem.Ly;
-problem.panels = input_params.panels;
 problem.name = input_params.name;
 problem.gmres_tol = input_params.gmres_tol;
 problem.eta = input_params.eta;
@@ -22,7 +21,14 @@ walls{1} = @(T) geometry_periodic_channel(@(t) ones(size(t)), ...
 % bottom wall            
 walls{2} = @(T) geometry_periodic_channel(@(t) 0*ones(size(t)), ...
             @(t) zeros(size(t)), @(t) zeros(size(t)),T, -1, problem.Lx);
-            
+
+if length(input_params.panels) > 1
+    problem.panels = input_params.panels;
+else
+    problem.panels = input_params.panels*ones(length(walls),1);
+end
+
+
 problem.domain = discretize_domain_periodic(walls, problem.panels,...
             problem.Lx, problem.Ly);
 
