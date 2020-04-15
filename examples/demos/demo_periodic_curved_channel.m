@@ -16,6 +16,8 @@ input.pressure_drop_x = 1;
 input_params.test = 1;
 input_params.plot_domain = 1;
 
+% geometry information, periods, amplitude and some measure of spacing
+% between walls
 input_params.n_periods_top = 2;
 input_params.n_periods_bottom = 1;
 input_params.amplitude_top = 0.1;
