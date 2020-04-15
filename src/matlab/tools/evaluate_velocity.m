@@ -1,5 +1,7 @@
 function [U1c, U2c, X, Y, U1, U2] = evaluate_velocity(solution, N)
 
+disp('Evaluating velocity...');
+
 Lx = solution.domain.Lx;
 Ly = solution.domain.Ly;
 
@@ -27,6 +29,7 @@ disp('Beginning special quadrature...');
 uslp = uslp1 + 1i*uslp2;
 udlp = udlp1 + 1i*udlp2;
 
+% correct using special quadrature
 [uslp_corrected,~] = mex_SQ_slp(X(:)+1i*Y(:), domain.z, domain.zp, domain.quad_weights, ...
                 domain.panel_breaks, domain.wazp, domain.z32, domain.zp32,...
                 domain.quad_weights32, domain.wazp32, solution.q(:,1)+1i*solution.q(:,2),...
@@ -52,11 +55,18 @@ u1_corrected = real(u_corrected);
 u2_corrected = imag(u_corrected);
 
 % find points inside domain by applying stresslet identity
-test = StokesDLP_ewald_2p(xsrc, ysrc, X(:), Y(:), n1, n2,...
+[test1, test2] = StokesDLP_ewald_2p(xsrc, ysrc, X(:), Y(:), n1, n2,...
         ones(length(n1),1).*weights, zeros(length(n1),1).*weights, Lx, Ly);
 
-
-outside = find(test < 1e-6);
+% correct using special quadrature
+[test,~] = mex_SQ_dlp(X(:)+1i*Y(:), domain.z, domain.zp, domain.quad_weights, ...
+                domain.panel_breaks, domain.wazp, domain.z32, domain.zp32,...
+                domain.quad_weights32, domain.wazp32,ones(length(n1),1) + 1e-14*1i,...
+                test1 + 1i*test2,domain.mean_panel_length,domain.extra.gridSolidmat, ...
+                domain.extra.Nrows,domain.extra.Ncols,domain.extra.panels2wall,...
+                domain.reference_cell);
+    
+outside = find(real(test) < 1e-6);
 
 u1_corrected(outside) = nan;
 u2_corrected(outside) = nan;
