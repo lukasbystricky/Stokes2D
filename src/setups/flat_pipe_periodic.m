@@ -1,4 +1,4 @@
-function problem = periodic_pipe_setup(input_params)
+function problem = flat_pipe_periodic(input_params)
 % Setup file for a simple periodic pipe. The exact solution should be the 
 % standard Pouseille flow.        
 
