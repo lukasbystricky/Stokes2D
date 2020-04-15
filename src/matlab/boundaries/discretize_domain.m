@@ -1,4 +1,4 @@
-function domain = discretize_domain_periodic(geometries, panels, Lx, Ly)
+function domain = discretize_domain(geometries, panels, varargin)
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 % Discretizes the solid boundaries.
 %
@@ -15,6 +15,13 @@ function domain = discretize_domain_periodic(geometries, panels, Lx, Ly)
 %       quadrature
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+% if domain is periodic user should provide Lx, Ly
+periodic = 0;
+if nargin > 2
+    periodic = 1;
+    Lx = varargin{1};
+    Ly = varargin{2};
+end
 %% Allocate arrays
 % discretized values using 16 points per panel
 z = zeros(sum(panels)*16,1);     
@@ -98,11 +105,23 @@ mean_panel_length = mean(panel_lengths);
 %% Grid domain, this is useful for special quadrature
 
 % first box points in reference cell plus points in neighbouring cells
-xmin = -1.5*Lx;
-ymin = -1.5*Ly;
 
-XBoxes = 3*ceil(Lx/mean_panel_length);
-YBoxes = 3*ceil(Ly/mean_panel_length);
+if periodic
+    xmin = -1.5*Lx;
+    ymin = -1.5*Ly;
+    
+    XBoxes = 3*ceil(Lx/mean_panel_length);
+    YBoxes = 3*ceil(Ly/mean_panel_length);
+else
+    xmin = min(real(z));
+    ymin = min(imag(z));
+    
+    Lx = max(real(z)) - min(real(z));
+    Ly = max(imag(z)) - min(imag(z));
+    
+    XBoxes = ceil(Lx/mean_panel_length);
+    YBoxes = ceil(Ly/mean_panel_length);
+end
 
 gridTmp = cell(XBoxes,YBoxes);
 
@@ -123,19 +142,23 @@ for n = 1:sum(panels)
     end
 end
 
-% map everything to reference cell
-domain_grid = cell(XBoxes/3, YBoxes/3);
-
-for i = 1:XBoxes/3
-    for j = 1:YBoxes/3
-        domain_grid{i,j} = unique([gridTmp{i,j}, ...
-            gridTmp{i+XBoxes/3,j}, gridTmp{i+2*XBoxes/3,j},...
-            gridTmp{i,j+YBoxes/3}, gridTmp{i,j+2*YBoxes/3},...
-            gridTmp{i+XBoxes/3, j+YBoxes/3}, ...
-            gridTmp{i+2*XBoxes/3, j+YBoxes/3},...
-            gridTmp{i+XBoxes/3, j+2*YBoxes/3},...
-            gridTmp{i+2*XBoxes/3, j+2*YBoxes/3}]);
+if periodic
+    % map everything to reference cell
+    domain_grid = cell(XBoxes/3, YBoxes/3);
+    
+    for i = 1:XBoxes/3
+        for j = 1:YBoxes/3
+            domain_grid{i,j} = unique([gridTmp{i,j}, ...
+                gridTmp{i+XBoxes/3,j}, gridTmp{i+2*XBoxes/3,j},...
+                gridTmp{i,j+YBoxes/3}, gridTmp{i,j+2*YBoxes/3},...
+                gridTmp{i+XBoxes/3, j+YBoxes/3}, ...
+                gridTmp{i+2*XBoxes/3, j+YBoxes/3},...
+                gridTmp{i+XBoxes/3, j+2*YBoxes/3},...
+                gridTmp{i+2*XBoxes/3, j+2*YBoxes/3}]);
+        end
     end
+else
+    domain_grid = gridTmp;
 end
 
 %Save the Solid information in a structure
@@ -149,7 +172,7 @@ domain = struct('z',z,'zp',zp,'zpp',zpp,'quad_weights',quad_weights,...
     'Lx', Lx, 'Ly', Ly);
 
 [Nrows,Ncols] = size(domain.grid);
-domain.extra.Nrows = Nrows; 
+domain.extra.Nrows = Nrows;
 domain.extra.Ncols = Ncols;
 tmp=reshape(domain.grid,1,Ncols*Nrows);
 gridSolidmat = -1*ones(2*length(panel_breaks),Ncols*Nrows);

@@ -3,7 +3,7 @@ clearvars
 clc
 
 % create input structure
-input_params = default_input_params_periodic('curved_channel_demo');
+input_params = default_input_params('curved_channel_demo', 1);
 
 % modify structure as needed, or add additional problem-dependent params
 input_params.box_size = [5,1.5];

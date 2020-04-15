@@ -29,7 +29,7 @@ else
 end
 
 
-problem.domain = discretize_domain_periodic(walls, problem.panels,...
+problem.domain = discretize_domain(walls, problem.panels,...
             problem.Lx, problem.Ly);
 
 % specify boundary conditions, here we have simple no-slip

@@ -33,7 +33,7 @@ else
     problem.panels = input_params.panels*ones(length(walls),1);
 end
 
-problem.domain = discretize_domain_periodic(walls, problem.panels,...
+problem.domain = discretize_domain(walls, problem.panels,...
             problem.Lx, problem.Ly);
 
 % specify boundary conditions

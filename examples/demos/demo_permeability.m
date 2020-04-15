@@ -9,7 +9,7 @@ clearvars
 clc
 
 % create input structure
-input_params = default_input_params_periodic('permeability_demo');
+input_params = default_input_params('permeability_demo', 1);
 
 % modify structure as needed, or add additional problem-dependent params
 input_params.box_size = [1,1];
