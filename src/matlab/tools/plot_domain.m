@@ -1,6 +1,11 @@
-function [] = plot_domain(problem)
+function [] = plot_domain(problem, varargin)
 
-figure()
+if nargin == 1
+    figure()
+else
+    figure(varargin{1});
+end
+
 hold on
 
 Lx = problem.Lx;
