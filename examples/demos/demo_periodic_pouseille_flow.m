@@ -2,22 +2,12 @@ close all
 clearvars
 clc
 
-% input strucutre:
-% name: simulation name, data for the simulation will be saved somewhere
-% panels: number of panels on each wall, vector of size 1 x number of walls
-% plot_domain: flag specifying whether to plot the domain
-% pressure_drop: applied pressure drop, specify only if domain is periodic
-% box_size: size of the periodic box, a 1x2 vector [Lx, Ly]
-% gmres_tol: GMRES tolerance
-% eta: scaling parameter between single- and double-layers
-input_params = struct('name', 'periodic_pipe',...
-                      'panels', [10, 10],...
-                      'plot_domain', 0,...
-                      'pressure_drop_x', 1,...
-                      'pressure_drop_y', 0,...
-                      'box_size', [5, 1.5],...
-                      'gmres_tol', 1e-12,...
-                      'eta', 1);
+% create input structure
+input_params = default_input_params_periodic('pouseuille_demo');
+
+% modify structure as needed
+input_params.box_size = [5,1.5];
+input_params.panels = 10;
  
 problem = periodic_pipe_setup(input_params);
 
