@@ -18,7 +18,7 @@ input.pressure_drop_x = 1;
 % along with zero pressure gradient. Then the exact solution (shear flow)
 % is known, so we can get an idea of how many panels are sufficient
 input_params.test = 1;
-input_params.plot_domain = 1;
+input_params.plot_domain = 0;
 
 % geometry information, periods, amplitude and some measure of spacing
 % between walls
