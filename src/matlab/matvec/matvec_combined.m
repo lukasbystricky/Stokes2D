@@ -1,4 +1,18 @@
 function m = matvec_combined(X, domain, eta)
+% MATVEC_COMBINED: perform a matrix vector product using the combined-layer
+% formulation, i.e. u(x) = q/2 + eta*S[q](x) + D[q](x) + <u>, where <u> is 
+% the average velocity over a reference cell. Uses periodic spectral Ewald 
+% to compute the product quickly.
+%
+% inputs:
+% -X: vector containing [q1; q2; <u1>; <u2>]
+% -domain: structure containing geometry information
+% -eta: scaling parameter in front of single-layer potential
+%
+% output:
+% -m: vector containing [u1; u2; dp1; dp2], where u1 and u2 are the 
+%   velocity component on the boundary, and dp1 and dp2 are the average 
+%   pressure gradients in the x and y direction
 
 m = zeros(length(X),1);
 N = length(domain.z);
