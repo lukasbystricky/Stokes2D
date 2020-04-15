@@ -12,8 +12,8 @@ input_params.panels = 10;
 % set this up as a test problem. Shear flow boundary conditions are applied
 % along with zero pressure gradient. Then the exact solution (shear flow)
 % is known, so we can get an idea of how many panels are sufficient
-input_params.test = 1;
-input_params.plot_domain = 1;
+input_params.test = 0;
+input_params.plot_domain = 0;
 
 input_params.n_periods_top = 2;
 input_params.n_periods_bottom = 1;
@@ -30,7 +30,12 @@ solution = solve_stokes(problem);
 
 [Uc, Vc, X, Y,U] = evaluate_velocity(solution, 100);
 
+
+h = figure();
 if input_params.test
+    
+    plot_domain(problem, h);
+    hold on
     
     exact_solution = @(x,y) y;
     contourf(X,Y, log10(abs(Uc - exact_solution(X,Y))+eps));
@@ -39,13 +44,20 @@ if input_params.test
     title('log_{10}(error)');
     
 else
+   
     subplot(2,1,1);
+    
+    plot_domain(problem, h);
+    hold on
     contourf(X,Y,Uc);
     colorbar
     axis equal
     title('U_1');
     
     subplot(2,1,2);
+    
+    plot_domain(problem, h);
+    hold on    
     contourf(X,Y,Vc);
     colorbar
     axis equal
