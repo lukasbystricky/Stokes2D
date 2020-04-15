@@ -1,4 +1,4 @@
-function [U1c, U2c, X, Y, U1, U2] = evaluate_velocity(solution, N)
+function [U1c, U2c, X, Y, U1, U2] = evaluate_velocity(solution, varargin)
 %EVALUTATE_VELOCITY evaluates the velocity on a regular grid over the 
 %reference cell. Uses the stresslet identity to identify points inside the
 %domain.
@@ -23,10 +23,16 @@ n1 = real(-1i*solution.domain.zp)./abs(solution.domain.zp);
 n2 = imag(-1i*solution.domain.zp)./abs(solution.domain.zp);
 weights = solution.domain.wazp;
 
-x = linspace(min(xsrc), max(xsrc), N);
-y = linspace(min(ysrc), max(ysrc), N);
+if nargin == 2 % N specified, evaluate on regular grid
+    N = varargin{1};
+    x = linspace(min(xsrc), max(xsrc), N);
+    y = linspace(min(ysrc), max(ysrc), N);
 
-[X,Y] = meshgrid(x,y);
+    [X,Y] = meshgrid(x,y);
+else % target points are specified
+    X = varargin{1};
+    Y = varargin{2};
+end
 
 [uslp1, uslp2] = StokesSLP_ewald_2p(xsrc, ysrc, X(:), Y(:),...
                 solution.q(:,1).*weights, solution.q(:,2).*weights, Lx, Ly,...
@@ -58,7 +64,8 @@ udlp = udlp1 + 1i*udlp2;
             
 
 
-u_corrected = udlp_corrected + solution.eta*uslp_corrected  + solution.u_avg(1) + 1i*solution.u_avg(2);
+u_corrected = udlp_corrected + solution.eta*uslp_corrected  + ...
+                    solution.u_avg(1) + 1i*solution.u_avg(2);
 u = udlp + solution.eta*uslp + solution.u_avg(1) + 1i*solution.u_avg(2);
 
 u1 = real(u);
@@ -77,9 +84,9 @@ u2_corrected = imag(u_corrected);
                 test1 + 1i*test2,domain.mean_panel_length,domain.extra.gridSolidmat, ...
                 domain.extra.Nrows,domain.extra.Ncols,domain.extra.panels2wall,...
                 domain.reference_cell);
-    
-outside = find(real(test) < 1e-6);
 
+% anything that is less than 0 is outside the fluid domain
+outside = find(real(test) < -1e-6);
 u1_corrected(outside) = nan;
 u2_corrected(outside) = nan;
 
