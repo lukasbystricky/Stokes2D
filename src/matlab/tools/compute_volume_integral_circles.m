@@ -85,7 +85,7 @@ axis equal
 model = createpde;
 geometryFromEdges(model,dl);
 
-mesh = generateMesh(model, 'Hmax', hmax);
+mesh = generateMesh(model, 'Hmax', hmax, 'geometricOrder', 'linear');
 
 hold on
 pdemesh(model)
