@@ -100,55 +100,55 @@ static const double IP2[128] = {0.7138621264850029,
 
 void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
     
-    double *zDrop_re,*zDrop_im;
-    double *zSolid_re, *zSolid_im, *zpSolid_re, *zpSolid_im, *wSolid, *wazpSolid;
-    double *zSolid32_re, *zSolid32_im, *zpSolid32_re, *zpSolid32_im, *wSolid32, *wazpSolid32;
-    double *peSolid_re, *peSolid_im, *f_re, *f_im, *ud_re, *ud_im, *meanlen;
+    double *xtar,*ytar;
+    double *xsrc, *ysrc, *xpsrc, *ypsrc, *quad_weights, *wazp;
+    double *xsrc32, *ysrc32, *xpsrc32, *ypsrc32, *quad_weights32, *wazp32;
+    double *panel_breaks_x, *panel_breaks_y, *q1, *q2, *u1tar, *u2tar, *meanlen;
     int Ndrops, Nsolids;
-    double *out_ud_re, *out_ud_im, *nmodifs;
+    double *out_u1, *out_u2, *nmodifs;
     double *pan2bndry, *bnds;
     
     if (nrhs != 18)
         mexErrMsgTxt("mex_do_vel_quad: incorrect number of input arguments.\n");
     
-    zDrop_re = mxGetPr(prhs[0]);
-    zDrop_im = mxGetPi(prhs[0]);
+    xtar = mxGetPr(prhs[0]);
+    ytar = mxGetPi(prhs[0]);
     Ndrops = mxGetM(prhs[0]);
-    zSolid_re = mxGetPr(prhs[1]);
-    zSolid_im = mxGetPi(prhs[1]);
+    xsrc = mxGetPr(prhs[1]);
+    ysrc = mxGetPi(prhs[1]);
     Nsolids = mxGetM(prhs[1]);
-    zpSolid_re = mxGetPr(prhs[2]);
-    zpSolid_im = mxGetPi(prhs[2]);
-    wSolid = mxGetPr(prhs[3]);
-    peSolid_re = mxGetPr(prhs[4]);
-    peSolid_im = mxGetPi(prhs[4]);
-    wazpSolid = mxGetPr(prhs[5]);
-    zSolid32_re = mxGetPr(prhs[6]);
-    zSolid32_im = mxGetPi(prhs[6]);
-    zpSolid32_re = mxGetPr(prhs[7]);
-    zpSolid32_im = mxGetPi(prhs[7]);
-    wSolid32 = mxGetPr(prhs[8]);
-    wazpSolid32 = mxGetPr(prhs[9]);
-    f_re = mxGetPr(prhs[10]);
-    f_im = mxGetPi(prhs[10]);
-    ud_re = mxGetPr(prhs[11]);
-    ud_im = mxGetPi(prhs[11]);
+    xpsrc = mxGetPr(prhs[2]);
+    ypsrc = mxGetPi(prhs[2]);
+    quad_weights = mxGetPr(prhs[3]);
+    panel_breaks_x = mxGetPr(prhs[4]);
+    panel_breaks_y = mxGetPi(prhs[4]);
+    wazp = mxGetPr(prhs[5]);
+    xsrc32 = mxGetPr(prhs[6]);
+    ysrc32 = mxGetPi(prhs[6]);
+    xpsrc32 = mxGetPr(prhs[7]);
+    ypsrc32 = mxGetPi(prhs[7]);
+    quad_weights32 = mxGetPr(prhs[8]);
+    wazp32 = mxGetPr(prhs[9]);
+    q1 = mxGetPr(prhs[10]);
+    q2 = mxGetPi(prhs[10]);
+    u1tar = mxGetPr(prhs[11]);
+    u2tar = mxGetPi(prhs[11]);
     meanlen = mxGetPr(prhs[12]);
     
-    if (zSolid_im == NULL) {
+    if (ysrc == NULL) {
         mwSize cs = Nsolids;
-        zSolid_im = (double*) mxCalloc(cs,sizeof(double));
-        zSolid32_im = (double*) mxCalloc(cs*2,sizeof(double));
+        ysrc = (double*) mxCalloc(cs,sizeof(double));
+        ysrc32 = (double*) mxCalloc(cs*2,sizeof(double));
         
     }
-    if (zpSolid_im == NULL) {
+    if (ypsrc == NULL) {
         mwSize cs = Nsolids;
-        zpSolid_im = (double*) mxCalloc(cs,sizeof(double));
-        zpSolid32_im = (double*) mxCalloc(cs*2,sizeof(double));
+        ypsrc = (double*) mxCalloc(cs,sizeof(double));
+        ypsrc32 = (double*) mxCalloc(cs*2,sizeof(double));
     }
-    if (peSolid_im == NULL) {
+    if (panel_breaks_y == NULL) {
         mwSize cs = mxGetM(prhs[4]);
-        peSolid_im = (double*) mxCalloc(cs,sizeof(double));
+        panel_breaks_y = (double*) mxCalloc(cs,sizeof(double));
     }
     
     double * gridSolidmat, *gridSolidNx, *gridSolidNy;
@@ -164,8 +164,8 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
     bnds = mxGetPr(prhs[17]);
     
     plhs[0] = mxCreateDoubleMatrix(Ndrops,1,mxCOMPLEX);
-    out_ud_re = mxGetPr(plhs[0]);
-    out_ud_im = mxGetPi(plhs[0]);
+    out_u1 = mxGetPr(plhs[0]);
+    out_u2 = mxGetPi(plhs[0]);
     plhs[1] = mxCreateDoubleMatrix(1,1,mxREAL);
     nmodifs = mxGetPr(plhs[1]);
     
@@ -173,8 +173,8 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
     //our way past this, and write directly to us_re and us_im, but since
     //this memcpy is completely negligible time-wise we might as well do
     //things properly.
-    memcpy(out_ud_re,ud_re,Ndrops*sizeof(double));
-    memcpy(out_ud_im,ud_im,Ndrops*sizeof(double));
+    memcpy(out_u1,u1tar,Ndrops*sizeof(double));
+    memcpy(out_u2,u2tar,Ndrops*sizeof(double));
     
 //    double xmax = pi; double xmin = -pi; double ymax = pi; double ymin = -pi;
     double xmin = bnds[0];
@@ -188,15 +188,15 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
         
         Complex nzpan[16], tz[16], tzp[16], tf[16];
         Complex tz32[32], tzp32[32], tf32[32];
-        Complex nzpan32[32], p32[33], r32[32], n32[32], q32[33];
+        Complex nzpan32[32], p32[33], n32[32], q32[33];
         double twazp[16], twazp32[32];
         double tmpT[16], tmpb[16], tW32[32], tW[16];
         
         // The point in the loop
-        Complex z = Complex(zDrop_re[j],zDrop_im[j]);
+        Complex z = Complex(xtar[j],ytar[j]);
         
         // Check how close the point z is to panels using precomp. boxes
-        Complex zrel = Complex((zDrop_re[j]-xmin)/(*meanlen),(zDrop_im[j]-ymin)/(*meanlen));
+        Complex zrel = Complex((xtar[j]-xmin)/(*meanlen),(ytar[j]-ymin)/(*meanlen));
         
         int midx = static_cast<int>(floor(real(zrel))) % static_cast<int>(*gridSolidNx);
         int midy = static_cast<int>(floor(imag(zrel))) % static_cast<int>(*gridSolidNy);
@@ -215,10 +215,10 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                 Complex zTmp;
                 
                 int b1 = static_cast<int>(pan2bndry[pk]);
-                Complex mid = Complex(0.5*(peSolid_re[pk+b1+1]+peSolid_re[pk+b1]),
-                                        0.5*(peSolid_im[pk+b1+1]+peSolid_im[pk+b1]));
-                Complex len = Complex(peSolid_re[pk+b1+1]-peSolid_re[pk+b1],
-                                        peSolid_im[pk+b1+1]-peSolid_im[pk+b1]);
+                Complex mid = Complex(0.5*(panel_breaks_x[pk+b1+1]+panel_breaks_x[pk+b1]),
+                                        0.5*(panel_breaks_y[pk+b1+1]+panel_breaks_y[pk+b1]));
+                Complex len = Complex(panel_breaks_x[pk+b1+1]-panel_breaks_x[pk+b1],
+                                        panel_breaks_y[pk+b1+1]-panel_breaks_y[pk+b1]);
                 
                 if (abs(z - mid) < abs(len))
                     periodic_case = 0;
@@ -298,12 +298,12 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                     Complex testsum = 0;
                     
                     for (int k = 0; k<16; k++) {
-                        tz[k] = Complex(zSolid_re[pk*16+k],zSolid_im[pk*16+k]);
-                        tzp[k] = Complex(zpSolid_re[pk*16+k],zpSolid_im[pk*16+k]);
-                        tW[k] = wSolid[pk*16+k];
+                        tz[k] = Complex(xsrc[pk*16+k],ysrc[pk*16+k]);
+                        tzp[k] = Complex(xpsrc[pk*16+k],ypsrc[pk*16+k]);
+                        tW[k] = quad_weights[pk*16+k];
                         nzpan[k] = 2*(tz[k]-mid)/len;
-                        twazp[k] = wazpSolid[pk*16+k];
-                        tf[k] = Complex(f_re[pk*16+k],f_im[pk*16+k]);
+                        twazp[k] = wazp[pk*16+k];
+                        tf[k] = Complex(q1[pk*16+k],q2[pk*16+k]);
                         testsum += tW[k]*tzp[k]/(tz[k]-z);
                         
                         M1_old += imag(tzp[k]*tW[k]/(tz[k]-z))*tf[k];
@@ -351,10 +351,10 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                         Complex o32sum = 0;
                         
                         for (int k=0; k<32; k++) {
-                            tz32[k] = Complex(zSolid32_re[pk*32+k],zSolid32_im[pk*32+k]);
-                            tzp32[k] = Complex(zpSolid32_re[pk*32+k],zpSolid32_im[pk*32+k]);
-                            tW32[k] = wSolid32[pk*32+k];
-                            twazp32[k] = wazpSolid32[pk*32+k];
+                            tz32[k] = Complex(xsrc32[pk*32+k],ysrc32[pk*32+k]);
+                            tzp32[k] = Complex(xpsrc32[pk*32+k],ypsrc32[pk*32+k]);
+                            tW32[k] = quad_weights32[pk*32+k];
+                            twazp32[k] = wazp32[pk*32+k];
                             orig32[k] = tW32[k]/(tz32[k]-z);
                             o32sum += tzp32[k]*orig32[k];
                         }
@@ -374,8 +374,8 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                           
                             // add 32 point quadrature, take off existing 16 point quadrature
                             Complex modif = sum32 - sum16;
-                            out_ud_re[j] += real(modif);
-                            out_ud_im[j] += imag(modif);
+                            out_u1[j] += real(modif);
+                            out_u2[j] += imag(modif);
                             
                         } else {
                             
@@ -390,11 +390,9 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                             
                             // p is the expansion of 1/z
                             // q is the expansion of 1/z^2
-                            // r is the expansion of log(|z|)
                             q32[0] = -1/(1+nz)-1/(1-nz);
                             for (int k = 1; k<33; k++) {
                                 p32[k] = nz*p32[k-1] + (1.0-sign)/k;
-                                r32[k-1] = (lg1-sign*lg2-p32[k])/k + log(gamma)*(1.0-sign)/k;
                                 q32[k] = nz*q32[k-1] + p32[k-1];
                                 sign = -sign;
                             }
@@ -402,7 +400,6 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                             //Solve the vandermonde systems to get the
                             //quadrature weights.
                             vandernewton(nzpan32,p32,32);
-                            vandernewton(nzpan32,r32,32);
                             vandernewton(nzpan32,q32,32);
                             
                             //Complex newsum1 = 0, newsum2 = 0, newsum3 = 0, newsum4 = 0;
@@ -413,8 +410,8 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                             }
 
                             Complex modif = -(M1_helsing-0.5*_i*M2_helsing)/(2*pi) - sum16;
-                            out_ud_re[j] += real(modif);
-                            out_ud_im[j] += imag(modif);
+                            out_u1[j] += real(modif);
+                            out_u2[j] += imag(modif);
                         }
                         
                         nmodifs[0] += 1;                        
@@ -458,15 +455,12 @@ void vandernewton(Complex *T, Complex *b, int N) {
     for(int k = 1;k < N;k++)
         for(int j = N-1;j>=k;j--) {
             b[j] -= T[k-1]*b[j-1];
-//         b[j+16] -= T[k-1]*b[j+15];
         }
     
     for(int k = N-1;k >= 1;k--)
         for(int j=k;j<N;j++) {
             b[j] /= T[j]-T[j-k];
-//         b[j+16] /= T[j]-T[j-k];
             b[j-1] -= b[j];
-//         b[j+15] -= b[j+16];
         }
     
 }
