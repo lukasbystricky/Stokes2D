@@ -9,7 +9,7 @@ input_params = default_input_params_periodic('pouseuille_demo');
 input_params.box_size = [5,1.5];
 input_params.panels = 10;
  
-problem = periodic_pipe_setup(input_params);
+problem = flat_pipe_periodic(input_params);
 
 % solve the problem
 solution = solve_stokes(problem);
