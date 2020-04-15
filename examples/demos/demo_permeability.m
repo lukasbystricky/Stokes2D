@@ -1,8 +1,8 @@
-% computes the permeability of an infinitely periodic array of circles. 
-% For a reference cell containing a single circle, with volume fraction
-% phi=0.4, we can compare to the results in 
-% https://arxiv.org/abs/1906.06884. There they get 
-% K = (5.671e-4, 0; 0, 5.671e-4)
+% Compute the permeability of an doubly-periodic array of circles. The 
+% general procedure is outline for example in 
+% https://arxiv.org/abs/1906.06884. For a reference cell containing a 
+% single circle, with volume fraction phi=0.4, we can compare to the 
+% results in that paper. There they get K = (5.671e-4, 0; 0, 5.671e-4). 
 
 close all
 clearvars
