@@ -8,12 +8,13 @@ input_params = default_input_params_periodic('curved_channel_demo');
 % modify structure as needed, or add additional problem-dependent params
 input_params.box_size = [5,1.5];
 input_params.panels = 10;
+input.pressure_drop_x = 1;
 
 % set this up as a test problem. Shear flow boundary conditions are applied
 % along with zero pressure gradient. Then the exact solution (shear flow)
 % is known, so we can get an idea of how many panels are sufficient
-input_params.test = 0;
-input_params.plot_domain = 0;
+input_params.test = 1;
+input_params.plot_domain = 1;
 
 input_params.n_periods_top = 2;
 input_params.n_periods_bottom = 1;
