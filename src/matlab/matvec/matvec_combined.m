@@ -37,7 +37,7 @@ qwazp = qc.*domain.wazp;
 T = u1 + 1i*u2;
 
 % diagonal elements of the double-layer
-T = T - domain.quad_weights.*(qc.*imag(domain.zpp./domain.zp) + ...
+T = T + domain.quad_weights.*(qc.*imag(domain.zpp./domain.zp) + ...
     conj(qc).*imag(domain.zpp.*conj(domain.zp))./conj(domain.zp).^2)/(4*pi);
 
 [u1, u2] = StokesSLP_ewald_2p(x, y, x, y, real(qwazp), imag(qwazp),...
@@ -67,10 +67,10 @@ end
 
 G = G + (qc + domain.zp./conj(domain.zp).*conj(qc)).*domain.wazp/(8*pi);
 
-u = eta*G + T;
+u = -qc/2 + eta*G + T;
 
 % put everything back to real variables
-m(1:2*N) = [q1/2 + real(u) + u_avg(1); q2/2 + imag(u) + u_avg(2)];
+m(1:2*N) = [real(u) + u_avg(1); imag(u) + u_avg(2)];
 
 % add pressure constraint
 m(end - 1) = -eta*real(sum(qwazp)) / V;
