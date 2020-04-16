@@ -85,8 +85,8 @@ u2_corrected = imag(u_corrected);
                 domain.extra.Nrows,domain.extra.Ncols,domain.extra.panels2wall,...
                 domain.reference_cell);
 
-% anything that is less than 0 is outside the fluid domain
-outside = find(real(test) < -1e-6);
+% anything that is greater than 0 is outside the fluid domain
+outside = find(real(test) > -1e-6);
 u1_corrected(outside) = nan;
 u2_corrected(outside) = nan;
 
