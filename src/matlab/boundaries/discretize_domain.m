@@ -104,7 +104,8 @@ mean_panel_length = mean(panel_lengths);
 
 %% Grid domain, this is useful for special quadrature
 
-% first box points in reference cell plus points in neighbouring cells
+% for periodic domains, first box points in reference cell plus points in 
+% neighbouring cells
 
 if periodic
     xmin = -1.5*Lx;
@@ -132,7 +133,7 @@ for n = 1:sum(panels)
     zrel = (mid -(xmin+1i*ymin))/mean_panel_length;
     midx = floor(real(zrel))+1;
     midy = floor(imag(zrel))+1;
-    radius = ceil((panel_lengths(n)/mean_panel_length) + 10*eps);
+    radius = ceil(1.5*(panel_lengths(n)/mean_panel_length) + 10*eps);
     for x = midx-radius:midx+radius
         for y = midy-radius:midy+radius
             if x > 0 && x <= XBoxes && y > 0 && y <= YBoxes
