@@ -10,8 +10,8 @@ clc
 input_params = default_input_params('curved_channel_demo', 1);
 
 % modify structure as needed, or add additional problem-dependent params
-input_params.box_size = [5,1.5];
-input_params.panels = 10;
+input_params.box_size = [2,1.5];
+input_params.panels = 20;
 input.pressure_drop_x = 1;
 
 % set this up as a test problem. Shear flow boundary conditions are applied
