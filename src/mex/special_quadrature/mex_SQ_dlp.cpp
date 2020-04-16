@@ -310,7 +310,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                         M2_old += conj(tW[k]/(tz[k]-z))*imag(tzp[k]*conj(tz[k]-z))*conj(tf[k])/conj(tz[k]-z);;
                     }
                     
-                    sum16 = -(M1_old + M2_old)/(2*pi);
+                    sum16 = (M1_old + M2_old)/(2*pi);
                     
                     // Is the point between the panel and the real axis?
                     if (imag(nz) > 0 && real(nz) > -1 && real(nz) < 1) {
@@ -370,7 +370,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                 M2_new += conj(tW32[k]/(tz32[k]-z))*imag(tzp32[k]*conj(tz32[k]-z))*conj(tf32[k])/conj(tz32[k]-z);                                           
                             }
                             
-                            sum32 = -(M1_new + M2_new)/(2*pi);
+                            sum32 = (M1_new + M2_new)/(2*pi);
                           
                             // add 32 point quadrature, take off existing 16 point quadrature
                             Complex modif = sum32 - sum16;
@@ -409,7 +409,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                 M2_helsing += conj((conj(tzp32[k])/tzp32[k])*p32[k]-q32[k]*conj(tz32[k]-z)/gamma)*conj(tf32[k]);
                             }
 
-                            Complex modif = -(M1_helsing-0.5*_i*M2_helsing)/(2*pi) - sum16;
+                            Complex modif = (M1_helsing-0.5*_i*M2_helsing)/(2*pi) - sum16;
                             out_u1[j] += real(modif);
                             out_u2[j] += imag(modif);
                         }
