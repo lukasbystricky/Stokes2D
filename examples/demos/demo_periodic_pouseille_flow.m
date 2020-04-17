@@ -37,7 +37,7 @@ subplot(2,1,2)
 contourf(X,Y, log10(abs(Uc - exact_solution(X,Y))+eps));
 colorbar
 axis equal
-title('error');
+title('log_{10}(error)');
 
 
 
