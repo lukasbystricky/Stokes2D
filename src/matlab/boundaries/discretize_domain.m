@@ -17,11 +17,19 @@ function domain = discretize_domain(geometries, panels, varargin)
 
 % if domain is periodic user should provide Lx, Ly
 periodic = 0;
-if nargin > 2
+if nargin == 4
     periodic = 1;
     Lx = varargin{1};
     Ly = varargin{2};
 end
+
+% the user may wish to provide the centers of solid, for completion flow
+if nargin == 3
+    centers = varargin{1};
+else
+    centers = [];
+end
+
 %% Allocate arrays
 % discretized values using 16 points per panel
 z = zeros(sum(panels)*16,1);     
@@ -170,7 +178,7 @@ domain = struct('z',z,'zp',zp,'zpp',zpp,'quad_weights',quad_weights,...
     'panel_endpoints', panel_endpoints, 'grid',{domain_grid},...
     'reference_cell',[-Lx/2, Lx/2, -Ly/2, Ly/2],...
     'mean_panel_length',mean_panel_length,'pts2wall',pts2wall,...
-    'Lx', Lx, 'Ly', Ly);
+    'Lx', Lx, 'Ly', Ly, 'centers', centers);
 
 [Nrows,Ncols] = size(domain.grid);
 domain.extra.Nrows = Nrows;
