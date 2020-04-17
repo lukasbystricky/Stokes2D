@@ -45,10 +45,10 @@ if input_params.test
     hold on
     
     exact_solution = @(x,y) y;
-    contourf(X,Y, log10(abs(Uc - exact_solution(X,Y))+eps));
+    contourf(X,Y, log10(abs((Uc - exact_solution(X,Y))./exact_solution(X,Y))+eps));
     colorbar
     axis equal
-    title('log_{10}(error)');
+    title('log_{10}(relative error)');
     
 else
    
