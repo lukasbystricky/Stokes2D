@@ -41,7 +41,7 @@ A = input_params.omega * input_params.radii(1)^2 /...
 B = -input_params.omega * input_params.radii(1)^2 * input_params.radii(2)^2/...
     (input_params.radii(1)^2 - input_params.radii(2)^2);
 
- % exact solution in Cartesian coordinates
+ % exact solution in polar coordinates
 exact_solution_r = @(x,y) zeros(size(x));
 exact_solution_theta = @(x,y) A*sqrt(x.^2 + y.^2) + B./sqrt(x.^2 + y.^2);
 
