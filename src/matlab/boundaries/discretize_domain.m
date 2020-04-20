@@ -122,11 +122,14 @@ if periodic
     XBoxes = 3*ceil(Lx/mean_panel_length);
     YBoxes = 3*ceil(Ly/mean_panel_length);
 else
-    xmin = min(real(z));
-    ymin = min(imag(z));
+    xmin = min(real(z))- mean_panel_length/2;
+    ymin = min(imag(z))- mean_panel_length/2;
     
-    Lx = max(real(z)) - min(real(z));
-    Ly = max(imag(z)) - min(imag(z));
+    xmax = max(real(z)) + mean_panel_length/2;
+    ymax = max(real(z)) + mean_panel_length/2;
+    
+    Lx = xmax - xmin;
+    Ly = ymax - ymin;
     
     XBoxes = ceil(Lx/mean_panel_length);
     YBoxes = ceil(Ly/mean_panel_length);
@@ -166,8 +169,13 @@ if periodic
                 gridTmp{i+2*XBoxes/3, j+2*YBoxes/3}]);
         end
     end
+    
+    reference_cell = [-Lx/2, Lx/2, -Ly/2, Ly/2];
+    
 else
     domain_grid = gridTmp;
+    
+    reference_cell = [xmin, xmax, ymin, ymax];
 end
 
 %Save the Solid information in a structure
@@ -175,8 +183,8 @@ domain = struct('z',z,'zp',zp,'zpp',zpp,'quad_weights',quad_weights,...
     'wazp',quad_weights.*abs(zp),'z32',z32,'zp32',zp32,'zpp32',zpp32,...
     'quad_weights32',quad_weights32,'wazp32',quad_weights32.*abs(zp32),...
     'wall_indices',wall_indices,'panel_breaks',panel_breaks,...
-    'panel_endpoints', panel_endpoints, 'grid',{domain_grid},...
-    'reference_cell',[-Lx/2, Lx/2, -Ly/2, Ly/2],...
+    'panel_endpoints', panel_endpoints, 'grid', {domain_grid},...
+    'reference_cell', reference_cell,...
     'mean_panel_length',mean_panel_length,'pts2wall',pts2wall,...
     'Lx', Lx, 'Ly', Ly, 'centers', centers);
 
