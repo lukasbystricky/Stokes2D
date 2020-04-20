@@ -3,6 +3,7 @@
 Code to solve the Stokes equations using boundary integral equations.
 
 ## Features
+* confined flows, uses Power-Miranda formulation and an FMM to rapidly compute sums
 * periodic domains, uses spectral Ewald to rapidly compute infinte sums
 * special quadrature for on-surface evaluation of single-layer potential as well as near-surface evaluation of single- and double-layer potentials
 
@@ -39,6 +40,5 @@ Start Matlab and run `initpaths.m` to initialize the proper paths. Then run `dem
 ## To do
 
 * check OpenMP timings
-* support for confined, non-periodic geometries using FMM
 * RCIP for corner treatment
 * Navier-slip boundary conditions, adjoint double-layer potential
