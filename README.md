@@ -19,8 +19,16 @@ In addition to this repository you will need the fast multiplication methods in 
 	cmake ..
 	make
 
+	## compile FMM if desired
+	## NB: on Mac, Matlab mex requires the intel compilers
+	## The makefiles will need to be edited!
+	cd FastTools2D/FMM/src/StokesDLP
+	make
+	cd ../StokesSLP
+	make
+
 	## compile special quadrature routines
-	cd ../../../../Stokes2D/src/build
+	cd ../../../Stokes2D/src/build
 	cmake ..
 	make
 	cd ../..
