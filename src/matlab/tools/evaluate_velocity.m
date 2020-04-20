@@ -1,14 +1,15 @@
 function [U1c, U2c, X, Y, U1, U2] = evaluate_velocity(solution, varargin)
-%EVALUTATE_VELOCITY evaluates the velocity on a regular grid over the 
-%reference cell. Uses the stresslet identity to identify points inside the
-%domain.
+%EVALUTATE_VELOCITY evaluates the velocity at either regular grid over the 
+%reference cell or at specified target points. Uses the stresslet identity 
+%to identify points inside the domain.
 %
 % inputs:
 % -solution: structure containing the following fields
-%   -domain: a domain structure containing geometry information
+%   -problem: a problem structure containing problem/geometry information
 %   -q : density function, vector of size #npts by 2
-%   -eta: factor in front of SLP in combined-layer formulation
-% -N: number of points in each direction
+% variable number of additional arguments, one of
+% 1) N: number of points in each direction
+% 2) X and Y, vectors (or matrices) of target points
 
 disp('Evaluating velocity...');
 
@@ -35,6 +36,8 @@ else % target points are specified
     Y = varargin{2};
 end
 
+% if the problem is periodic use spectral Ewald and combined layer
+% formulation
 if solution.problem.periodic
     [uslp1, uslp2] = StokesSLP_ewald_2p(xsrc, ysrc, X(:), Y(:),...
         solution.q(:,1).*weights, solution.q(:,2).*weights, Lx, Ly,...
@@ -72,6 +75,9 @@ if solution.problem.periodic
         solution.u_avg(1) + 1i*solution.u_avg(2);
     u = udlp + solution.problem.eta*uslp + solution.u_avg(1) +...
         1i*solution.u_avg(2);
+    
+% if the problem is not periodic, use FMM and the completed double-layer
+% potential, i.e. Power-Miranda
 else
     
     % FMM can only evaluate for source=targets, so we include all the
@@ -87,11 +93,12 @@ else
     
     [udlp1, udlp2] = stokesDLPfmm(qtmp1, qtmp2, xtmp, ytmp, ntmp1, ntmp2);
     
-    % note negative sign in from of double-layer
+    % note negative sign in front of double-layer
     udlp = -udlp1(length(xsrc)+1:end) - 1i*udlp2(length(xsrc)+1:end);
     
     disp('Beginning special quadrature...');
     
+    % correct using special quadrature
     [udlp_corrected,~] = mex_SQ_dlp(X(:)+1i*Y(:), domain.z, domain.zp,...
         domain.quad_weights, domain.panel_breaks, domain.wazp, domain.z32,...
         domain.zp32, domain.quad_weights32, domain.wazp32,...
@@ -100,6 +107,7 @@ else
         domain.extra.Nrows,domain.extra.Ncols,domain.extra.panels2wall,...
         domain.reference_cell);
     
+    % add on completion flow from rotlets and Stokeslets
     [uS, uR] = completion_contribution(domain.centers(2:end), X(:)+1i*Y(:),...
                 solution.forces, solution.torques);
     
@@ -118,6 +126,8 @@ if solution.problem.periodic
     [test1, test2] = StokesDLP_ewald_2p(xsrc, ysrc, X(:), Y(:), n1, n2,...
         ones(length(n1),1).*weights, zeros(length(n1),1).*weights, Lx, Ly);
 else
+    % again, FMM for DLP assumes sources=targets, so we have to artifically
+    % add sources with strength zero
     qtmp1 = [ones(length(xsrc),1).*weights; zeros(length(X(:)),1)];
     qtmp2 = [zeros(length(xsrc),1).*weights; zeros(length(X(:)),1)];
     ntmp1 = [n1(:); zeros(length(X(:)),1)];
@@ -128,9 +138,9 @@ else
     
     [test1, test2] = stokesDLPfmm(qtmp1, qtmp2, xtmp, ytmp, ntmp1, ntmp2);
     
+    % extract data at target points only
     test1 = -test1(length(xsrc)+1:end);
     test2 = -test2(length(xsrc)+1:end);
-    
 end
 
 % correct using special quadrature
