@@ -1,9 +1,9 @@
 function M = build_matrix(matvec, domain)
 
-N = length(domain.z);
-Q = eye(2*N);
-M = zeros(2*N);
+N = 2*length(domain.z) + 3;
+Q = eye(N);
+M = zeros(N);
 
-for i = 1:2*N
+for i = 1:N
     M(:,i) = matvec(Q(:,i));
 end
