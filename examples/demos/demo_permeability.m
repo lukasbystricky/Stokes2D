@@ -57,3 +57,9 @@ figure(1);
 % compute volume integral of u
 [K(2,1), K(2,2)] = compute_volume_integral_circles(input_params.centers,...
     input_params.radii, solution, 'hmax', 0.02, 'N', 5);
+
+
+fprintf("K_{11} = %3.3e\n", K(1,1));
+fprintf("K_{12} = %3.3e\n", K(1,2));
+fprintf("K_{21} = %3.3e\n", K(2,1));
+fprintf("K_{22} = %3.3e\n", K(2,2));
