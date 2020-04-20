@@ -40,8 +40,8 @@ end
 
 %% create domain
 
-Lx = solution.domain.Lx;
-Ly = solution.domain.Ly;
+Lx = solution.problem.domain.Lx;
+Ly = solution.problem.domain.Ly;
 box = [3; 4; -Lx/2; -Lx/2; Lx/2; Lx/2; -Ly/2; Ly/2; Ly/2; -Ly/2];
 
 n_circles = length(radii);
