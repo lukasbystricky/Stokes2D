@@ -8,7 +8,7 @@ close all
 clear vars
 clc
 
-addpath(genpath('../FastTools2D/FMM/src/bin'))
+addpath(genpath('../FastTools2D/FMM/src/'))
 addpath(genpath('../FastTools2D/PeriodicEwald/src'))
 addpath(genpath('src'));
 addpath(genpath('examples'));
