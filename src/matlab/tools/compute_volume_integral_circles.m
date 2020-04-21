@@ -89,6 +89,7 @@ mesh = generateMesh(model, 'Hmax', hmax, 'geometricOrder', 'linear');
 
 hold on
 pdemesh(model)
+drawnow
 
 %% collect quadrature points and weights
 
