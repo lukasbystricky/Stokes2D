@@ -12,6 +12,7 @@ problem.pressure_gradient_y = input_params.pressure_drop_y / problem.Ly;
 problem.name = input_params.name;
 problem.gmres_tol = input_params.gmres_tol;
 problem.eta = input_params.eta;
+problem.stresslet_id_test = input_params.stresslet_id_test;
 
 % discretize domain
 % top wall

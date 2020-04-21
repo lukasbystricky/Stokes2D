@@ -11,6 +11,7 @@ problem.pressure_gradient_y = input_params.pressure_drop_y / problem.Ly;
 problem.name = input_params.name;
 problem.gmres_tol = input_params.gmres_tol;
 problem.eta = input_params.eta;
+problem.stresslet_id_test = input_params.stresslet_id_test;
 
 k1 = 2*pi*input_params.n_periods_top/problem.Lx;
 k2 = 2*pi*input_params.n_periods_bottom/problem.Lx;
