@@ -16,6 +16,11 @@ input_params.box_size = [1,1];
 input_params.panels = 10;
 input_params.plot_domain = 0;
 
+% stesslet identity has some issues if a boundary crosses over a periodic
+% cell, so don't apply it here since quadrature points for volume integral
+% should be inside the domain anyways
+input_params.stresslet_id_test = @(t) zeros(size(t)); 
+
 % volume fraction
 phi = 0.4;
 
@@ -26,8 +31,7 @@ input_params.radii = input_params.box_size(1)*sqrt((1-phi)/pi);
 % the center is, we've placed in at the corner of the reference cell to
 % test the special quadrature, moving the center should not change the
 % results
-input_params.centers = input_params.box_size(1)/2 + ...
-    1i * input_params.box_size(2)/2;
+input_params.centers = 0;
 
 K = zeros(2,2);
 
