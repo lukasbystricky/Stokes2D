@@ -152,7 +152,7 @@ end
                 domain.reference_cell);
 
 % anything that is greater than 0 is outside the fluid domain
-outside = find(real(test) > -1e-6);
+outside = find(solution.problem.stresslet_id_test(real(test)) == 1);
 u1_corrected(outside) = nan;
 u2_corrected(outside) = nan;
 u1(outside) = nan;
