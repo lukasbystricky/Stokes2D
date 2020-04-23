@@ -4,6 +4,8 @@
 % single circle, with volume fraction phi=0.4, we can compare to the 
 % results in that paper. There they get K = (5.671e-4, 0; 0, 5.671e-4). 
 
+% NB: To do the volume meshing you will need the Matlab PDE toolbox
+
 close all
 clearvars
 clc
