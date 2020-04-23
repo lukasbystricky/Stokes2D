@@ -37,6 +37,8 @@ In addition to this repository you will need the fast multiplication methods in 
 
 Start Matlab and run `initpaths.m` to initialize the proper paths. Then run `demo_periodic_pouseille_flow`. With 10 panels on each wall, you should acheive around 14 digits of accuracy everywhere in the domain.  
 
+To test the FMM, run `demo_taylor_couette.m`. With 10 panels on the outer wall and 5 panels on the inner wall you should see 12 digits of accuracy everywhere.
+
 ## To do
 
 * check OpenMP timings
