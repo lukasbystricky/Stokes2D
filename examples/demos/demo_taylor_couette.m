@@ -63,7 +63,7 @@ if test
     plot_domain(problem, h);
     hold on
     contourf(X,Y,log10(abs(Utheta - exact_solution_theta(X,Y))./...
-        abs(exact_solution_theta(X,Y)) + eps));
+        max(max(abs(exact_solution_theta(X,Y)))) + eps));
     colorbar
     axis equal
     title('log_{10}(relative error angular velocity)');
