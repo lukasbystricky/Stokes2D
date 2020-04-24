@@ -29,6 +29,8 @@ ylim([min(imag(z)), max(imag(z))]);
 
 if problem.periodic
     rectangle('Position',[-Lx/2, -Ly/2, Lx, Ly], 'LineStyle', '--')
+    xlim([-1.1*Lx/2, 1.1*Lx/2]);
+    ylim([-1.1*Ly/2, 1.1*Ly/2]);
 end
 
 axis equal
