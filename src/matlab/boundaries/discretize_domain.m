@@ -124,11 +124,11 @@ if periodic
     XBoxes = 3*ceil(Lx/mean_panel_length);
     YBoxes = 3*ceil(Ly/mean_panel_length);
 else
-    xmin = min(real(z))- 3*mean_panel_length;
-    ymin = min(imag(z))- 3*mean_panel_length;
+    xmin = min(real(z))- 4*mean_panel_length;
+    ymin = min(imag(z))- 4*mean_panel_length;
     
-    xmax = max(real(z)) + 3*mean_panel_length;
-    ymax = max(real(z)) + 3*mean_panel_length;
+    xmax = max(real(z)) + 4*mean_panel_length;
+    ymax = max(real(z)) + 4*mean_panel_length;
     
     Lx = xmax - xmin;
     Ly = ymax - ymin;
