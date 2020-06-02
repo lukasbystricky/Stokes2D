@@ -175,10 +175,11 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
     //things properly.
     memcpy(out_u1,u1tar,Ntar*sizeof(double));
     memcpy(out_u2,u2tar,Ntar*sizeof(double));
-    
-//    double xmax = pi; double xmin = -pi; double ymax = pi; double ymin = -pi;
+
     double xmin = bnds[0];
     double ymin = bnds[2];
+    double xmax = bnds[1];
+    double ymax = bnds[3];
     
     if (Nsrc == 0) //if no solids, return early
         return;
@@ -192,229 +193,235 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
         double twazp[16], twazp32[32];
         double tmpT[16], tmpb[16], tW32[32], tW[16];
         
-        // The point in the loop
-        Complex z = Complex(xtar[j],ytar[j]);
-        
-        // Check how close the point z is to panels using precomp. boxes
-        Complex zrel = Complex((xtar[j]-xmin)/(*meanlen),(ytar[j]-ymin)/(*meanlen));
-        
-        int midx = static_cast<int>(floor(real(zrel))) % static_cast<int>(*gridSolidNx);
-        int midy = static_cast<int>(floor(imag(zrel))) % static_cast<int>(*gridSolidNy);
-        
-        int nind = static_cast<int>(midy*(*gridSolidNx) + midx);
-        int solidind = nind*dims[0];
-        int ind = 0; int pk;
-        for (int npj = 0; npj<dims[0]; npj++) {
-            // Go through all panels in the vector stored at gridSolidmat
-            ind = solidind+npj;
-            pk = static_cast<int>(gridSolidmat[ind])-1; // -1 here since C++ zero-based
+        // only work on points inside the box
+        if (xtar[j] > xmin && xtar[j] < xmax && ytar[j] > ymin && ytar[j] < ymax)
+        {            
+            // The point in the loop
+            Complex z = Complex(xtar[j],ytar[j]);
             
-            if (pk > -1) { // Only panels not equal to -1 will be considered
-                // These are the panels were we need to do special quadrature for point j
-                int periodic_case = -1;
-                Complex zTmp;
+            // Check how close the point z is to panels using precomp. boxes
+            Complex zrel = Complex((xtar[j]-xmin)/(*meanlen),(ytar[j]-ymin)/(*meanlen));
+            
+            int midx = static_cast<int>(floor(real(zrel))) % static_cast<int>(*gridSolidNx);
+            int midy = static_cast<int>(floor(imag(zrel))) % static_cast<int>(*gridSolidNy);
+            
+            int nind = static_cast<int>(midy*(*gridSolidNx) + midx);
+            int solidind = nind*dims[0];
+            int ind = 0; int pk;
+            for (int npj = 0; npj<dims[0]; npj++) {
+                // Go through all panels in the vector stored at gridSolidmat
+                ind = solidind+npj;
+                pk = static_cast<int>(gridSolidmat[ind])-1; // -1 here since C++ zero-based
                 
-                int b1 = static_cast<int>(pan2bndry[pk]);
-                Complex mid = Complex(0.5*(panel_breaks_x[pk+b1+1]+panel_breaks_x[pk+b1]),
-                                        0.5*(panel_breaks_y[pk+b1+1]+panel_breaks_y[pk+b1]));
-                Complex len = Complex(panel_breaks_x[pk+b1+1]-panel_breaks_x[pk+b1],
-                                        panel_breaks_y[pk+b1+1]-panel_breaks_y[pk+b1]);
-                
-                if (abs(z - mid) < abs(len))
-                    periodic_case = 0;
-                
-                else  if (abs(mid - (z - Complex(bnds[1] - bnds[0]))) < abs(len))
-                    periodic_case = 1;
-                
-                else if (abs(mid - (z + Complex(bnds[1] - bnds[0]))) < abs(len))
-                    periodic_case = 2;
-                
-                else if (abs(mid - (z - Complex(0, bnds[3] - bnds[2]))) < abs(len))
-                    periodic_case = 3;
-                
-                else if (abs(mid - (z + Complex(0, bnds[3] - bnds[2]))) < abs(len))
-                    periodic_case = 4;
-                
-                else if (abs(mid - (z + Complex(bnds[1] - bnds[0], bnds[3] - bnds[2]))) < abs(len))
-                    periodic_case = 5;
-                
-                else if (abs(mid - (z + Complex(-(bnds[1] - bnds[0]), bnds[3] - bnds[2]))) < abs(len))
-                    periodic_case = 6;
-                
-                else if (abs(mid - (z + Complex(bnds[1] - bnds[0], -(bnds[3] - bnds[2])))) < abs(len))
-                    periodic_case = 7;
-                
-                else if (abs(mid - (z - Complex(bnds[1] - bnds[0], bnds[3] - bnds[2]))) < abs(len))
-                    periodic_case = 8;
-                
-                
-                if (periodic_case > -1) { // If we are close enough to do special q.
+                if (pk > -1) { // Only panels not equal to -1 will be considered
+                    // These are the panels were we need to do special quadrature for point j
+                    int periodic_case = -1;
+                    Complex zTmp;
                     
-                    switch (periodic_case)
-                    {
-                        case 1:
-                            z = z - Complex(bnds[1] - bnds[0]);
-                            break;
-                            
-                        case 2:
-                            z = z + Complex(bnds[1] - bnds[0]);
-                            break;
-                            
-                        case 3:
-                            z = z - Complex(0,bnds[3] - bnds[2]);
-                            break;
-                            
-                        case 4:
-                            z = z + Complex(0,bnds[3] - bnds[2]);
-                            break;
-                            
-                        case 5:
-                            z = z + Complex(bnds[1] - bnds[0],bnds[3] - bnds[2]);
-                            break;
-                            
-                        case 6:
-                            z = z + Complex(-(bnds[1] - bnds[0]),bnds[3] - bnds[2]);
-                            break;
-                            
-                        case 7:
-                            z = z + Complex(bnds[1] - bnds[0],-(bnds[3] - bnds[2]));
-                            break;
-                            
-                        case 8:
-                            z = z - Complex(bnds[1] - bnds[0],bnds[3] - bnds[2]);
-                            break;
-                    }
+                    int b1 = static_cast<int>(pan2bndry[pk]);
+                    Complex mid = Complex(0.5*(panel_breaks_x[pk+b1+1]+panel_breaks_x[pk+b1]),
+                            0.5*(panel_breaks_y[pk+b1+1]+panel_breaks_y[pk+b1]));
+                    Complex len = Complex(panel_breaks_x[pk+b1+1]-panel_breaks_x[pk+b1],
+                            panel_breaks_y[pk+b1+1]-panel_breaks_y[pk+b1]);
                     
-                    Complex nz = 2*(z-mid)/len; // rescale z
+                    if (abs(z - mid) < abs(len))
+                        periodic_case = 0;
                     
-                    Complex lg1 = log(1-nz);
-                    Complex lg2 = log(-1-nz);
+                    else  if (abs(mid - (z - Complex(bnds[1] - bnds[0]))) < abs(len))
+                        periodic_case = 1;
                     
-                    // SLP can be written as sum as sum of M3 and M4
-                    // Expressions can be found in Pålsson and Tornberg, 2019
-                    // https://arxiv.org/pdf/1909.12581.pdf
+                    else if (abs(mid - (z + Complex(bnds[1] - bnds[0]))) < abs(len))
+                        periodic_case = 2;
                     
-                    Complex M1_old = 0, M2_old = 0, sum16;
-                    Complex testsum = 0;
+                    else if (abs(mid - (z - Complex(0, bnds[3] - bnds[2]))) < abs(len))
+                        periodic_case = 3;
                     
-                    for (int k = 0; k<16; k++) {
-                        tz[k] = Complex(xsrc[pk*16+k],ysrc[pk*16+k]);
-                        tzp[k] = Complex(xpsrc[pk*16+k],ypsrc[pk*16+k]);
-                        tW[k] = quad_weights[pk*16+k];
-                        nzpan[k] = 2*(tz[k]-mid)/len;
-                        twazp[k] = wazp[pk*16+k];
-                        tf[k] = Complex(q1[pk*16+k],q2[pk*16+k]);
-                        testsum += tW[k]*tzp[k]/(tz[k]-z);
+                    else if (abs(mid - (z + Complex(0, bnds[3] - bnds[2]))) < abs(len))
+                        periodic_case = 4;
+                    
+                    else if (abs(mid - (z + Complex(bnds[1] - bnds[0], bnds[3] - bnds[2]))) < abs(len))
+                        periodic_case = 5;
+                    
+                    else if (abs(mid - (z + Complex(-(bnds[1] - bnds[0]), bnds[3] - bnds[2]))) < abs(len))
+                        periodic_case = 6;
+                    
+                    else if (abs(mid - (z + Complex(bnds[1] - bnds[0], -(bnds[3] - bnds[2])))) < abs(len))
+                        periodic_case = 7;
+                    
+                    else if (abs(mid - (z - Complex(bnds[1] - bnds[0], bnds[3] - bnds[2]))) < abs(len))
+                        periodic_case = 8;
+                    
+                    
+                    if (periodic_case > -1) { // If we are close enough to do special q.
                         
-                        M1_old += imag(tzp[k]*tW[k]/(tz[k]-z))*tf[k];
-                        M2_old += conj(tW[k]/(tz[k]-z))*imag(tzp[k]*conj(tz[k]-z))*conj(tf[k])/conj(tz[k]-z);;
-                    }
-                    
-                    sum16 = (M1_old + M2_old)/(2*pi);
-                    
-                    // Is the point between the panel and the real axis?
-                    if (imag(nz) > 0 && real(nz) > -1 && real(nz) < 1) {
-                        int furthercheck = 0;
-                        for (int k = 0; k<16; k++) {
-                            if (imag(nzpan[k]) > imag(nz)) {
-                                furthercheck = 1;
+                        switch (periodic_case)
+                        {
+                            case 1:
+                                z = z - Complex(bnds[1] - bnds[0]);
                                 break;
-                            }
-                        }
-                        if (furthercheck) {
-                            for (int k=0; k<16; k++) {
-                                tmpT[k] = real(nzpan[k]);
-                                tmpb[k] = imag(nzpan[k]);
-                            }
-                            vandernewtonT(tmpT,tmpb,16);
-                            double test = tmpb[15];
-                            for (int k=14; k>=0; k--) {
-                                test = test*real(nz) + tmpb[k];
-                            }
-                            
-                            if (test > imag(nz)) {
-                                lg1 -= pi*_i; //OBS check signs here
-                                lg2 += pi*_i;
-                            }
-                        }
-                    }
-                    
-                    p32[0] = lg1-lg2;
-                    
-                    // Does standard Q suffice? In that case, don't do anything!
-                    if (abs(p32[0]-testsum) > 1e-14) {
-                        //No! First: attempt 32-point quadrature
-                        
-                        Complex orig32[32];
-                        IPmultR(tf,tf32);
-                        
-                        Complex o32sum = 0;
-                        
-                        for (int k=0; k<32; k++) {
-                            tz32[k] = Complex(xsrc32[pk*32+k],ysrc32[pk*32+k]);
-                            tzp32[k] = Complex(xpsrc32[pk*32+k],ypsrc32[pk*32+k]);
-                            tW32[k] = quad_weights32[pk*32+k];
-                            twazp32[k] = wazp32[pk*32+k];
-                            orig32[k] = tW32[k]/(tz32[k]-z);
-                            o32sum += tzp32[k]*orig32[k];
-                        }
-                        
-                        if (abs(o32sum-p32[0]) < 1e-14) {
-                            // 32 quad suffices!
-                            
-                            Complex M1_new = 0, M2_new = 0, sum32;
-                            
-                            for (int k=0; k<32; k++) {
                                 
-                                M1_new += imag(tzp32[k]*tW32[k]/(tz32[k]-z))*tf32[k];
-                                M2_new += conj(tW32[k]/(tz32[k]-z))*imag(tzp32[k]*conj(tz32[k]-z))*conj(tf32[k])/conj(tz32[k]-z);                                           
-                            }
-                            
-                            sum32 = (M1_new + M2_new)/(2*pi);
-                          
-                            // add 32 point quadrature, take off existing 16 point quadrature
-                            Complex modif = sum32 - sum16;
-                            out_u1[j] += real(modif);
-                            out_u2[j] += imag(modif);
-                            
-                        } else {
-                            
-                            // Need to use SQ
-                            for (int k=0; k<32; k++) {
-                                n32[k] = -_i*tzp32[k]/abs(tzp32[k]);
-                                nzpan32[k] = 2*(tz32[k]-mid)/len;
-                            }
-                            
-                            Complex gamma = 0.5*len;
-                            double sign = -1;
-                            
-                            // p is the expansion of 1/z
-                            // q is the expansion of 1/z^2
-                            q32[0] = -1/(1+nz)-1/(1-nz);
-                            for (int k = 1; k<33; k++) {
-                                p32[k] = nz*p32[k-1] + (1.0-sign)/k;
-                                q32[k] = nz*q32[k-1] + p32[k-1];
-                                sign = -sign;
-                            }
-                            
-                            //Solve the vandermonde systems to get the
-                            //quadrature weights.
-                            vandernewton(nzpan32,p32,32);
-                            vandernewton(nzpan32,q32,32);
-                            
-                            //Complex newsum1 = 0, newsum2 = 0, newsum3 = 0, newsum4 = 0;
-                            Complex M1_helsing = 0, M2_helsing = 0;
-                            for (int k = 0; k<32; k++) {
-                                M1_helsing += imag(p32[k])*tf32[k];
-                                M2_helsing += conj((conj(tzp32[k])/tzp32[k])*p32[k]-q32[k]*conj(tz32[k]-z)/gamma)*conj(tf32[k]);
-                            }
-
-                            Complex modif = (M1_helsing-0.5*_i*M2_helsing)/(2*pi) - sum16;
-                            out_u1[j] += real(modif);
-                            out_u2[j] += imag(modif);
+                            case 2:
+                                z = z + Complex(bnds[1] - bnds[0]);
+                                break;
+                                
+                            case 3:
+                                z = z - Complex(0,bnds[3] - bnds[2]);
+                                break;
+                                
+                            case 4:
+                                z = z + Complex(0,bnds[3] - bnds[2]);
+                                break;
+                                
+                            case 5:
+                                z = z + Complex(bnds[1] - bnds[0],bnds[3] - bnds[2]);
+                                break;
+                                
+                            case 6:
+                                z = z + Complex(-(bnds[1] - bnds[0]),bnds[3] - bnds[2]);
+                                break;
+                                
+                            case 7:
+                                z = z + Complex(bnds[1] - bnds[0],-(bnds[3] - bnds[2]));
+                                break;
+                                
+                            case 8:
+                                z = z - Complex(bnds[1] - bnds[0],bnds[3] - bnds[2]);
+                                break;
                         }
                         
-                        nmodifs[0] += 1;                        
+                        Complex nz = 2*(z-mid)/len; // rescale z
+                        
+                        Complex lg1 = log(1-nz);
+                        Complex lg2 = log(-1-nz);
+                        
+                        // SLP can be written as sum as sum of M3 and M4
+                        // Expressions can be found in Pålsson and Tornberg, 2019
+                        // https://arxiv.org/pdf/1909.12581.pdf
+                        
+                        Complex M1_old = 0, M2_old = 0, sum16;
+                        Complex testsum = 0;
+                        
+                        for (int k = 0; k<16; k++) {
+                            tz[k] = Complex(xsrc[pk*16+k],ysrc[pk*16+k]);
+                            tzp[k] = Complex(xpsrc[pk*16+k],ypsrc[pk*16+k]);
+                            tW[k] = quad_weights[pk*16+k];
+                            nzpan[k] = 2*(tz[k]-mid)/len;
+                            twazp[k] = wazp[pk*16+k];
+                            tf[k] = Complex(q1[pk*16+k],q2[pk*16+k]);
+                            testsum += tW[k]*tzp[k]/(tz[k]-z);
+                            
+                            M1_old += imag(tzp[k]*tW[k]/(tz[k]-z))*tf[k];
+                            M2_old += conj(tW[k]/(tz[k]-z))*imag(tzp[k]*conj(tz[k]-z))*conj(tf[k])/conj(tz[k]-z);;
+                        }
+                        
+                        sum16 = (M1_old + M2_old)/(2*pi);
+                        
+                        // Is the point between the panel and the real axis?
+                        if (imag(nz) > 0 && real(nz) > -1 && real(nz) < 1) {
+                            int furthercheck = 0;
+                            for (int k = 0; k<16; k++) {
+                                if (imag(nzpan[k]) > imag(nz)) {
+                                    furthercheck = 1;
+                                    break;
+                                }
+                            }
+                            if (furthercheck) {
+                                for (int k=0; k<16; k++) {
+                                    tmpT[k] = real(nzpan[k]);
+                                    tmpb[k] = imag(nzpan[k]);
+                                }
+                                vandernewtonT(tmpT,tmpb,16);
+                                double test = tmpb[15];
+                                for (int k=14; k>=0; k--) {
+                                    test = test*real(nz) + tmpb[k];
+                                }
+                                
+                                if (test > imag(nz)) {
+                                    lg1 -= pi*_i; //OBS check signs here
+                                    lg2 += pi*_i;
+                                }
+                            }
+                        }
+                        
+                        p32[0] = lg1-lg2;
+                        
+                        // Does standard Q suffice? In that case, don't do anything!
+                        if (abs(p32[0]-testsum) > 1e-14) {
+                            //No! First: attempt 32-point quadrature
+                            
+                            //mexPrintf("16 pt quad faild, trying 32 pt\n");
+                            
+                            Complex orig32[32];
+                            IPmultR(tf,tf32);
+                            
+                            Complex o32sum = 0;
+                            
+                            for (int k=0; k<32; k++) {
+                                tz32[k] = Complex(xsrc32[pk*32+k],ysrc32[pk*32+k]);
+                                tzp32[k] = Complex(xpsrc32[pk*32+k],ypsrc32[pk*32+k]);
+                                tW32[k] = quad_weights32[pk*32+k];
+                                twazp32[k] = wazp32[pk*32+k];
+                                orig32[k] = tW32[k]/(tz32[k]-z);
+                                o32sum += tzp32[k]*orig32[k];
+                            }
+                            
+                            if (abs(o32sum-p32[0]) < 1e-14) {
+                                // 32 quad suffices!
+                               // mexPrintf("32 pt quad worked!\n");
+                                Complex M1_new = 0, M2_new = 0, sum32;
+                                
+                                for (int k=0; k<32; k++) {
+                                    
+                                    M1_new += imag(tzp32[k]*tW32[k]/(tz32[k]-z))*tf32[k];
+                                    M2_new += conj(tW32[k]/(tz32[k]-z))*imag(tzp32[k]*conj(tz32[k]-z))*conj(tf32[k])/conj(tz32[k]-z);
+                                }
+                                
+                                sum32 = (M1_new + M2_new)/(2*pi);
+                                
+                                // add 32 point quadrature, take off existing 16 point quadrature
+                                Complex modif = sum32 - sum16;
+                                out_u1[j] += real(modif);
+                                out_u2[j] += imag(modif);
+                                
+                            } else {
+                                //mexPrintf("32 pt quad faild, using SQ\n");
+                                // Need to use SQ
+                                for (int k=0; k<32; k++) {
+                                    n32[k] = -_i*tzp32[k]/abs(tzp32[k]);
+                                    nzpan32[k] = 2*(tz32[k]-mid)/len;
+                                }
+                                
+                                Complex gamma = 0.5*len;
+                                double sign = -1;
+                                
+                                // p is the expansion of 1/z
+                                // q is the expansion of 1/z^2
+                                q32[0] = -1/(1+nz)-1/(1-nz);
+                                for (int k = 1; k<33; k++) {
+                                    p32[k] = nz*p32[k-1] + (1.0-sign)/k;
+                                    q32[k] = nz*q32[k-1] + p32[k-1];
+                                    sign = -sign;
+                                }
+                                
+                                //Solve the vandermonde systems to get the
+                                //quadrature weights.
+                                vandernewton(nzpan32,p32,32);
+                                vandernewton(nzpan32,q32,32);
+                                
+                                //Complex newsum1 = 0, newsum2 = 0, newsum3 = 0, newsum4 = 0;
+                                Complex M1_helsing = 0, M2_helsing = 0;
+                                for (int k = 0; k<32; k++) {
+                                    M1_helsing += imag(p32[k])*tf32[k];
+                                    M2_helsing += conj((conj(tzp32[k])/tzp32[k])*p32[k]-q32[k]*conj(tz32[k]-z)/gamma)*conj(tf32[k]);
+                                }
+                                
+                                Complex modif = (M1_helsing-0.5*_i*M2_helsing)/(2*pi) - sum16;
+                                out_u1[j] += real(modif);
+                                out_u2[j] += imag(modif);
+                            }
+                            
+                            nmodifs[0] += 1;
+                        }
                     }
                 }
             }
