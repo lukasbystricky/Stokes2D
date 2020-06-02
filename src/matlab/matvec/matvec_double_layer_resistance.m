@@ -1,4 +1,4 @@
-function m = matvec_double_layer(X, domain)
+function m = matvec_double_layer_resistance(X, domain)
 % MATVEC_DOUBLE_LAYER: perform a matrix vector product using the 
 % double-layer formulation with Power-Miranda completion, i.e. 
 % u(x) = -q/2 + -D[q](x) + S[F](x) + R[T](x), F is the net force on all 
