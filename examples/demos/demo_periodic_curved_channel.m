@@ -36,11 +36,12 @@ solution = solve_stokes(problem);
 % display solution
 
 [Uc, Vc, X, Y,U] = evaluate_velocity(solution, 100);
-
+[Ux, Uy, Vx, Vy] = evaluate_velocity_gradient(solution, X, Y);
 
 h = figure();
 if input_params.test
     
+    subplot(2,1,1)
     plot_domain(problem, h);
     hold on
     
@@ -49,7 +50,18 @@ if input_params.test
                 max(max(abs(exact_solution(X,Y)))))+eps));
     colorbar
     axis equal
-    title('log_{10}(relative error)');
+    title('velocity: log_{10}(relative error)');
+    
+    subplot(2,1,2)
+    plot_domain(problem, h);
+    hold on
+    
+    exact_solution = @(x,y) 1;
+    contourf(X,Y, log10(abs((Uy - exact_solution(X,Y))./...
+                max(max(abs(exact_solution(X,Y)))))+eps));
+    colorbar
+    axis equal
+    title('gradient: log_{10}(relative error)');
     
 else
    

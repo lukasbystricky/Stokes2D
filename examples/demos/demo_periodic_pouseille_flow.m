@@ -15,30 +15,42 @@ input_params = default_input_params('pouseuille_demo', 1);
 
 % modify structure as needed
 input_params.box_size = [5,1.5];
-input_params.panels = 10;
- 
+input_params.panels = 16;
+input_params.eta = 1;
+
 problem = flat_pipe_periodic(input_params);
 
 % solve the problem
 solution = solve_stokes(problem);
 
 % display solution
-exact_solution = @(x,y) -problem.pressure_gradient_x * y.*(y-1)/2;
+exact_solution_u = @(x,y) -problem.pressure_gradient_x * y.*(y-1)/2;
+exact_solution_uy = @(x,y) -problem.pressure_gradient_x * (y - 0.5);
 
-[Uc, ~, X, Y] = evaluate_velocity(solution, 100);
+x = linspace(0,5);
+y = linspace(0.25, 0.75);
+[X,Y] = meshgrid(x,y);
+
+Uc = evaluate_velocity(solution, X, Y);
+%Pc = evaluate_pressure(solution, X, Y);
+
+[Ux, Uy, Vx, Vy, X, Y] = evaluate_velocity_gradient(solution, X, Y);
+
 
 subplot(2,1,1)
-contourf(X,Y,Uc);
+contourf(X,Y, log10(abs((Uc - exact_solution_u(X,Y))./...
+    max(max(abs(exact_solution_u(X,Y)))))+eps));
 colorbar
 axis equal
-title('U_1');
+title('velocity: log_{10}(relative error)');
 
 subplot(2,1,2)
-contourf(X,Y, log10(abs((Uc - exact_solution(X,Y))./...
-    max(max(abs(exact_solution(X,Y)))))+eps));
+contourf(X,Y,log10(abs((Uy - exact_solution_uy(X,Y))./...
+    max(max(abs(exact_solution_uy(X,Y)))))+eps))
+%contourf(X,Y,log10(abs(Pc)+eps))
 colorbar
 axis equal
-title('log_{10}(relative error)');
+title('Uy: log_{10}(relative error)');
 
 
 
