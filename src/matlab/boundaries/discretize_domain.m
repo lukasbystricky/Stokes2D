@@ -32,10 +32,11 @@ end
 
 %% Allocate arrays
 % discretized values using 16 points per panel
-z = zeros(sum(panels)*16,1);     
+z = zeros(sum(panels)*16,1);   
 zp = zeros(sum(panels)*16,1);     
 zpp = zeros(sum(panels)*16,1);     
 quad_weights = zeros(sum(panels)*16,1);      
+t = zeros(sum(panels)*16,1); 
 
 % upsampled 32 point discretization
 z32 = zeros(sum(panels)*32,1);     
@@ -85,6 +86,7 @@ for j = 1:length(geometries)
     
     quad_weights(ptr:ptr+16*panels(j)-1) = Wn;
     quad_weights32(ptr32:ptr32+32*panels(j)-1) = Wn32;
+    t(ptr:ptr+16*panels(j)-1) = Tn;
     
     % mapping of points to wall
     pts2wall((ptr-1)+(1:16*panels(j))) = j-1; 
@@ -122,11 +124,11 @@ if periodic
     XBoxes = 3*ceil(Lx/mean_panel_length);
     YBoxes = 3*ceil(Ly/mean_panel_length);
 else
-    xmin = min(real(z))- mean_panel_length/2;
-    ymin = min(imag(z))- mean_panel_length/2;
+    xmin = min(real(z))- 3*mean_panel_length;
+    ymin = min(imag(z))- 3*mean_panel_length;
     
-    xmax = max(real(z)) + mean_panel_length/2;
-    ymax = max(real(z)) + mean_panel_length/2;
+    xmax = max(real(z)) + 3*mean_panel_length;
+    ymax = max(real(z)) + 3*mean_panel_length;
     
     Lx = xmax - xmin;
     Ly = ymax - ymin;
@@ -182,7 +184,7 @@ end
 domain = struct('z',z,'zp',zp,'zpp',zpp,'quad_weights',quad_weights,...
     'wazp',quad_weights.*abs(zp),'z32',z32,'zp32',zp32,'zpp32',zpp32,...
     'quad_weights32',quad_weights32,'wazp32',quad_weights32.*abs(zp32),...
-    'wall_indices',wall_indices,'panel_breaks',panel_breaks,...
+    'theta', t, 'wall_indices',wall_indices,'panel_breaks',panel_breaks,...
     'panel_endpoints', panel_endpoints, 'grid', {domain_grid},...
     'reference_cell', reference_cell,...
     'mean_panel_length',mean_panel_length,'pts2wall',pts2wall,...
