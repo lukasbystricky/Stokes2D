@@ -9,7 +9,7 @@ clc
 n_high = 100;
 n_low = 10;
 h = 2*pi/n_low;
-d = 0.1*h;
+d = 0.05*h;
 
 % create input structure
 input_params = default_input_params('mobility', 0);
@@ -51,4 +51,4 @@ subplot(2,1,2)
 plot(solution_high_res.problem.domain.theta(end/2+1:end), solution_high_res.q(end/2+1:end,:));
 hold on
 plot(solution_low_res.problem.domain.theta(end/2+1:end), solution_low_res.q(end/2+1:end,:));
-title('particle 1');
+title('particle 2');
