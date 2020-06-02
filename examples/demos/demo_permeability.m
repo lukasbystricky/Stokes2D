@@ -29,7 +29,8 @@ input_params.centers = 0.2 + 2.3*1i;
 K = zeros(2,2);
 
 %% solve for K_{11} and K_{12} by imposing pressure gradient in x direction
-input.pressure_drop_x = 1;
+input_params.pressure_drop_x = 1;
+input_params.pressure_drop_y = 0;
 
 problem = circles_periodic(input_params);
 
@@ -50,6 +51,87 @@ solution = solve_stokes(problem);
 
 K(:,2) = solution.u_avg;
 
+fprintf("SINGLE CIRCLE:\n");
+fprintf("K_{11} = %3.3e\n", K(1,1));
+fprintf("K_{12} = %3.3e\n", K(1,2));
+fprintf("K_{21} = %3.3e\n", K(2,1));
+fprintf("K_{22} = %3.3e\n", K(2,2));
+
+%% second example from paper, staggered grid
+
+% void fraction
+phi = 0.4;
+L = input_params.box_size(1);
+
+% set up radii and centers, centers given as complex numbers (x+iy)
+input_params.radii = L*sqrt((1-phi)/pi)/2*ones(4,1);
+input_params.centers = [0.25*1i, 0.5 + 0.25*1i, 0.25 + 0.75*1i, 0.75+0.75*1i]*L;
+
+K = zeros(2,2);
+
+%% solve for K_{11} and K_{12} by imposing pressure gradient in x direction
+input_params.pressure_drop_x = 1;
+input_params.pressure_drop_y = 0;
+
+problem = circles_periodic(input_params);
+
+% solve the problem
+solution = solve_stokes(problem);
+
+% average velocity is computed already!
+K(:,1) = solution.u_avg;
+
+%% solve for K_{21} and K_{22} by imposing pressure gradient in y direction
+input_params.pressure_drop_x = 0;
+input_params.pressure_drop_y = 1;
+
+problem = circles_periodic(input_params);
+
+% solve the problem
+solution = solve_stokes(problem);
+
+K(:,2) = solution.u_avg;
+fprintf("\nSTAGGERED GRID:\n");
+fprintf("K_{11} = %3.3e\n", K(1,1));
+fprintf("K_{12} = %3.3e\n", K(1,2));
+fprintf("K_{21} = %3.3e\n", K(2,1));
+fprintf("K_{22} = %3.3e\n", K(2,2));
+
+%% triangle setup
+
+% void fraction
+phi = 0.7;
+L = input_params.box_size(1);
+
+% set up radii and centers, centers given as complex numbers (x+iy)
+input_params.radii = L*sqrt((1-phi)/pi/2)*ones(2,1);
+input_params.centers = [0, 0.5 + 0.5*1i]*L;
+
+K = zeros(2,2);
+
+%% solve for K_{11} and K_{12} by imposing pressure gradient in x direction
+input_params.pressure_drop_x = 1;
+input_params.pressure_drop_y = 0;
+
+problem = circles_periodic(input_params);
+
+% solve the problem
+solution = solve_stokes(problem);
+
+% average velocity is computed already!
+K(:,1) = solution.u_avg;
+
+%% solve for K_{21} and K_{22} by imposing pressure gradient in y direction
+input_params.pressure_drop_x = 0;
+input_params.pressure_drop_y = 1;
+
+problem = circles_periodic(input_params);
+
+% solve the problem
+solution = solve_stokes(problem);
+
+K(:,2) = solution.u_avg;
+fprintf("\nTRIANGLE:\n");
 fprintf("K_{11} = %3.3e\n", K(1,1));
 fprintf("K_{12} = %3.3e\n", K(1,2));
 fprintf("K_{21} = %3.3e\n", K(2,1));
