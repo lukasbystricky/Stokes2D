@@ -33,15 +33,18 @@ qc = q1 + 1i*q2;
 qwazp = qc.*domain.wazp;
 
 [u1, u2] = StokesDLP_ewald_2p(x, y, x, y, n1, n2, real(qwazp), imag(qwazp),...
-            domain.Lx, domain.Ly);
-T = u1 + 1i*u2;
+    domain.Lx, domain.Ly);
 
-% diagonal elements of the double-layer
-T = T + domain.quad_weights.*(qc.*imag(domain.zpp./domain.zp) + ...
-    conj(qc).*imag(domain.zpp.*conj(domain.zp))./conj(domain.zp).^2)/(4*pi);
+if ~isinf(eta)
+    T = u1 + 1i*u2;
+    
+    % diagonal elements of the double-layer
+    T = T + domain.quad_weights.*(qc.*imag(domain.zpp./domain.zp) + ...
+        conj(qc).*imag(domain.zpp.*conj(domain.zp))./conj(domain.zp).^2)/(4*pi);
+end
 
 [u1, u2] = StokesSLP_ewald_2p(x, y, x, y, real(qwazp), imag(qwazp),...
-            domain.Lx, domain.Ly);
+    domain.Lx, domain.Ly);
 G = u1 + 1i*u2;
 
 % apply log-quadrature corrections for the Stokeslet
@@ -67,12 +70,21 @@ end
 
 G = G + (qc + domain.zp./conj(domain.zp).*conj(qc)).*domain.wazp/(8*pi);
 
-u = -qc/2 + eta*G + T;
+if ~isinf(eta)
+    u = -qc/2 + eta*G + T;
+else
+    u = G;
+end
 
 % put everything back to real variables
 m(1:2*N) = [real(u) + u_avg(1); imag(u) + u_avg(2)];
 
 % add pressure constraint
-m(end - 1) = -eta*real(sum(qwazp)) / V;
-m(end) = -eta*imag(sum(qwazp)) / V;
+if ~isinf(eta)
+    m(end - 1) = -eta*real(sum(qwazp)) / V;
+    m(end) = -eta*imag(sum(qwazp)) / V;
+else
+    m(end - 1) = -real(sum(qwazp)) / V;
+    m(end) = -imag(sum(qwazp)) / V;
+end
 
