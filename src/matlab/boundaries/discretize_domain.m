@@ -128,7 +128,7 @@ else
     ymin = min(imag(z))- 10*mean_panel_length;
     
     xmax = max(real(z)) + 10*mean_panel_length;
-    ymax = max(real(z)) + 10*mean_panel_length;
+    ymax = max(imag(z)) + 10*mean_panel_length;
     
     Lx = xmax - xmin;
     Ly = ymax - ymin;
