@@ -51,6 +51,10 @@ else
        solution.u_trans = X(2*nsrc+1:2*nsrc+n_particles) + ...
                 1i*X(2*nsrc+n_particles+1:2*nsrc+2*n_particles);
        solution.omega = X(2*nsrc+2*n_particles+1:end);   
+       
+       solution.forces = zeros(n_particles,1);
+       solution.torques = zeros(n_particles,1);
+       
    end
 end
     
