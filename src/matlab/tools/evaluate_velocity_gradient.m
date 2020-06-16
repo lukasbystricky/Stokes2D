@@ -108,6 +108,7 @@ end
 
 % anything that is greater than 0 is outside the fluid domain
 outside = find(solution.problem.stresslet_id_test(real(test)) == 1);
+
 ug1(outside) = nan;
 ug2(outside) = nan;
 
