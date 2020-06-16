@@ -1,6 +1,115 @@
 #include "SQ_common.h"
 
 /**************************************************************************
+ * Check is special quadrature is necessary by computing a known integral
+ *and verifying that our panel quadrature is accurate enough
+ *************************************************************************/
+bool sq_necessary(Complex actual_integral, int nsrc, int pk, Complex z, 
+        double *xsrc, double *ysrc, double *xpsrc, double *ypsrc, 
+        double *q1, double *q2, double *quad_weights, double *wazp, Complex *tz, 
+        Complex *tzp, double *tW, Complex *tn, Complex *tf) {
+    
+    Complex testsum = 0;
+    
+    for (int k=0; k<nsrc; k++) {
+        tz[k] = Complex(xsrc[pk*nsrc+k],ysrc[pk*nsrc+k]);
+        tzp[k] = Complex(xpsrc[pk*nsrc+k],ypsrc[pk*nsrc+k]);
+        tW[k] = quad_weights[pk*nsrc+k];
+        tn[k] = -_i*tzp[k]/abs(tzp[k]);
+        
+        // if we're using 16 points, extract density, otherwise the density 
+        //will have been upsampled
+        if (nsrc == 16)
+        {
+            tf[k] = Complex(q1[pk*nsrc+k],q2[pk*nsrc+k]);
+        }
+        
+        testsum += tzp[k]*tW[k]/(tz[k]-z);
+    }
+    
+//     mexPrintf("actual int: (%3.3e, %3.3e), test = (%3.3e, %3.3e)\n", 
+//             real(actual_integral), imag(actual_integral), real(testsum), imag(testsum));
+//     
+//     mexPrintf("diff = %3.3e\n", abs(actual_integral-testsum));
+    return (abs(actual_integral-testsum) < 1e-14);
+}
+
+/**************************************************************************
+ * Find the periodic replicate of the target point closest to the panel
+ *************************************************************************/
+bool find_target_pt(Complex &z, Complex mid, Complex len, double *bnds)
+{    
+    int periodic_case = -1;
+                    
+    if (abs(z - mid) < abs(len))
+        periodic_case = 0;
+    
+    else  if (abs(mid - (z - Complex(bnds[1] - bnds[0]))) < abs(len))
+        periodic_case = 1;
+    
+    else if (abs(mid - (z + Complex(bnds[1] - bnds[0]))) < abs(len))
+        periodic_case = 2;
+    
+    else if (abs(mid - (z - Complex(0, bnds[3] - bnds[2]))) < abs(len))
+        periodic_case = 3;
+    
+    else if (abs(mid - (z + Complex(0, bnds[3] - bnds[2]))) < abs(len))
+        periodic_case = 4;
+    
+    else if (abs(mid - (z + Complex(bnds[1] - bnds[0], bnds[3] - bnds[2]))) < abs(len))
+        periodic_case = 5;
+    
+    else if (abs(mid - (z + Complex(-(bnds[1] - bnds[0]), bnds[3] - bnds[2]))) < abs(len))
+        periodic_case = 6;
+    
+    else if (abs(mid - (z + Complex(bnds[1] - bnds[0], -(bnds[3] - bnds[2])))) < abs(len))
+        periodic_case = 7;
+    
+    else if (abs(mid - (z - Complex(bnds[1] - bnds[0], bnds[3] - bnds[2]))) < abs(len))
+        periodic_case = 8;
+    
+    
+    // -1 means no need for special quadrature, 0 means z is close to a panel 
+    // in the reference cell
+    switch (periodic_case)
+    {
+        case 1:
+            z -= Complex(bnds[1] - bnds[0]);
+            break;
+            
+        case 2:
+            z += Complex(bnds[1] - bnds[0]);
+            break;
+            
+        case 3:
+            z -= Complex(0,bnds[3] - bnds[2]);
+            break;
+            
+        case 4:
+            z += Complex(0,bnds[3] - bnds[2]);
+            break;
+            
+        case 5:
+            z += Complex(bnds[1] - bnds[0],bnds[3] - bnds[2]);
+            break;
+            
+        case 6:
+            z += Complex(-(bnds[1] - bnds[0]),bnds[3] - bnds[2]);
+            break;
+            
+        case 7:
+            z += Complex(bnds[1] - bnds[0],-(bnds[3] - bnds[2]));
+            break;
+            
+        case 8:
+            z -= Complex(bnds[1] - bnds[0],bnds[3] - bnds[2]);
+            break;
+    }
+    
+    return (periodic_case > -1);
+}
+
+/**************************************************************************
  *
  *************************************************************************/
 void vandernewtonT(double *T, double *b, int N) {
