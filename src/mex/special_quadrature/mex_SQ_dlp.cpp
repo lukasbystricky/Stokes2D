@@ -9,8 +9,9 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
     int Ntar, Nsrc;
     double *out_u1, *out_u2, *nmodifs;
     double *pan2bndry, *bnds;
+    bool periodic;
     
-    if (nrhs != 18)
+    if (nrhs != 19)
         mexErrMsgTxt("mex_do_vel_quad: incorrect number of input arguments.\n");
     
     xtar = mxGetPr(prhs[0]);
@@ -64,6 +65,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
     pan2bndry = mxGetPr(prhs[16]);
     
     bnds = mxGetPr(prhs[17]);
+    periodic = static_cast<int>(mxGetScalar(prhs[18]));
     
     plhs[0] = mxCreateDoubleMatrix(Ntar,1,mxCOMPLEX);
     out_u1 = mxGetPr(plhs[0]);
@@ -77,7 +79,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
     //things properly.
     memcpy(out_u1,u1tar,Ntar*sizeof(double));
     memcpy(out_u2,u2tar,Ntar*sizeof(double));
-
+    
     double xmin = bnds[0];
     double ymin = bnds[2];
     double xmax = bnds[1];
@@ -91,13 +93,15 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
         
         Complex nzpan[16], tz[16], tzp[16], tf[16];
         Complex tz32[32], tzp32[32], tf32[32];
-        Complex nzpan32[32], p32[33], n32[32], q32[33];
+        Complex nzpan32[32], p32[33], q32[33];
         double twazp[16], twazp32[32];
         double tmpT[16], tmpb[16], tW32[32], tW[16];
         
-        // only work on points inside the box
-        if (xtar[j] > xmin && xtar[j] < xmax && ytar[j] > ymin && ytar[j] < ymax)
-        {            
+        // for non-periodic domains only work on points inside the box
+        bool in_box = (xtar[j] > xmin && xtar[j] < xmax && ytar[j] > ymin && ytar[j] < ymax);
+        
+        if (periodic || in_box)
+        {
             // The point in the loop
             Complex z = Complex(xtar[j],ytar[j]);
             
@@ -116,9 +120,6 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                 pk = static_cast<int>(gridSolidmat[ind])-1; // -1 here since C++ zero-based
                 
                 if (pk > -1) { // Only panels not equal to -1 will be considered
-                    // These are the panels were we need to do special quadrature for point j
-                    int periodic_case = -1;
-                    Complex zTmp;
                     
                     int b1 = static_cast<int>(pan2bndry[pk]);
                     Complex mid = Complex(0.5*(panel_breaks_x[pk+b1+1]+panel_breaks_x[pk+b1]),
@@ -126,72 +127,12 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                     Complex len = Complex(panel_breaks_x[pk+b1+1]-panel_breaks_x[pk+b1],
                             panel_breaks_y[pk+b1+1]-panel_breaks_y[pk+b1]);
                     
-                    if (abs(z - mid) < abs(len))
-                        periodic_case = 0;
+                    z = Complex(xtar[j],ytar[j]);
+                    bool check_sq = find_target_pt(z, mid, len, bnds);
                     
-                    else  if (abs(mid - (z - Complex(bnds[1] - bnds[0]))) < abs(len))
-                        periodic_case = 1;
-                    
-                    else if (abs(mid - (z + Complex(bnds[1] - bnds[0]))) < abs(len))
-                        periodic_case = 2;
-                    
-                    else if (abs(mid - (z - Complex(0, bnds[3] - bnds[2]))) < abs(len))
-                        periodic_case = 3;
-                    
-                    else if (abs(mid - (z + Complex(0, bnds[3] - bnds[2]))) < abs(len))
-                        periodic_case = 4;
-                    
-                    else if (abs(mid - (z + Complex(bnds[1] - bnds[0], bnds[3] - bnds[2]))) < abs(len))
-                        periodic_case = 5;
-                    
-                    else if (abs(mid - (z + Complex(-(bnds[1] - bnds[0]), bnds[3] - bnds[2]))) < abs(len))
-                        periodic_case = 6;
-                    
-                    else if (abs(mid - (z + Complex(bnds[1] - bnds[0], -(bnds[3] - bnds[2])))) < abs(len))
-                        periodic_case = 7;
-                    
-                    else if (abs(mid - (z - Complex(bnds[1] - bnds[0], bnds[3] - bnds[2]))) < abs(len))
-                        periodic_case = 8;
-                    
-                    
-                    if (periodic_case > -1) { // If we are close enough to do special q.
-                        
-                        switch (periodic_case)
-                        {
-                            case 1:
-                                z = z - Complex(bnds[1] - bnds[0]);
-                                break;
-                                
-                            case 2:
-                                z = z + Complex(bnds[1] - bnds[0]);
-                                break;
-                                
-                            case 3:
-                                z = z - Complex(0,bnds[3] - bnds[2]);
-                                break;
-                                
-                            case 4:
-                                z = z + Complex(0,bnds[3] - bnds[2]);
-                                break;
-                                
-                            case 5:
-                                z = z + Complex(bnds[1] - bnds[0],bnds[3] - bnds[2]);
-                                break;
-                                
-                            case 6:
-                                z = z + Complex(-(bnds[1] - bnds[0]),bnds[3] - bnds[2]);
-                                break;
-                                
-                            case 7:
-                                z = z + Complex(bnds[1] - bnds[0],-(bnds[3] - bnds[2]));
-                                break;
-                                
-                            case 8:
-                                z = z - Complex(bnds[1] - bnds[0],bnds[3] - bnds[2]);
-                                break;
-                        }
-                        
+                    if (check_sq) {
                         Complex nz = 2*(z-mid)/len; // rescale z
+                        
                         
                         Complex lg1 = log(1-nz);
                         Complex lg2 = log(-1-nz);
@@ -213,7 +154,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                             testsum += tW[k]*tzp[k]/(tz[k]-z);
                             
                             M1_old += imag(tzp[k]*tW[k]/(tz[k]-z))*tf[k];
-                            M2_old += conj(tW[k]/(tz[k]-z))*imag(tzp[k]*conj(tz[k]-z))*conj(tf[k])/conj(tz[k]-z);;
+                            M2_old += conj(tW[k]/(tz[k]-z))*imag(tzp[k]*conj(tz[k]-z))*conj(tf[k])/conj(tz[k]-z);
                         }
                         
                         sum16 = (M1_old + M2_old)/(2*pi);
@@ -239,7 +180,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                 }
                                 
                                 if (test > imag(nz)) {
-                                    lg1 -= pi*_i; //OBS check signs here
+                                    lg1 -= pi*_i;
                                     lg2 += pi*_i;
                                 }
                             }
@@ -269,7 +210,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                             
                             if (abs(o32sum-p32[0]) < 1e-14) {
                                 // 32 quad suffices!
-                               // mexPrintf("32 pt quad worked!\n");
+                                // mexPrintf("32 pt quad worked!\n");
                                 Complex M1_new = 0, M2_new = 0, sum32;
                                 
                                 for (int k=0; k<32; k++) {
@@ -286,15 +227,14 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                 out_u2[j] += imag(modif);
                                 
                             } else {
-                                //mexPrintf("32 pt quad faild, using SQ\n");
+                                //mexPrintf("32 pt quad failed, using SQ\n");
                                 // Need to use SQ
                                 for (int k=0; k<32; k++) {
-                                    n32[k] = -_i*tzp32[k]/abs(tzp32[k]);
                                     nzpan32[k] = 2*(tz32[k]-mid)/len;
                                 }
                                 
                                 Complex gamma = 0.5*len;
-                                double sign = -1;
+                                int sign = -1;
                                 
                                 // p is the expansion of 1/z
                                 // q is the expansion of 1/z^2
@@ -318,6 +258,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                 }
                                 
                                 Complex modif = (M1_helsing-0.5*_i*M2_helsing)/(2*pi) - sum16;
+                                
                                 out_u1[j] += real(modif);
                                 out_u2[j] += imag(modif);
                             }
