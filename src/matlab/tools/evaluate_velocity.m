@@ -39,6 +39,7 @@ end
 % if the problem is periodic use spectral Ewald and combined layer
 % formulation
 if solution.problem.periodic
+   
     [uslp1, uslp2] = StokesSLP_ewald_2p(xsrc, ysrc, X(:), Y(:),...
         solution.q(:,1).*weights, solution.q(:,2).*weights, Lx, Ly,...
         'verbose', 1);
@@ -52,18 +53,21 @@ if solution.problem.periodic
         udlp = udlp1 + 1i*udlp2;
         
     end
-    
-    
-    disp('Beginning special quadrature...');
+        
+    % for special quadrature points must be inside reference cell
+    Xtar_sq = mod(X+Lx/2,Lx)-Lx/2;
+    Ytar_sq = mod(Y+Ly/2,Ly)-Ly/2;
+    Xsrc_sq = real(domain.z);
+    Ysrc_sq = imag(domain.z);
     
     % correct using special quadrature
-    [uslp_corrected,~] = mex_SQ_slp(X(:)+1i*Y(:), domain.z, domain.zp,...
-        domain.quad_weights, domain.panel_breaks, domain.wazp, domain.z32,...
+    [uslp_corrected,~] = mex_SQ_slp(Xtar_sq(:)+1i*Ytar_sq(:), Xsrc_sq+1i*Ysrc_sq,...
+        domain.zp, domain.quad_weights, domain.panel_breaks, domain.wazp, domain.z32,...
         domain.zp32, domain.quad_weights32, domain.wazp32, ...
         solution.q(:,1)+1i*solution.q(:,2),...
         uslp,domain.mean_panel_length,domain.extra.gridSolidmat, ...
         domain.extra.Nrows,domain.extra.Ncols,domain.extra.panels2wall,...
-        domain.reference_cell);
+        domain.reference_cell, true);
     
     if isinf(solution.problem.eta)
         u_corrected = uslp_corrected  + ...
@@ -76,7 +80,7 @@ if solution.problem.periodic
             solution.q(:,1)+1i*solution.q(:,2),...
             udlp,domain.mean_panel_length,domain.extra.gridSolidmat, ...
             domain.extra.Nrows,domain.extra.Ncols,domain.extra.panels2wall,...
-            domain.reference_cell);
+            domain.reference_cell, true);
         
         u_corrected = udlp_corrected + solution.problem.eta*uslp_corrected  + ...
             solution.u_avg(1) + 1i*solution.u_avg(2);
@@ -114,7 +118,7 @@ else
         solution.q(:,1)+1i*solution.q(:,2),...
         udlp,domain.mean_panel_length,domain.extra.gridSolidmat, ...
         domain.extra.Nrows,domain.extra.Ncols,domain.extra.panels2wall,...
-        domain.reference_cell);
+        domain.reference_cell, false);
     
     % add on completion flow from rotlets and Stokeslets
     [uS, uR] = completion_contribution(domain.centers(2:end), X(:)+1i*Y(:),...
@@ -158,17 +162,18 @@ end
                 domain.quad_weights32, domain.wazp32,ones(length(n1),1) + 1e-14*1i,...
                 test1 + 1i*test2,domain.mean_panel_length,domain.extra.gridSolidmat, ...
                 domain.extra.Nrows,domain.extra.Ncols,domain.extra.panels2wall,...
-                domain.reference_cell);
+                domain.reference_cell,solution.problem.periodic);
 
 % anything that is greater than 0 is outside the fluid domain
 outside = find(solution.problem.stresslet_id_test(real(test)) == 1);
 u1_corrected(outside) = nan;
 u2_corrected(outside) = nan;
+
 u1(outside) = nan;
 u2(outside) = nan;
 
-X(outside) = nan;
-Y(outside) = nan;
+% X(outside) = nan;
+% Y(outside) = nan;
 
 U1c = reshape(u1_corrected, size(X));
 U2c = reshape(u2_corrected, size(X));
