@@ -20,12 +20,12 @@ else
     nwalls = size(problem.domain.wall_indices, 1);    
     
     if problem.resistance 
-        rhs = [-rhs; zeros(3*(nwalls-1), 1)];
+        rhs = [rhs; zeros(3*(nwalls-1), 1)];
         
         X = gmres(@(x) matvec_double_layer_resistance(x, problem.domain), rhs, [], ...
                 problem.gmres_tol, length(rhs));
     else
-        rhs = [rhs; zeros(3*(nwalls), 1)];
+        rhs = [-rhs; zeros(3*(nwalls), 1)];
         
         X = gmres(@(x) matvec_double_layer_mobility(x, problem.domain), rhs, [], ...
                 problem.gmres_tol, length(rhs));
