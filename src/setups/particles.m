@@ -8,6 +8,8 @@ problem.name = input_params.name;
 problem.gmres_tol = input_params.gmres_tol;
 problem.stresslet_id_test = input_params.stresslet_id_test;
 problem.resistance = false;
+problem.forces = input_params.forces;
+problem.torques = input_params.torques;
 
 % discretize domain
 radii = input_params.radii;

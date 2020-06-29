@@ -25,8 +25,14 @@ else
         X = gmres(@(x) matvec_double_layer_resistance(x, problem.domain), rhs, [], ...
                 problem.gmres_tol, length(rhs));
     else
-        rhs = [-rhs; zeros(3*(nwalls), 1)];
+        rhs = [-rhs; real(problem.forces);imag(problem.forces);problem.torques];
         
+        [uS, uR] = completion_contribution(problem.domain.centers, z, ...
+                    problem.forces, problem.torques);
+                
+        rhs(1:length(z)) = rhs(1:length(z)) + real(uS + uR);
+        rhs(length(z)+1:2*length(z)) = rhs(length(z)+1:2*length(z)) + imag(uS + uR);
+         
         X = gmres(@(x) matvec_double_layer_mobility(x, problem.domain), rhs, [], ...
                 problem.gmres_tol, length(rhs));
     end
@@ -52,9 +58,8 @@ else
                 1i*X(2*nsrc+n_particles+1:2*nsrc+2*n_particles);
        solution.omega = X(2*nsrc+2*n_particles+1:end);   
        
-       solution.forces = zeros(n_particles,1);
-       solution.torques = zeros(n_particles,1);
-       
+       solution.forces = problem.forces;
+       solution.torques = problem.torques;       
    end
 end
     
