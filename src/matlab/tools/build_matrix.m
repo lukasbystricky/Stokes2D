@@ -1,6 +1,6 @@
 function M = build_matrix(matvec, domain)
 
-N = 2*length(domain.z) + 3;
+N = 2*length(domain.z) + 6;
 Q = eye(N);
 M = zeros(N);
 
