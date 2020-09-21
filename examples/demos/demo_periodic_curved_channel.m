@@ -11,8 +11,9 @@ input_params = default_input_params('curved_channel_demo', 1);
 
 % modify structure as needed, or add additional problem-dependent params
 input_params.box_size = [2,1.5];
-input_params.panels = 10;
-input.pressure_drop_x = 1;
+input_params.panels = 50;
+input_params.pressure_drop_x = 1;
+input_params.eta = 1;
 
 % set this up as a test problem. Shear flow boundary conditions are applied
 % along with zero pressure gradient. Then the exact solution (shear flow)
@@ -36,7 +37,8 @@ solution = solve_stokes(problem);
 % display solution
 
 [Uc, Vc, X, Y,U] = evaluate_velocity(solution, 100);
-[Ux, Uy, Vx, Vy] = evaluate_velocity_gradient(solution, X, Y);
+Pc  = evaluate_pressure(solution, X, Y);
+[Uxc, Uyc, Vxc, Vyc, Ux, Uy, Vx, Vy] = evaluate_velocity_gradient(solution, X, Y);
 
 h = figure();
 if input_params.test
@@ -56,12 +58,13 @@ if input_params.test
     plot_domain(problem, h);
     hold on
     
-    exact_solution = @(x,y) 1;
-    contourf(X,Y, log10(abs((Uy - exact_solution(X,Y))./...
+    exact_solution = @(x,y) mean(mean(Pc(~isnan(Pc)))); % constant pressure
+    contourf(X,Y, log10(abs((Pc - exact_solution(X,Y))./...
                 max(max(abs(exact_solution(X,Y)))))+eps));
+   
     colorbar
     axis equal
-    title('gradient: log_{10}(relative error)');
+    title('pressure: log_{10}(relative error)');
     
 else
    
@@ -78,10 +81,10 @@ else
     
     plot_domain(problem, h);
     hold on    
-    contourf(X,Y,Vc);
+    contourf(X,Y,Pc);
     colorbar
     axis equal
-    title('U_2');
+    title('Pressure');
 end
 
 
