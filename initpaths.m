@@ -10,5 +10,6 @@ clc
 
 addpath(genpath('../FastTools2D/FMM/src/'))
 addpath(genpath('../FastTools2D/PeriodicEwald/src'))
+addpath(genpath('../legtools'));
 addpath(genpath('src'));
 addpath(genpath('examples'));
