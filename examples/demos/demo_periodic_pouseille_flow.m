@@ -31,7 +31,6 @@ exact_solution_p = @(x,y) problem.pressure_gradient_x * x;
 x = linspace(0,5,20);
 y = linspace(0,1,20);
 
-
 [Uc, ~, X, Y] = evaluate_velocity(solution, 100);
 [Pc, P, ~, ~] = evaluate_pressure(solution, X, Y);
 [Uxc, Uyc, Vxc, Vyc, Ux, Uy, Vx, Vy] = evaluate_velocity_gradient(solution, X, Y);
