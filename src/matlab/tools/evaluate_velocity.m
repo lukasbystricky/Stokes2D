@@ -27,8 +27,13 @@ weights = solution.problem.domain.wazp;
 
 if nargin == 2 % N specified, evaluate on regular grid
     N = varargin{1};
-    x = linspace(min(xsrc), max(xsrc), N);
-    y = linspace(min(ysrc), max(ysrc), N);
+    if solution.problem.periodic
+        x = linspace(-Lx/2, Lx/2, N);
+        y = linspace(-Ly/2, Ly/2, N);
+    else
+        x = linspace(min(xsrc), max(xsrc), N);
+        y = linspace(min(ysrc), max(ysrc), N);
+    end
     
     [X,Y] = meshgrid(x,y);
 else % target points are specified
@@ -89,7 +94,7 @@ if solution.problem.periodic
     
     end
         
-        % if the problem is not periodic, use FMM and the completed double-layer
+% if the problem is not periodic, use FMM and the completed double-layer
 % potential, i.e. Power-Miranda
 else
     
