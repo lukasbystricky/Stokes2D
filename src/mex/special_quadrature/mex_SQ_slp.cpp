@@ -79,8 +79,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
     //things properly.
     memcpy(out_u1,u1tar,Ntar*sizeof(double));
     memcpy(out_u2,u2tar,Ntar*sizeof(double));
-    
-//    double xmax = pi; double xmin = -pi; double ymax = pi; double ymin = -pi;
+   
     double xmin = bnds[0];
     double xmax = bnds[1];
     double ymin = bnds[2];
@@ -128,6 +127,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                     Complex len = Complex(panel_breaks_x[pk+b1+1]-panel_breaks_x[pk+b1],
                             panel_breaks_y[pk+b1+1]-panel_breaks_y[pk+b1]);
                     
+                    z = Complex(xtar[j],ytar[j]);
                     bool check_sq = find_target_pt(z, mid, len, bnds);
                     
                     if (check_sq) {
