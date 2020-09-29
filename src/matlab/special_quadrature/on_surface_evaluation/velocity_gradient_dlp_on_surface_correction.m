@@ -1,11 +1,12 @@
 function dVh = velocity_gradient_dlp_on_surface_correction(dV, btar, solution)
 %VELOCITY_GRADIENT_DLP_ON_SURFACE_CORRECTION corrects the double-layer 
 %velocity gradient for on-surface evaluation. Returns a vector which is the
-%gradient dotted with a direction vector b.
+%gradient dotted with a direction vector b. Adds on the jump as the target
+%approaches the boundary from the exterior of the domain
 %
 %inputs:
-%-dV: uncorrected velocity gradient evaluated at quadrature points on
-%surface
+%-dV: uncorrected double-layer velocity gradient evaluated at quadrature 
+%points on surface
 %-btar: direction vector at every target point (e.g. normal vector)
 %-solution: solution structure containing geometry information, as well as
 %the density 
