@@ -1,7 +1,7 @@
 function Pc = pressure_slp_on_surface_correction(P, solution)
 %PRESSURE_SLP_ON_SURFACE_CORRECTION corrects the single-layer 
 %pressure for on-surface evaluation. Adds on the jump as the target
-%approaches the boundary from the exterior of the domain
+%approaches the boundary from the fluid part of the domain.
 %
 %inputs:
 %-P: uncorrected single-layer pressure evaluated at quadrature points on 

@@ -2,7 +2,7 @@ function dVh = velocity_gradient_slp_on_surface_correction(dV, btar, solution)
 %VELOCITY_GRADIENT_SLP_ON_SURFACE_CORRECTION corrects the single-layer 
 %velocity gradient for on-surface evaluation. Returns a vector which is the
 %gradient dotted with a direction vector b. Adds on the jump as the target
-%approaches the boundary from the exterior of the domain
+%approaches the boundary from the fluid part of the domain.
 %
 %inputs:
 %-dV: uncorrected single-layer velocity gradient evaluated at quadrature 

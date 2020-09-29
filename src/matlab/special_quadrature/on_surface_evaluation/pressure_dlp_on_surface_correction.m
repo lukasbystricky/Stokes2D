@@ -1,7 +1,7 @@
 function Ph = pressure_dlp_on_surface_correction(P, solution)
 %PRESSURE_DLP_ON_SURFACE_CORRECTION corrects the double-layer 
 %pressure for on-surface evaluation. Adds on the jump as the target
-%approaches the boundary from the exterior of the domain
+%approaches the boundary from the fluid part of the domain.
 %
 %inputs:
 %-P: uncorrected double-layer pressure evaluated at quadrature points on 
