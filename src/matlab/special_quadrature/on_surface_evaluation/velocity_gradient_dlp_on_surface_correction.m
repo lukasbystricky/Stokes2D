@@ -70,6 +70,3 @@ for i = 1:nw
      
     wall_start = wall_start + npan;
 end
-
-
-
