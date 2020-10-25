@@ -66,5 +66,5 @@ for i = 1:nw
          cauchy_on_surface_evaluation(conj(qtmp)./ntmp, ztmp, zptmp, wtmp, panel_breaks_z)) + ...
          1i*btmp.*real(cauchy_on_surface_evaluation(qtmp./ntmp, ztmp, zptmp, wtmp, panel_breaks_z)))/(4*pi);
     
-    wall_start = wall_start + npan;
+    wall_start = wall_start + npan + 1;
 end

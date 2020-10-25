@@ -31,7 +31,6 @@ for i = 1:nw
     npan = length(indices)/16;
     
     panel_breaks_z = domain.panel_breaks(wall_start:wall_start + npan - 1);
-    wall_start = wall_start + npan;
     
     %subract off self contribution
     for j = indices
@@ -46,4 +45,6 @@ for i = 1:nw
     %add on special quadrature
     Pc(indices) = Pc(indices) + imag(cauchy_on_surface_evaluation(qsrc(indices), ...
                 zsrc(indices), zpsrc(indices), wsrc(indices), panel_breaks_z))/(2*pi); 
+            
+   wall_start = wall_start + npan + 1;       
 end

@@ -45,5 +45,5 @@ for i = 1:nw
     Ph(indices) = Ph(indices) - imag(hypersingular_on_surface_evaluation(qsrc(indices), ...
         zsrc(indices), zpsrc(indices), wsrc(indices), panel_breaks_z))/pi;
     
-    wall_start = wall_start + npan;
+    wall_start = wall_start + npan + 1;
 end

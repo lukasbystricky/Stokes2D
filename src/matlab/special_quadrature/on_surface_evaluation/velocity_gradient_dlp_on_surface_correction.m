@@ -68,5 +68,5 @@ for i = 1:nw
          hypersingular_on_surface_evaluation(real(qtmp.*conj(ntmp))./ntmp, ztmp, zptmp, wtmp, panel_breaks_z)) - ...
          1i*btmp.*real(hypersingular_on_surface_evaluation(qtmp, ztmp, zptmp, wtmp, panel_breaks_z)))/(2*pi);
      
-    wall_start = wall_start + npan;
+    wall_start = wall_start + npan + 1;
 end
