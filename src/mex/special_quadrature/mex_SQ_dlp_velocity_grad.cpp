@@ -322,8 +322,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                     Ih2 += 2*q32[k]*real(tf32[k]*conj(tn32[k]))/tn32[k]/len;
                                     Is1 -= 4*s32[k]*tf32[k]/len/len;
                                     Is2 -= 4*s32[k]*conj(tz32[k])*tf32[k]/len/len;
-                                }
-                                
+                                }                                
                                 
 //                                 mexPrintf("SQ: Ih1 = (%3.3e, %3.3e), Ih2 = (%3.3e, %3.3e)\n", real(Ih1), imag(Ih1), real(Ih2), imag(Ih2));
 //                                 mexPrintf("SQ: Is1 = (%3.3e, %3.3e), Is2 = (%3.3e, %3.3e)\n\n", real(Is1), imag(Is1), real(Is2), imag(Is2));
