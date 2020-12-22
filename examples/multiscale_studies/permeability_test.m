@@ -18,7 +18,7 @@ input_params.panels = 40;
 input_params.plot_domain = 1;
 
 % set up radii and centers, centers given as complex numbers (x+iy)
-c = 0.2;% concentration
+c = 0.4;% concentration
 x_centers = 0;
 y_centers = 0;
 centers = x_centers(:) + 1i*y_centers(:);
@@ -122,12 +122,12 @@ else
     problem = ellipses_periodic(input_params);
 end
 
-problem.pressure_gradient_x = rand();
-problem.pressure_gradient_y = rand();
+problem.pressure_gradient_x = 1;
+problem.pressure_gradient_y = 0;
 
 solution = solve_stokes(problem);
 
-[u_avg, p_avg, p_grad_avg] = compute_cell_averages(solution, 1, 1);
+[u_avg, p_avg, p_grad_avg] = compute_cell_averages(solution, 1, 1, 0);
 u_avg = u_avg(:,1) + 1i*u_avg(:,2);
 
 % compute expected Darcy velocity
