@@ -14,7 +14,7 @@ if problem.periodic
     rhs = [rhs; problem.pressure_gradient_x; problem.pressure_gradient_y];
 
     X = gmres(@(x) matvec_combined(x, problem.domain, problem.eta), rhs, [], ...
-                problem.gmres_tol, length(rhs));
+                problem.gmres_tol, min(length(rhs),500));
 else
     % add rows for net force and torque on inner walls
     nwalls = size(problem.domain.wall_indices, 1);    
