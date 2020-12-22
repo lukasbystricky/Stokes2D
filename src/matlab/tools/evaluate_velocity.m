@@ -11,7 +11,7 @@ function [U1c, U2c, X, Y, U1, U2] = evaluate_velocity(solution, varargin)
 % 1) N: number of points in each direction
 % 2) X and Y, vectors (or matrices) of target points
 
-disp('Evaluating velocity...');
+%disp('Evaluating velocity...');
 
 domain = solution.problem.domain;
 if solution.problem.periodic

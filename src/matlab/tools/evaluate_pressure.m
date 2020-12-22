@@ -12,7 +12,7 @@ function [Pc, P, X, Y] = evaluate_pressure(solution, varargin)
 % 1) N: number of points in each direction
 % 2) X and Y, vectors (or matrices) of target points
 
-disp('Evaluating pressure...');
+%disp('Evaluating pressure...');
 
 domain = solution.problem.domain;
 if solution.problem.periodic

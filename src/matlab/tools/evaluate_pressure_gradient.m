@@ -12,7 +12,7 @@ function [Px, Py, X, Y] = evaluate_pressure_gradient(solution, varargin)
 % 1) N: number of points in each direction
 % 2) X and Y, vectors (or matrices) of target points
 
-disp('Evaluating pressure gradient...');
+%disp('Evaluating pressure gradient...');
 
 domain = solution.problem.domain;
 if solution.problem.periodic
