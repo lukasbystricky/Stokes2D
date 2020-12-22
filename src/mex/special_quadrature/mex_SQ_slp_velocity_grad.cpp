@@ -92,9 +92,8 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
     if (Nsrc == 0) //if no solids, return early
         return;
         
-//#pragma omp parallel for
+#pragma omp parallel for
     for(int j = 0;j<Ntar;j++) {
-        //mexPrintf("%d\n", j);
         
         Complex nzpan[16], tz[16], tzp[16], tf[16], tn[16];
         Complex tz32[32], tzp32[32], tf32[32];
@@ -107,9 +106,6 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
         
         if (periodic || in_box)
         {
-            
-//             mexPrintf("\nz = (%3.3f, %3.3f), gradu = (%3.3e, %3.3e)\n", xtar[j], ytar[j], out_u1[j], out_u2[j]);
-            
             // The point in the loop
             Complex z = Complex(xtar[j],ytar[j]);
             Complex btar = Complex(bx[j], by[j]);
@@ -127,15 +123,15 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                 // Go through all panels in the vector stored at gridSolidmat
                 ind = solidind+npj;
                 pk = static_cast<int>(gridSolidmat[ind])-1; // -1 here since C++ zero-based
-                
-               // if (pk > -1) 
+                                
+                if (pk > -1) 
                 { // Only panels not equal to -1 will be considered
                     int b1 = static_cast<int>(pan2bndry[pk]);
                     Complex mid = Complex(0.5*(panel_breaks_x[pk+b1+1]+panel_breaks_x[pk+b1]),
                             0.5*(panel_breaks_y[pk+b1+1]+panel_breaks_y[pk+b1]));
                     Complex len = Complex(panel_breaks_x[pk+b1+1]-panel_breaks_x[pk+b1],
                             panel_breaks_y[pk+b1+1]-panel_breaks_y[pk+b1]);
-                    
+                                        
                     z = Complex(xtar[j],ytar[j]);
                     bool check_sq = find_target_pt(z, mid, len, bnds);
                     
@@ -189,7 +185,6 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                             Complex Ic16 = 0;
                             Complex rc;
                             Complex sum16;
-                            Complex Ic16real = 0;
                             Complex Ic1 = 0;
                             Complex Ic2 = 0;
                             Complex Ih1 = 0;
@@ -204,10 +199,6 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                 
                                 rc = z - tz[k];
                                 
-//                                 Ic16 += -(rc*conj(tf[k]*btar)/(2*conj(rc)*conj(rc)) 
-//                                         +(tf[k]*conj(btar) - conj(tf[k])*btar)/(2*conj(rc))
-//                                         + btar*tf[k]/(2*rc))
-//                                         *tW[k]*abs(tzp[k]);
                                 
                                 Ic1 += conj(tf[k])/(tn[k]*rc)*tW[k]*tzp[k];
                                 Ic2 += tf[k]/(tn[k]*rc)*tW[k]*tzp[k];
@@ -216,20 +207,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                 
                                 
                                 
-                               // mexPrintf("q[%d] = (%3.3e, %3.3e)\n", k, real(tf[k]), imag(tf[k]));
-                                
-                                //compute in real variables
-                                r1 = real(z - tz[k]);
-                                r2 = imag(z - tz[k]);
-                                rsq = r1*r1 + r2*r2;
-                                dens1 = real(tf[k]);
-                                dens2 = imag(tf[k]);
-                                rdotf = r1*dens1 + r2*dens2;
-                                bdotf = bx[j]*dens1 + by[j]*dens2;
-                                rdotb = r1*bx[j] + r2*by[j];
-                                
-                                Ic16real += ((btar*rdotf + rc*bdotf - tf[k]*rdotb)/rsq - 
-                                            2*rc*rdotf*rdotb/rsq/rsq)*tW[k]*abs(tzp[k])/(4*pi);
+                                mexPrintf("q[%d] = (%3.3e, %3.3e)\n", k, real(tf[k]), imag(tf[k]));
                             }
                             
                             Ic16 = -(_i*conj(btar)/2*conj(conj(z)*Ih1 - Ih2 + Ic1) -
@@ -239,12 +217,6 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                             // upsample density
                             IPmultR(tf,tf32);
                             
-//                             mexPrintf("panel %d, complex: (%3.3e, %3.3e), real: (%3.3e, %3.3e)\n",
-//                                     pk, real(sum16), imag(sum16), real(Ic16real), imag(Ic16real));
-//                             
-//                             mexPrintf("Ic1 = (%3.3e, %3.3e), Ic2 = (%3.3e, %3.3e)\n", real(Ic1), imag(Ic1), real(Ic2), imag(Ic2));
-//                             mexPrintf("Ih1 = (%3.3e, %3.3e), Ih2 = (%3.3e, %3.3e)\n\n", real(Ih1), imag(Ih1), real(Ih2), imag(Ih2));
-//                             
                             accurate = sq_necessary(lg1-lg2, 32, pk, z, xsrc32,
                                     ysrc32, xpsrc32, ypsrc32, q1, q2,
                                     quad_weights32, wazp32, tz32, tzp32, tW32, tn32, tf);
