@@ -92,7 +92,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
     if (Nsrc == 0) //if no solids, return early
         return;
         
-//#pragma omp parallel for
+#pragma omp parallel for
     for(int j = 0;j<Ntar;j++) {
         //mexPrintf("%d\n", j);
         
@@ -128,7 +128,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                 ind = solidind+npj;
                 pk = static_cast<int>(gridSolidmat[ind])-1; // -1 here since C++ zero-based
                 
-               // if (pk > -1) 
+                if (pk > -1) 
                 { // Only panels not equal to -1 will be considered
                     int b1 = static_cast<int>(pan2bndry[pk]);
                     Complex mid = Complex(0.5*(panel_breaks_x[pk+b1+1]+panel_breaks_x[pk+b1]),
