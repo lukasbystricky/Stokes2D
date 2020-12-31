@@ -81,10 +81,10 @@ m(1:2*N) = [real(u) + u_avg(1); imag(u) + u_avg(2)];
 
 % add pressure constraint
 if ~isinf(eta)
-    m(end - 1) = -eta*real(sum(qwazp)) / V;
-    m(end) = -eta*imag(sum(qwazp)) / V;
+    m(end - 1) = eta*real(sum(qwazp)) / V;
+    m(end) = eta*imag(sum(qwazp)) / V;
 else
-    m(end - 1) = -real(sum(qwazp)) / V;
-    m(end) = -imag(sum(qwazp)) / V;
+    m(end - 1) = real(sum(qwazp)) / V;
+    m(end) = imag(sum(qwazp)) / V;
 end
 
