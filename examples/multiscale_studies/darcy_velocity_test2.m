@@ -9,26 +9,42 @@ clc
 input_params = default_input_params('darcy_study', 1);
 
 % modify structure as needed, or add additional problem-dependent params
-n_layers = 30;
+n_layers = 10;
 Lx = 1;
 Ly = Lx*n_layers;
-circles = false;
+circles = true;
+array = false;
 
 input_params.box_size = [Lx,Ly];
 input_params.panels = 20;
 input_params.plot_domain = 1;
 input_params.pressure_drop_x = 0;
-input_params.pressure_drop_y = 10;
+input_params.pressure_drop_y = n_layers;
 
 % set up radii and centers, centers given as complex numbers (x+iy)
-c = 0.3;% concentration
+c = 0.4;% concentration
 x_centers = zeros(n_layers,1);
 y_centers = -n_layers/2*Lx:Lx:(n_layers-1)*Lx/2;
 centers = x_centers(:) + 1i*(y_centers(:)+Lx/2);
-input_params.centers = centers(1:end-1);
+input_params.centers = centers(1:end/2);
 
 if circles
-    radii = Lx*sqrt(c/pi);    
+    radii = Lx*sqrt(c/pi);
+    ell = Lx;
+    
+    if array
+        radii = radii/2;
+        ell = 0.5*Lx;
+        
+        x_centers = -0.25*ones(2*n_layers,1);
+        y_centers = [y_centers + 0.25; y_centers - 0.25];
+        
+        centers = x_centers(:) + 1i*(y_centers(:)+Lx/2);
+        
+        input_params.centers = [centers(1:end/2); centers(1:end/2)+0.5];
+    end
+
+    
     input_params.radii = radii*ones(length(input_params.centers),1);
     
     problem_full = circles_periodic(input_params);
@@ -36,7 +52,7 @@ else
     %prescribe semi-major axis a
     input_params.a = 0.4*Lx*ones(length(input_params.centers),1);
     input_params.b = Lx^2*c./(pi * input_params.a);
-    input_params.angles = 3*pi/12*ones(length(input_params.centers),1);
+    input_params.angles = 4*pi/12*ones(length(input_params.centers),1);
     
     problem_full = ellipses_periodic(input_params);
 end
@@ -46,11 +62,16 @@ solution_full = solve_stokes(problem_full);
 
 %% compute permeability for a single reference obstacle
 input_params.box_size = [Lx,Lx];
-input_params.centers = centers(1) + 1i*Lx/2;
-input_params.plot_domain = 0;
+input_params.centers = 0;
+input_params.plot_domain = 1;
 
 if circles
-    input_params.radii = input_params.radii(1);
+    
+    if array
+        input_params.radii = 2*input_params.radii(1);
+    else        
+        input_params.radii = input_params.radii(1);
+    end
     
     problem = circles_periodic(input_params);
 else
@@ -83,9 +104,12 @@ solution_tmp = solve_stokes(problem);
 
 K(:,2) = solution_tmp.u_avg;
 
+% scale by length scales
+K = K*(ell/Lx)^2;
+
 %% compute averages in each layer
-[u_avg, p_avg, p_grad_avg] = compute_cell_averages(solution_full, 1, Ly);
-u_avg = u_avg(:,1) + 1i*u_avg(:,2);
+[u_avg, p_avg, p_grad_avg, u_laplace_avg, x_cen, y_cen] = compute_cell_averages(solution_full, 1, Ly, 0);
+u_avg = u_avg(:,1,:) + 1i*u_avg(:,2,:);
 
 % p_avg(1:end/2) = p_avg(1:end/2);
 % p_grad_avg(1:end/2,:) = p_grad_avg(1:end/2,:);
@@ -135,8 +159,39 @@ axis equal
 title('P_y');
 colorbar;
 
-%% plot homogenized solution
+%% plot averaged solution
+n_averages = size(y_cen,2);
 
+figure();
+
+for i = 1:n_averages
+    subplot(5,1,1)
+    hold on
+    stairs(y_cen(:,i), real(u_avg(:,:,i)));
+    title('tangential velocity');
+    
+    subplot(5,1,2)
+    hold on
+    stairs(y_cen(:,i), imag(u_avg(:,:,i)));
+    title('normal velocity');
+    
+    subplot(5,1,3)
+    hold on
+    stairs(y_cen(:,i), p_avg(:,i));
+    title('pressure');
+    
+    subplot(5,1,4)
+    hold on
+    stairs(y_cen(:,i), p_grad_avg(:,1,i));
+    title('tangential pressure gradient');
+    
+    subplot(5,1,5)
+    hold on
+    stairs(y_cen(:,i), p_grad_avg(:,2,i));
+    title('normal pressure gradient');
+end
+%% plot homogenized solution
+% 
 Uavg = zeros(size(U));
 Vavg = zeros(size(V));
 Pavg = zeros(size(P));
@@ -194,8 +249,7 @@ p_expected = zeros(size(u_avg,1),1);
 px_expected = zeros(size(u_avg,1),1);
 py_expected = zeros(size(u_avg,1),1);
 
-for i = 1:n_layers
-   %u_expected(i,:) = 2*(K*[problem_full.pressure_gradient_x;problem_full.pressure_gradient_y])';
+for i = 1:n_layers/2
     u_expected(i,:) = (K*p_grad_avg(i,:)')';
     p_expected(i) = nan;
     px_expected(i) = nan;
@@ -204,79 +258,58 @@ end
 
 % expected velocity above interface is the velocity evaluated at the cell
 % center
-% for i = 1:n_layers
-%     [utmp, vtmp] = evaluate_velocity(solution_full, 0, (i-1)+0.5);
-%     [pxtmp,pytmp] = evaluate_pressure_gradient(solution_full, 0, (i-1)+0.5);
-%     ptmp = evaluate_pressure(solution_full, 0, (i-1)+0.5);
-%     
-%     u_expected(n_layers + i,1) = utmp;
-%     u_expected(n_layers + i,2) = vtmp;
-%     p_expected(n_layers + i) = ptmp;
-%     px_expected(n_layers +i) = pxtmp;
-%     py_expected(n_layers +i) = pytmp;
-% end
+for i = 1:n_layers/2
+    [utmp, vtmp] = evaluate_velocity(solution_full, 0, (i-1)+0.5);
+    [pxtmp,pytmp] = evaluate_pressure_gradient(solution_full, 0, (i-1)+0.5);
+    ptmp = evaluate_pressure(solution_full, 0, (i-1)+0.5);
+    
+    u_expected(n_layers/2 + i,1) = utmp;
+    u_expected(n_layers/2 + i,2) = vtmp;
+    p_expected(n_layers/2 + i) = ptmp;
+    px_expected(n_layers/2 +i) = pxtmp;
+    py_expected(n_layers/2 +i) = pytmp;
+end
 
 u_expected = u_expected(:,1) + 1i*u_expected(:,2);
 
-% plot difference
-figure;
-
-fontsize = 14;
-
-subplot(1,7,1);
-plot(problem_full.domain.z(1:end-1), 'b');
+figure();
+subplot(5,1,1);
+plot(real(u_avg));
 hold on
-plot(problem_full.domain.z(1:end-1) + Lx, 'b');
-plot(problem_full.domain.z(1:end-1) - Lx, 'b');
-axis equal;
-grid on
-set(gca, 'xtick', [-3*Lx/2, -Lx/2, Lx/2, 3*Lx/2]);
-set(gca, 'ytick', -n_layers*Lx : Lx: n_layers*Lx);
-ylim([-n_layers/2*Lx, n_layers/2*Lx]);
-set(gca,'Fontsize',fontsize);
+plot(real(u_expected));
+title('velocity (horizontal)');
+legend('average velocity', 'expected velocity');
 
-subplot(1,7,2)
-plot(log10(abs((u_expected - u_avg)./u_expected)), 1:Ly);
-xlabel('u_{darcy} - u_{avg}');
-ylabel('layer');
-set(gca,'Fontsize',fontsize);
- 
-subplot(1,7,3)
-plot(real(u_avg), 1:Ly);
+subplot(5,1,2);
+plot(imag(u_avg));
 hold on
-plot(real(u_expected), 1:Ly);
-xlabel('u_{avg}: x');
-ylabel('layer');
-set(gca,'Fontsize',fontsize);
+plot(imag(u_expected));
+title('velocity (vertical)');
+legend('average velocity', 'expected velocity');
 
-subplot(1,7,4)
-plot(imag(u_avg),  1:Ly);
-hold on
-plot(imag(u_expected), 1:Ly);
-xlabel('u_{avg}: y');
-ylabel('layer');
-set(gca,'Fontsize',fontsize);
+subplot(5,1,3);
+plot(log10(abs(u_avg - u_expected)));
+title('error (log_{10})');
 
-subplot(1,7,5)
-plot(p_avg, 1:Ly);
+subplot(5,1,4);
+plot(p_avg);
 hold on
-plot(p_expected, 1:Ly);
-xlabel('p^d');
-ylabel('layer');
-set(gca,'Fontsize',fontsize);
+plot(p_expected);
+title('pressure');
 
-subplot(1,7,6)
-plot(p_grad_avg(:,1), 1:Ly);
+subplot(5,1,5);
+plot(p_grad_avg(:,2));
 hold on
-plot(px_expected, 1:Ly);
-xlabel('p_x^d');
-ylabel('layer');
-set(gca,'Fontsize',fontsize);
-
-subplot(1,7,7)
-plot(p_grad_avg(:,2), 1:Ly);
-hold on
-plot(py_expected, 1:Ly);
-xlabel('p_y^d');
-ylabel('layer');
-set(gca,'Fontsize',fontsize);
+plot(px_expected);
+title('pressure gradient (vertical)');
+% 
+% 
+% %% compute force on interface
+% h = Lx/200;
+% x = h:h:Lx;
+% y = 0*ones(size(x));
+% z = x + 1i*y;
+% zp = ones(size(x))/Lx;
+% w = h*ones(size(x));
+% 
+% f = compute_force(solution_full, z, zp, w);
