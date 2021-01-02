@@ -5,16 +5,16 @@
 % and B = -omega r_out^2 r_in^2 /(r_out^2 - r_in^2)
 
 close all
-clearvars
-clc
+%clearvars
+%clc
 
-test = 1;
+test = 0;
 
 % create input structure
 input_params = default_input_params('couette', 0);
 
 % modify structure as needed, or add additional problem-dependent params
-input_params.panels = [10, 5];
+input_params.panels = [10, 10];
 input_params.plot_domain = 0;
 
 % set up radii and centers, centers given as complex numbers (x+iy)
@@ -27,7 +27,7 @@ problem = couette(input_params);
 % solve the problem
 solution = solve_stokes(problem);
 
-[Uc, Vc, X, Y, U, V] = evaluate_velocity(solution, 100);
+[Uc, Vc, X, Y, U, V] = evaluate_velocity(solution, 200);
 
 % convert Cartesian velocity to radial and angular velocity, using 
 % relationships:
@@ -70,16 +70,9 @@ if test
 
 else
     
+    P = evaluate_pressure(solution, X,Y);
+    
     subplot(1,2,1);
-    
-    plot_domain(problem, h);
-    hold on
-    contourf(X,Y,Ur);
-    colorbar
-    axis equal
-    title('radial velocity');
-    
-    subplot(1,2,2);
     
     plot_domain(problem, h);
     hold on
@@ -87,4 +80,13 @@ else
     colorbar
     axis equal
     title('angular velocity');
+    
+    subplot(1,2,2);
+    
+    plot_domain(problem, h);
+    hold on
+    contourf(X,Y,P);
+    colorbar
+    axis equal
+    title('pressure');
 end
