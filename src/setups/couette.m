@@ -36,7 +36,7 @@ problem.domain = discretize_domain(walls, problem.panels, centers);
 
 % zero on all walls except the outer, which is given by omega*[-y, x]
 problem.boundary_conditions = ...
-  @(z) omega*(abs(abs(z)-radii(1))<1e-12).*(-imag(z) + 1i*real(z));
+  @(z) omega*(abs(abs(z - centers(1))-radii(1))<1e-12).*(-imag(z - centers(1)) + 1i*real(z - centers(1)));
 % problem.boundary_conditions = ...
 %   @(z) (-imag(z) + 1i*real(z))./(abs(z).^2);
 
