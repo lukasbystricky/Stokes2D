@@ -1,11 +1,11 @@
-function [u_avg, p_avg, p_grad_avg, u_laplace_avg, x_cen, y_cen] = compute_cell_averages(solution, Nx, Ny, offsets)
+function [u_avg, p_avg, p_grad_avg, u_grad_avg, x_cen, y_cen] = compute_cell_averages(solution, Nx, Ny, offsets)
 
 n_offsets = length(offsets);
 
 u_avg = zeros(Nx*Ny,2, n_offsets);
 p_avg = zeros(Nx*Ny, n_offsets);
 p_grad_avg = zeros(Nx*Ny,2, n_offsets);
-u_laplace_avg = zeros(Nx*Ny,2, n_offsets);
+u_grad_avg = zeros(Nx*Ny,2, 2, n_offsets);
 x_cen = zeros(Nx*Ny, n_offsets);
 y_cen = zeros(Nx*Ny, n_offsets);
 
@@ -43,8 +43,8 @@ for k = 1:n_offsets
             p_grad_avg(Nx*(i-1) + j,:, k) = compute_average_pressure_gradient(solution, ...
                 xmin, xmax, ymin, ymax, 400, 400, P) / (hx*hy);
             
-%             u_laplace_avg(Nx*(i-1) + j,:, k) = compute_average_viscous_term(solution, ...
-%                 xmin, xmax, ymin, ymax, 400, 400, Ux, Uy, Vx, Vy) / (hx*hy);
+            u_grad_avg(Nx*(i-1) + j,:, :, k) = compute_average_velocity_gradient(solution, ...
+                xmin, xmax, ymin, ymax, 400, 400, P) / (hx*hy);
         end
     end
 end
