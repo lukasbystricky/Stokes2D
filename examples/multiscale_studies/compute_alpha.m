@@ -9,7 +9,7 @@ clc
 input_params = default_input_params('darcy_study', 1);
 
 % modify structure as needed, or add additional problem-dependent params
-n_layers = 12;
+n_layers = 20;
 Lx = 1;
 Ly = Lx*n_layers;
 circles = false;
@@ -17,15 +17,15 @@ circles = false;
 input_params.box_size = [Lx,Ly];
 input_params.panels = 20;
 input_params.plot_domain = 1;
-input_params.pressure_drop_x = 0;
-input_params.pressure_drop_y = 10;
+input_params.pressure_drop_x = 1;
+input_params.pressure_drop_y = 0;
 
 % set up radii and centers, centers given as complex numbers (x+iy)
-c = 0.3;% concentration
+c = 0.2;% concentration
 x_centers = zeros(n_layers/2,1);
-y_centers = -n_layers/4*Lx:Lx:(n_layers/4-1)*Lx;
-centers = x_centers(:) + 1i*(y_centers(:)+Lx/2);
-input_params.centers = centers(1:end-1);
+y_centers = (-(n_layers/4)*Lx:Lx:(n_layers/4-1)*Lx) + Lx/2;
+centers = x_centers(:) + 1i*y_centers(:);
+input_params.centers = centers(1:end);
 
 if circles
     radii = Lx*sqrt(c/pi);    
@@ -36,7 +36,7 @@ else
     %prescribe semi-major axis a
     input_params.a = 0.4*Lx*ones(length(input_params.centers),1);
     input_params.b = Lx^2*c./(pi * input_params.a);
-    input_params.angles = 3*pi/12*ones(length(input_params.centers),1);
+    input_params.angles = 1*pi/12*ones(length(input_params.centers),1);
     
     problem_full = ellipses_periodic(input_params);
 end
@@ -84,9 +84,15 @@ solution_tmp = solve_stokes(problem);
 K(:,2) = solution_tmp.u_avg;
 
 %% compute averages in each layer
-[u_avg, p_avg, p_grad_avg, u_grad_avg] = compute_cell_averages(solution_full, 1, Ly, 0);
-u_avg = u_avg(:,1) + 1i*u_avg(:,2);
+offsets = [-1, -0.9, -0.1, 0, 0.1, 0.9, 1];
+[u_avg, p_avg, p_grad_avg, u_grad_avg] = compute_cell_averages(solution_full, 1, Ly, offsets);
+u_avg = u_avg(:,1,:) + 1i*u_avg(:,2,:);
 
+alpha = zeros(size(offsets));
+interface_layer = n_layers/4;
+for i = 1:length(offsets)
+    alpha(i) = real(u_avg(interface_layer+1,i) - u_avg(interface_layer,i))/u_grad_avg(interface_layer,2,1,i);
+end
 % p_avg(1:end/2) = p_avg(1:end/2);
 % p_grad_avg(1:end/2,:) = p_grad_avg(1:end/2,:);
 
