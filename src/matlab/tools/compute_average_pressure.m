@@ -1,15 +1,19 @@
 function p_avg = compute_average_pressure(solution, xmin, xmax, ...
-    ymin, ymax, Nx, Ny, varargin)
+    ymin, ymax, Nx, Ny, bodies)
 
 % find quadrature points inside averaging volume
-z = solution.problem.domain.z;
-zp = solution.problem.domain.zp;
-indices = 1:length(z);
-indices = indices(real(z) > xmin & real(z) < xmax & ...
-    imag(z) > ymin & imag(z) < ymax);
+
+indices_bodies = [];
+for i = bodies
+    indices = [indices_bodies, solution.problem.domain.wall_indices(bodies,1) : ...
+                solution.problem.domain.wall_indices(bodies,2)];
+end
+
+z = solution.problem.domain.z(indices);
+zp = solution.problem.domain.zp(indices);
+
 
 p_avg = 0;
-
 if ~isempty(indices)
     
     x = real(z(indices));
@@ -19,28 +23,19 @@ if ~isempty(indices)
     n2 = imag(-1i*zp(indices))./abs(zp(indices));
     wazp = solution.problem.domain.wazp(indices);
     
-    % outpointing normal
+    %outward pointing normal
     n1 = -n1;
     n2 = -n2;
     
-    if nargin == 7   
-        
-        % compute integral over boundary
-        [Px, Py] = evaluate_pressure_gradient_on_surface(solution);
-        P = evaluate_pressure_on_surface(solution);
-        
-        Px = Px(indices);
-        Py = Py(indices);
-        P = P(indices);
-       
-    else
-        
-        % integrals over boundary can also be passed in
-        P = varargin{1}(indices);
-        Px = varargin{2}(indices);
-        Py = varargin{3}(indices);      
-        
-    end
+    % compute integral over boundary
+    [Px, Py] = evaluate_pressure_gradient_on_surface(solution, bodies);
+    P = evaluate_pressure_on_surface(solution, bodies);
+    
+    Px = Px(indices);
+    Py = Py(indices);
+    P = P(indices);
+    
+    
     
     p_avg = p_avg + sum((2*P.*(x.*n1+y.*n2) - r.^2.*(Px.*n1 + Py.*n2)).*wazp);
 end

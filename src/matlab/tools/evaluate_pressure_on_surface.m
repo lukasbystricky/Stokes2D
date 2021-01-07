@@ -1,4 +1,4 @@
-function P = evaluate_pressure_on_surface(solution)
+function P = evaluate_pressure_on_surface(solution, bodies)
 %EVALUTATE_PRESSURE_ON_SURFACE evaluates the pressure at the quadrature
 %points on the surface of a domain. Adds on the jump corresponding to
 %approaching the boundary from the fluid part of the domain.
@@ -19,35 +19,43 @@ if solution.problem.periodic
     Ly = domain.Ly;
 end
 
-xsrc = real(solution.problem.domain.z);
-ysrc = imag(solution.problem.domain.z);
+indices = [];
+for i = bodies
+    indices = [indices, solution.problem.domain.wall_indices(bodies,1) : ...
+                solution.problem.domain.wall_indices(bodies,2)];
+end
+
+xsrc = real(solution.problem.domain.z(indices));
+ysrc = imag(solution.problem.domain.z(indices));
 xtar = xsrc;
 ytar = ysrc;
 
-n1 = real(-1i*solution.problem.domain.zp)./abs(solution.problem.domain.zp);
-n2 = imag(-1i*solution.problem.domain.zp)./abs(solution.problem.domain.zp);
-wazp = solution.problem.domain.wazp;
+n1 = real(-1i*solution.problem.domain.zp(indices))./abs(solution.problem.domain.zp(indices));
+n2 = imag(-1i*solution.problem.domain.zp(indices))./abs(solution.problem.domain.zp(indices));
+wazp = solution.problem.domain.wazp(indices);
+q = solution.q(indices,:);
+
 
 if solution.problem.periodic
     
     % evaluate solution using Ewald, to account for periodic replicates
     pslp = StokesSLP_pressure_ewald_2p(xsrc, ysrc, xtar(:), ytar(:),...
-        solution.q(:,1).*wazp, solution.q(:,2).*wazp, Lx, Ly,...
+        q(:,1).*wazp, q(:,2).*wazp, Lx, Ly,...
         'verbose', 1)';
 
     % correct with special quadrature
-    pslp = pressure_slp_on_surface_correction(pslp, solution);
+    pslp = pressure_slp_on_surface_correction(pslp, solution, bodies);
     
     if isinf(solution.problem.eta)
         P = pslp;
     else
         
         pdlp = StokesDLP_pressure_ewald_2p(xsrc, ysrc, xtar(:), ytar(:), n1, n2,...
-            solution.q(:,1).*wazp, solution.q(:,2).*wazp, Lx, Ly,...
+            q(:,1).*wazp, q(:,2).*wazp, Lx, Ly,...
             'verbose', 1)';
         
         % correct with special quadrature
-        pdlp = pressure_dlp_on_surface_correction(pdlp, solution);
+        pdlp = pressure_dlp_on_surface_correction(pdlp, solution, bodies);
     
         P = pdlp + solution.problem.eta*pslp;
     end

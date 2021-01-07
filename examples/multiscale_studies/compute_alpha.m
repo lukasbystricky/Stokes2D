@@ -84,8 +84,8 @@ solution_tmp = solve_stokes(problem);
 K(:,2) = solution_tmp.u_avg;
 
 %% compute averages in each layer
-offsets = [-1, -0.9, -0.1, 0, 0.1, 0.9, 1];
-[u_avg, p_avg, p_grad_avg, u_grad_avg] = compute_cell_averages(solution_full, 0, 0, Lx, Lx);
+bodies = 1;
+[u_avg, p_avg, p_grad_avg, u_grad_avg] = compute_cell_averages(solution_full, 0, 0, Lx, Lx, bodies);
 u_avg = u_avg(:,1,:) + 1i*u_avg(:,2,:);
 
 alpha = zeros(size(offsets));
