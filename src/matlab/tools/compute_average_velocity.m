@@ -1,12 +1,15 @@
 function u_avg = compute_average_velocity(solution, xmin, xmax, ...
-    ymin, ymax, Nx, Ny, varargin)
+    ymin, ymax, Nx, Ny, bodies)
 
 % find quadrature points inside averaging volume
-z = solution.problem.domain.z;
-zp = solution.problem.domain.zp;
-indices = 1:length(z);
-indices = indices(real(z) > xmin & real(z) < xmax & ...
-    imag(z) > ymin & imag(z) < ymax);
+indices_bodies = [];
+for i = bodies
+    indices = [indices_bodies, solution.problem.domain.wall_indices(bodies,1) : ...
+                solution.problem.domain.wall_indices(bodies,2)];
+end
+
+z = solution.problem.domain.z(indices);
+zp = solution.problem.domain.zp(indices);
 
 u_avg = [0;0];
 
@@ -23,30 +26,18 @@ if ~isempty(indices)
     n1 = -n1;
     n2 = -n2;
     
-    if nargin == 7   
-        
-        % compute integral over boundary
-        [Ux, Uy, Vx, Vy] = evaluate_velocity_gradient_on_surface(solution);
-        [U, V] = evaluate_velocity_on_surface(solution);
-        
-        Ux = Ux(indices);
-        Uy = Uy(indices);
-        Vx = Vx(indices);
-        Vy = Vy(indices);
-        U = U(indices);
-        V = V(indices);
-       
-    else
-        
-        % integrals over boundary can also be passed in
-        U = varargin{1}(indices);
-        V = varargin{2}(indices);
-        Ux = varargin{3}(indices);
-        Uy = varargin{4}(indices);
-        Vx = varargin{5}(indices);
-        Vy = varargin{6}(indices);        
-        
-    end
+    
+    % compute integral over boundary
+    [Ux, Uy, Vx, Vy] = evaluate_velocity_gradient_on_surface(solution, bodies);
+    [U, V] = evaluate_velocity_on_surface(solution, bodies);
+    
+    Ux = Ux(indices);
+    Uy = Uy(indices);
+    Vx = Vx(indices);
+    Vy = Vy(indices);
+    U = U(indices);
+    V = V(indices);
+    
     
     u_avg(1) = u_avg(1) + sum((r.^2.*(Ux.*n1 + Vx.*n2) - 2*(x.*U + y.*V).*n1).*wazp);
     u_avg(2) = u_avg(2) + sum((r.^2.*(Uy.*n1 + Vy.*n2) - 2*(x.*U + y.*V).*n2).*wazp);

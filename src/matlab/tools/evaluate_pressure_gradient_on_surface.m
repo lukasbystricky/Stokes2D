@@ -1,4 +1,4 @@
-function [Px, Py] = evaluate_pressure_gradient_on_surface(solution)
+function [Px, Py] = evaluate_pressure_gradient_on_surface(solution, bodies)
 %EVALUTATE_PRESSURE_GRADIENT_ON_SURFACE evaluates the pressure gradient at 
 %the quadrature points on the surface of a domain. Adds on the jump 
 %corresponding to approaching the boundary from the fluid part of the domain.
@@ -19,35 +19,43 @@ if solution.problem.periodic
     Ly = domain.Ly;
 end
 
-xsrc = real(solution.problem.domain.z);
-ysrc = imag(solution.problem.domain.z);
+indices = [];
+for i = bodies
+    indices = [indices, solution.problem.domain.wall_indices(bodies,1) : ...
+                solution.problem.domain.wall_indices(bodies,2)];
+end
+
+xsrc = real(solution.problem.domain.z(indices));
+ysrc = imag(solution.problem.domain.z(indices));
 xtar = xsrc;
 ytar = ysrc;
 
-n1 = real(-1i*solution.problem.domain.zp)./abs(solution.problem.domain.zp);
-n2 = imag(-1i*solution.problem.domain.zp)./abs(solution.problem.domain.zp);
-wazp = solution.problem.domain.wazp;
+n1 = real(-1i*solution.problem.domain.zp(indices))./abs(solution.problem.domain.zp(indices));
+n2 = imag(-1i*solution.problem.domain.zp(indices))./abs(solution.problem.domain.zp(indices));
+wazp = solution.problem.domain.wazp(indices);
+q = solution.q(indices,:);
+
 
 if solution.problem.periodic
     
     % evaluate solution using Ewald, to account for periodic replicates
     dpslp = StokesSLP_pressure_grad_ewald_2p(xsrc, ysrc, xtar(:), ytar(:),...
-        solution.q(:,1).*wazp, solution.q(:,2).*wazp, Lx, Ly,...
+        q(:,1).*wazp, q(:,2).*wazp, Lx, Ly,...
         'verbose', 1)';
 
     % correct with special quadrature
-    dpslp = pressure_gradient_slp_on_surface_correction(dpslp(:,1) + 1i*dpslp(:,2), solution);
+    dpslp = pressure_gradient_slp_on_surface_correction(dpslp(:,1) + 1i*dpslp(:,2), solution, bodies);
     
     if isinf(solution.problem.eta)
         dP = dpslp;
     else
         
         dpdlp = StokesDLP_pressure_grad_ewald_2p(xsrc, ysrc, xtar(:), ytar(:), n1, n2,...
-            solution.q(:,1).*wazp, solution.q(:,2).*wazp, Lx, Ly,...
+            q(:,1).*wazp, q(:,2).*wazp, Lx, Ly,...
             'verbose', 1)';
         
         % correct with special quadrature
-        dpdlp = pressure_gradient_dlp_on_surface_correction(dpdlp(:,1) + 1i*dpdlp(:,2), solution);
+        dpdlp = pressure_gradient_dlp_on_surface_correction(dpdlp(:,1) + 1i*dpdlp(:,2), solution, bodies);
     
         dP = dpdlp + solution.problem.eta*dpslp;
     end

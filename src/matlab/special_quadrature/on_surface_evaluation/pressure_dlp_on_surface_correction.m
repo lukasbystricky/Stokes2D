@@ -1,4 +1,4 @@
-function Ph = pressure_dlp_on_surface_correction(P, solution)
+function Ph = pressure_dlp_on_surface_correction(P, solution, bodies)
 %PRESSURE_DLP_ON_SURFACE_CORRECTION corrects the double-layer 
 %pressure for on-surface evaluation. Adds on the jump as the target
 %approaches the boundary from the fluid part of the domain.
@@ -24,7 +24,7 @@ nw = size(domain.wall_indices,1);
 
 wall_start = 1;
 
-for i = 1:nw
+for i = 1:bodies
     
     indices = domain.wall_indices(i,1):domain.wall_indices(i,2);
     npan = length(indices)/16;

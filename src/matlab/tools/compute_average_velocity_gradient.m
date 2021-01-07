@@ -1,5 +1,5 @@
 function u_grad_avg = compute_average_velocity_gradient(solution, xmin, xmax, ...
-    ymin, ymax, Nx, Ny, varargin)
+    ymin, ymax, Nx, Ny)
 
 u_grad_avg = [0 0; 0,0];
 
