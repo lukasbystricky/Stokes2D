@@ -1,4 +1,4 @@
-function [U, V] = evaluate_velocity_on_surface(solution)
+function [U, V] = evaluate_velocity_on_surface(solution, bodies)
 %EVALUTATE_VELOCITY_ON_SURFACE evaluates the velocity at the quadrature
 %points on the surface of a domain. Adds on the jump corresponding to
 %approaching the boundary from the fluid part of the domain.
@@ -20,16 +20,24 @@ if solution.problem.periodic
     Ly = domain.Ly;
 end
 
-xsrc = real(solution.problem.domain.z);
-ysrc = imag(solution.problem.domain.z);
+indices = [];
+for i = bodies
+    indices = [indices, solution.problem.domain.wall_indices(bodies,1) : ...
+                solution.problem.domain.wall_indices(bodies,2)];
+end
+
+xsrc = real(solution.problem.domain.z(indices));
+ysrc = imag(solution.problem.domain.z(indices));
 xtar = xsrc;
 ytar = ysrc;
+zp = domain.zp(indices);
+zpp = domain.zpp(indices);
 
-n1 = real(-1i*solution.problem.domain.zp)./abs(solution.problem.domain.zp);
-n2 = imag(-1i*solution.problem.domain.zp)./abs(solution.problem.domain.zp);
-wazp = solution.problem.domain.wazp;
-qsrc = solution.q(:,1) + 1i*solution.q(:,2);
-qwazp = qsrc.*wazp;
+n1 = real(-1i*solution.problem.domain.zp(indices))./abs(solution.problem.domain.zp(indices));
+n2 = imag(-1i*solution.problem.domain.zp(indices))./abs(solution.problem.domain.zp(indices));
+wazp = solution.problem.domain.wazp(indices);
+q = solution.q(indices,1)+1i*solution.q(indices,2);
+qwazp = q.*wazp;
 
 % evaluate solution using Ewald, to account for periodic replicates
 [u_slp1, u_slp2] = StokesSLP_ewald_2p(xsrc, ysrc, xtar, ytar, real(qwazp), imag(qwazp),...
@@ -40,7 +48,7 @@ G = u_slp1 + 1i*u_slp2;
 
 % apply log-quadrature corrections for the Stokeslet
 wall_indices = domain.wall_indices;
-for i = 1:size(wall_indices,1)
+for i = 1:bodies
     
     panels_per_wall = (wall_indices(i,2)-wall_indices(i,1)+1)/16;
     thiswall = wall_indices(i,1):wall_indices(i,2);
@@ -53,13 +61,14 @@ for i = 1:size(wall_indices,1)
         target_ind = wall_indices(i,1)+...
             mod((j-1)*16+(-3:20)+panels_per_wall*16-1, panels_per_wall*16);
         
-        correction = -domain.Lmod*(qwazp(source_ind)) / (4*pi);
+        qwazp_tmp = real(solution.q(source_ind,1) + 1i*solution.q(source_ind,2)).*domain.wazp(source_ind);
+        correction = -domain.Lmod*(qwazp_tmp) / (4*pi);
         
         G(target_ind) = G(target_ind) + correction;
     end
 end
 
-u_slp = G + (qsrc + domain.zp./conj(domain.zp).*conj(qsrc)).*domain.wazp/(8*pi);
+u_slp = G + (q + zp./conj(zp).*conj(q)).*wazp/(8*pi);
 
 if ~isinf(solution.problem.eta)
     % add on double-layer potential
@@ -69,10 +78,10 @@ if ~isinf(solution.problem.eta)
     T = u_dlp1 + 1i*u_dlp2;
     
     % diagonal elements of the double-layer
-    u_dlp = T + domain.quad_weights.*(qsrc.*imag(domain.zpp./domain.zp) + ...
-        conj(qsrc).*imag(domain.zpp.*conj(domain.zp))./conj(domain.zp).^2)/(4*pi);
+    u_dlp = T + domain.quad_weights(indices).*(q.*imag(zpp./zp) + ...
+        conj(q).*imag(zpp.*conj(zp))./conj(zp).^2)/(4*pi);
     
-    u = solution.problem.eta*u_slp + u_dlp - qsrc/2;
+    u = solution.problem.eta*u_slp + u_dlp - q/2;
 else
     u = u_slp;
 end

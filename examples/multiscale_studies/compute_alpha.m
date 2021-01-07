@@ -85,7 +85,7 @@ K(:,2) = solution_tmp.u_avg;
 
 %% compute averages in each layer
 offsets = [-1, -0.9, -0.1, 0, 0.1, 0.9, 1];
-[u_avg, p_avg, p_grad_avg, u_grad_avg] = compute_cell_averages(solution_full, 1, Ly, offsets);
+[u_avg, p_avg, p_grad_avg, u_grad_avg] = compute_cell_averages(solution_full, 0, 0, Lx, Lx);
 u_avg = u_avg(:,1,:) + 1i*u_avg(:,2,:);
 
 alpha = zeros(size(offsets));
