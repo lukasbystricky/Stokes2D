@@ -1,12 +1,13 @@
 cmake_minimum_required(VERSION 2.8)
 project(MEX)
 
-if(CMAKE_VERSION VERSION_LESS "3.3")
-  message(WARNING "CMake version less than 3.3\n"
-    "using local FindMatlab module extracted from v3.3")
-
-  # Where we keep FindMatlab module
-  set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
+if(CMAKE_VERSION VERSION_LESS "3.18")
+  message(WARNING "CMake version less than 3.18 detected"
+    " -- using local FindMatlab module extracted from v3.18")
+  # Where we keep the FindMatlab module
+  set(CMAKE_MODULE_PATH
+    ${PROJECT_SOURCE_DIR}/cmake-compat
+    ${CMAKE_MODULE_PATH})
 endif()
 
 if(APPLE)
