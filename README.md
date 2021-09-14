@@ -9,11 +9,12 @@ Code to solve the Stokes equations using boundary integral equations.
 
 ## Compilation instructions
 
-In addition to this repository you will need the fast multiplication methods in http://github.com/lukasbystricky/FastTools2D. Compilation instructions for that repository are provided in its README, however the following sequence has been tested on Ubuntu 16.04 and Matlab 2017a:
+In addition to this repository you will need the tool for Legendre polynomials in https://github.com/ludvigak/legtools and the fast multiplication methods in https://github.com/lukasbystricky/FastTools2D. Compilation instructions for the latter repository are provided in its README, however the following sequence has been tested on Ubuntu 16.04 with Matlab 2017a as well as on Ubuntu 18.04 with Matlab 2021a:
 
 	## clone repositories
-	git clone http://github.com/lukasbystricky/FastTools2D.git
-	git clone http://github.com/lukasbystricky/Stokes2D.git
+	git clone https://github.com/ludvigak/legtools
+	git clone https://github.com/lukasbystricky/FastTools2D.git
+	git clone https://github.com/lukasbystricky/Stokes2D.git
 
 	## compile periodic spectral Ewald
 	cd FastTools2D/PeriodicEwald/src/build
