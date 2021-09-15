@@ -1,4 +1,4 @@
-function [Ux, Uy, Vx, Vy] = evaluate_velocity_gradient_on_surface(solution, bodies)
+function [Ux, Uy, Vx, Vy] = evaluate_velocity_gradient_on_surface(solution, solution_local)
 %EVALUTATE_VELOCITY_GRADIENT_ON_SURFACE evaluates the velocity gradient at 
 %the quadrature points on the surface of a domain. Adds on the jump 
 %corresponding to approaching the boundary from the fluid part of the 
@@ -14,6 +14,7 @@ function [Ux, Uy, Vx, Vy] = evaluate_velocity_gradient_on_surface(solution, bodi
 %quadrature points on the surface
 
 disp('Evaluating velocity gradient...');
+local_indices = solution_local.local_indices;
 
 domain = solution.problem.domain;
 if solution.problem.periodic
@@ -21,26 +22,19 @@ if solution.problem.periodic
     Ly = domain.Ly;
 end
 
-indices = [];
-for i = bodies
-    indices = [indices, solution.problem.domain.wall_indices(bodies,1) : ...
-                solution.problem.domain.wall_indices(bodies,2)];
-end
+xsrc = real(solution.problem.domain.z);
+ysrc = imag(solution.problem.domain.z);
+xtar = xsrc(local_indices);
+ytar = ysrc(local_indices);
 
-xsrc = real(solution.problem.domain.z(indices));
-ysrc = imag(solution.problem.domain.z(indices));
-xtar = xsrc;
-ytar = ysrc;
-
-n1 = real(-1i*solution.problem.domain.zp(indices))./abs(solution.problem.domain.zp(indices));
-n2 = imag(-1i*solution.problem.domain.zp(indices))./abs(solution.problem.domain.zp(indices));
-wazp = solution.problem.domain.wazp(indices);
-q = solution.q(indices,:);
+n1 = real(-1i*solution.problem.domain.zp)./abs(solution.problem.domain.zp);
+n2 = imag(-1i*solution.problem.domain.zp)./abs(solution.problem.domain.zp);
+wazp = solution.problem.domain.wazp;
+q = solution.q;
 
 % evaluate solution using Ewald, to account for periodic replicates
-b1 = ones(size(xsrc));
-b2 = 1i*ones(size(xsrc));
-
+b1 = ones(size(solution_local.problem.domain.z));
+b2 = 1i*ones(size(solution_local.problem.domain.z));
 
 [ux, vx] = StokesSLP_gradient_ewald_2p(xsrc, ysrc, xtar(:), ytar(:),...
    q(:,1).*wazp, q(:,2).*wazp, real(b1), imag(b1), ...
@@ -51,8 +45,10 @@ b2 = 1i*ones(size(xsrc));
     Lx, Ly,'verbose', 1);
 
 % correct with special quadrature
-ugrad_slp1 = velocity_gradient_slp_on_surface_correction(ux + 1i*vx, b1, solution, bodies);
-ugrad_slp2 = velocity_gradient_slp_on_surface_correction(uy + 1i*vy, b2, solution, bodies);
+ugrad_slp1 = velocity_gradient_slp_on_surface_correction(ux +...
+                1i*vx, b1, solution_local);
+ugrad_slp2 = velocity_gradient_slp_on_surface_correction(uy +...
+                1i*vy, b2, solution_local);
 
 if ~isinf(solution.problem.eta)
     % add on double-layer potential
@@ -66,8 +62,8 @@ if ~isinf(solution.problem.eta)
         Lx, Ly,'verbose', 1);
     
     % correct with special quadrature
-    ugrad_dlp1 = velocity_gradient_dlp_on_surface_correction(ux + 1i*vx, b1, solution, bodies);
-    ugrad_dlp2 = velocity_gradient_dlp_on_surface_correction(uy + 1i*vy, b2, solution, bodies);
+    ugrad_dlp1 = velocity_gradient_dlp_on_surface_correction(ux + 1i*vx, b1, solution_local);
+    ugrad_dlp2 = velocity_gradient_dlp_on_surface_correction(uy + 1i*vy, b2, solution_local);
     
     ugrad1 = solution.problem.eta*ugrad_slp1 + ugrad_dlp1;
     ugrad2 = solution.problem.eta*ugrad_slp2 + ugrad_dlp2;

@@ -42,7 +42,7 @@ classdef special_quad
             end
             
             w = o.vandernewton(zsrc_up,p,o.Nup);
-            Ic = -sum(fsrc_up.*w);
+            Ic = -(sum(fsrc_up.*w));
             
         end
         

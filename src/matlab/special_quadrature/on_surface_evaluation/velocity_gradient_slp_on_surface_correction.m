@@ -1,4 +1,4 @@
-function dVh = velocity_gradient_slp_on_surface_correction(dV, btar, solution, bodies)
+function dVh = velocity_gradient_slp_on_surface_correction(dV, btar, solution_local)
 %VELOCITY_GRADIENT_SLP_ON_SURFACE_CORRECTION corrects the single-layer 
 %velocity gradient for on-surface evaluation. Returns a vector which is the
 %gradient dotted with a direction vector b. Adds on the jump as the target
@@ -14,22 +14,22 @@ function dVh = velocity_gradient_slp_on_surface_correction(dV, btar, solution, b
 %output:
 %-dVh: corrected velocity gradient
 
-domain = solution.problem.domain;
+domain = solution_local.problem.domain;
 
 zsrc = domain.z;
 zpsrc = domain.zp;
 wsrc = domain.quad_weights;
 
 nsrc = -1i*zpsrc./abs(zpsrc);
-qsrc = solution.q(:,1) + 1i*solution.q(:,2);
+qsrc = solution_local.q(:,1) + 1i*solution_local.q(:,2);
 dVh = dV;
 
 wall_start = 1;
 
-for i = bodies
+for i = size(domain.wall_indices,1)
     
     indices = domain.wall_indices(i,1):domain.wall_indices(i,2);
-    npan = length(indices)/16;
+    npan = (domain.wall_indices(i,2)-domain.wall_indices(i,1)+1)/16;
     
     panel_breaks_z = domain.panel_breaks(wall_start:wall_start + npan - 1);
     

@@ -1,26 +1,21 @@
-function u_avg = compute_average_velocity(solution, xmin, xmax, ...
-    ymin, ymax, Nx, Ny, bodies)
+function u_avg = compute_average_velocity(solution, solution_local, xmin, xmax, ...
+    ymin, ymax, Nx, Ny)
 
 % find quadrature points inside averaging volume
-indices_bodies = [];
-for i = bodies
-    indices = [indices_bodies, solution.problem.domain.wall_indices(bodies,1) : ...
-                solution.problem.domain.wall_indices(bodies,2)];
-end
-
-z = solution.problem.domain.z(indices);
-zp = solution.problem.domain.zp(indices);
+domain = solution_local.problem.domain;
+z = domain.z;
+zp = domain.zp;
 
 u_avg = [0;0];
 
-if ~isempty(indices)
+if ~isempty(z)
     
-    x = real(z(indices));
-    y = imag(z(indices));
-    r = abs(z(indices));
-    n1 = real(-1i*zp(indices))./abs(zp(indices));
-    n2 = imag(-1i*zp(indices))./abs(zp(indices));
-    wazp = solution.problem.domain.wazp(indices);
+    x = real(z);
+    y = imag(z);
+    r = abs(z);
+    n1 = real(-1i*zp)./abs(zp);
+    n2 = imag(-1i*zp)./abs(zp);
+    wazp = domain.wazp;
     
     %outward pointing normal
     n1 = -n1;
@@ -28,16 +23,8 @@ if ~isempty(indices)
     
     
     % compute integral over boundary
-    [Ux, Uy, Vx, Vy] = evaluate_velocity_gradient_on_surface(solution, bodies);
-    [U, V] = evaluate_velocity_on_surface(solution, bodies);
-    
-    Ux = Ux(indices);
-    Uy = Uy(indices);
-    Vx = Vx(indices);
-    Vy = Vy(indices);
-    U = U(indices);
-    V = V(indices);
-    
+    [Ux, Uy, Vx, Vy] = evaluate_velocity_gradient_on_surface(solution, solution_local);
+    [U, V] = evaluate_velocity_on_surface(solution, solution_local);
     
     u_avg(1) = u_avg(1) + sum((r.^2.*(Ux.*n1 + Vx.*n2) - 2*(x.*U + y.*V).*n1).*wazp);
     u_avg(2) = u_avg(2) + sum((r.^2.*(Uy.*n1 + Vy.*n2) - 2*(x.*U + y.*V).*n2).*wazp);
@@ -107,4 +94,5 @@ w(end) = hx/2;
 u_avg(1) = u_avg(1) + sum((r.^2.*(Ux.*n1 + Vx.*n2) - 2*(x.*U + y.*V).*n1).*w);
 u_avg(2) = u_avg(2) + sum((r.^2.*(Uy.*n1 + Vy.*n2) - 2*(x.*U + y.*V).*n2).*w);
 
-u_avg = -0.5*u_avg;
+V = (xmax - xmin)*(ymax - ymin);
+u_avg = -0.5*u_avg/V;

@@ -46,3 +46,6 @@ w(end) = hx/2;
 
 [u1, u2] = evaluate_velocity(solution, x, y);
 u_grad_avg = u_grad_avg + [0, 0; -sum(w.*u1), -sum(w.*u2)];
+
+V = (xmax - xmin)*(ymax - ymin);
+u_grad_avg = u_grad_avg / V;

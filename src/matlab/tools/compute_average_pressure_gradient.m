@@ -46,3 +46,6 @@ w(end) = hx/2;
 
 P = evaluate_pressure(solution, x, y);
 p_grad_avg = p_grad_avg + sum(P.*w)*[0;-1];
+
+V = (xmax - xmin)*(ymax - ymin);
+p_grad_avg = p_grad_avg / V;

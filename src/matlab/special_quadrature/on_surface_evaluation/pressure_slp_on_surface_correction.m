@@ -1,4 +1,4 @@
-function Pc = pressure_slp_on_surface_correction(P, solution, bodies)
+function Pc = pressure_slp_on_surface_correction(P, solution_local, type)
 %PRESSURE_SLP_ON_SURFACE_CORRECTION corrects the single-layer 
 %pressure for on-surface evaluation. Adds on the jump as the target
 %approaches the boundary from the fluid part of the domain.
@@ -12,20 +12,20 @@ function Pc = pressure_slp_on_surface_correction(P, solution, bodies)
 %output:
 %-Pc: corrected pressure
 
-domain = solution.problem.domain;
+domain = solution_local.problem.domain;
 
 zsrc = domain.z;
 zpsrc = domain.zp;
 nsrc = -1i*zpsrc./abs(zpsrc);
 wsrc = domain.quad_weights;
 
-qsrc = (solution.q(:,1) + 1i*solution.q(:,2))./nsrc;
+qsrc = (solution_local.q(:,1) + 1i*solution_local.q(:,2))./nsrc;
 
 Pc = P;
-nw = size(domain.wall_indices,1);
 
 wall_start = 1;
-for i = 1:bodies
+for i = size(domain.wall_indices,1)
+
     
     indices = domain.wall_indices(i,1):domain.wall_indices(i,2);
     npan = length(indices)/16;
@@ -44,7 +44,7 @@ for i = 1:bodies
     
     %add on special quadrature
     Pc(indices) = Pc(indices) + imag(cauchy_on_surface_evaluation(qsrc(indices), ...
-                zsrc(indices), zpsrc(indices), wsrc(indices), panel_breaks_z))/(2*pi); 
+                zsrc(indices), zpsrc(indices), wsrc(indices), panel_breaks_z, type))/(2*pi); 
             
    wall_start = wall_start + npan + 1;       
 end

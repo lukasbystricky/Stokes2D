@@ -61,8 +61,8 @@ if solution.problem.periodic
         domain.reference_cell,true);
     
     if isinf(solution.problem.eta)
-        p = pslp;
-        p_corrected = pslp_corrected;
+        P = pslp;
+        Pc = pslp_corrected;
     else
         
         pdlp = StokesDLP_pressure_ewald_2p(xsrc, ysrc, X(:), Y(:), n1, n2,...
@@ -77,16 +77,16 @@ if solution.problem.periodic
             domain.extra.Nrows, domain.extra.Ncols, domain.extra.panels2wall,...
             domain.reference_cell, true);
         
-        p = pdlp + solution.problem.eta*pslp;
-        p_corrected = pdlp_corrected + solution.problem.eta*pslp_corrected;
+        P = pdlp + solution.problem.eta*pslp;
+        Pc = pdlp_corrected + solution.problem.eta*pslp_corrected;
     end
     
 else % not periodic, only double-layer plus Stokeslets
     
     % note that the pressure is evaluated without an FMM, so it will be
     % quite slow to evaluate if the number of target points is large
-    pdlp = evaluate_double_layer_pressure_direct(X, Y, domain.z, domain.zp,...
-        solution.q(:,1)+1i*solution.q(:,2), domain.quad_weights, true);
+    pdlp = evaluate_double_layer_pressure_direct(X(:), Y(:), domain.z, domain.zp,...
+        solution.q(:,1)+1i*solution.q(:,2), domain.quad_weights);
     
     pstokeslets = zeros(size(X(:)));
     for i = 1:length(solution.forces)
@@ -103,52 +103,52 @@ else % not periodic, only double-layer plus Stokeslets
         domain.extra.Nrows, domain.extra.Ncols, domain.extra.panels2wall,...
         domain.reference_cell, false);
     
-    p_corrected = pdlp_corrected + pstokeslets;
+    P = pdlp + pstokeslets;
+    Pc = pdlp_corrected + pstokeslets;
     
 end
 
-% find points inside domain by applying stresslet identity
-if solution.problem.periodic
-    [test1, test2] = StokesDLP_ewald_2p(xsrc, ysrc, X(:), Y(:), n1, n2,...
-        ones(length(n1),1).*weights, zeros(length(n1),1).*weights, Lx, Ly);
-else
-    % again, FMM for DLP assumes sources=targets, so we have to artifically
-    % add sources with strength zero
-    qtmp1 = [ones(length(xsrc),1).*weights; zeros(length(X(:)),1)];
-    qtmp2 = [zeros(length(xsrc),1).*weights; zeros(length(X(:)),1)];
-    ntmp1 = [n1(:); zeros(length(X(:)),1)];
-    ntmp2 = [n2(:); zeros(length(X(:)),1)];
-    
-    xtmp = [xsrc; X(:)];
-    ytmp = [ysrc; Y(:)];
-    
-    [test1, test2] = stokesDLPfmm(qtmp1, qtmp2, xtmp, ytmp, ntmp1, ntmp2);
-    
-    % extract data at target points only
-    test1 = -test1(length(xsrc)+1:end);
-    test2 = -test2(length(xsrc)+1:end);
-end
+% % find points inside domain by applying stresslet identity
+% if solution.problem.periodic
+%     [test1, test2] = StokesDLP_ewald_2p(xsrc, ysrc, X(:), Y(:), n1, n2,...
+%         ones(length(n1),1).*weights, zeros(length(n1),1).*weights, Lx, Ly);
+% else
+%     % again, FMM for DLP assumes sources=targets, so we have to artifically
+%     % add sources with strength zero
+%     qtmp1 = [ones(length(xsrc),1).*weights; zeros(length(X(:)),1)];
+%     qtmp2 = [zeros(length(xsrc),1).*weights; zeros(length(X(:)),1)];
+%     ntmp1 = [n1(:); zeros(length(X(:)),1)];
+%     ntmp2 = [n2(:); zeros(length(X(:)),1)];
+%     
+%     xtmp = [xsrc; X(:)];
+%     ytmp = [ysrc; Y(:)];
+%     
+%     [test1, test2] = stokesDLPfmm(qtmp1, qtmp2, xtmp, ytmp, ntmp1, ntmp2);
+%     
+%     % extract data at target points only
+%     test1 = -test1(length(xsrc)+1:end);
+%     test2 = -test2(length(xsrc)+1:end);
+% end
 
+% % correct using special quadrature
+% [test,~] = mex_SQ_dlp(Xtar_sq(:)+1i*(Ytar_sq(:)+1e-60), domain.z,...
+%                 domain.zp, domain.quad_weights, ...
+%                 domain.panel_breaks, domain.wazp, domain.z32, domain.zp32,...
+%                 domain.quad_weights32, domain.wazp32,ones(length(n1),1) + 1e-14*1i,...
+%                 test1 + 1i*test2,domain.mean_panel_length,domain.extra.gridSolidmat, ...
+%                 domain.extra.Nrows,domain.extra.Ncols,domain.extra.panels2wall,...
+%                 domain.reference_cell,solution.problem.periodic);
+% 
+% % anything that is greater than 0 is outside the fluid domain
+% outside = find(solution.problem.stresslet_id_test(real(test)) == 1);
+% p_corrected(outside) = nan;
+% p(outside) = nan;
+% 
+% X(outside) = nan;
+% Y(outside) = nan;
 
-% correct using special quadrature
-[test,~] = mex_SQ_dlp(Xtar_sq(:)+1i*(Ytar_sq(:)+1e-60), domain.z,...
-                domain.zp, domain.quad_weights, ...
-                domain.panel_breaks, domain.wazp, domain.z32, domain.zp32,...
-                domain.quad_weights32, domain.wazp32,ones(length(n1),1) + 1e-14*1i,...
-                test1 + 1i*test2,domain.mean_panel_length,domain.extra.gridSolidmat, ...
-                domain.extra.Nrows,domain.extra.Ncols,domain.extra.panels2wall,...
-                domain.reference_cell,solution.problem.periodic);
-
-% anything that is greater than 0 is outside the fluid domain
-outside = find(solution.problem.stresslet_id_test(real(test)) == 1);
-p_corrected(outside) = nan;
-p(outside) = nan;
-
-X(outside) = nan;
-Y(outside) = nan;
-
-Pc = reshape(p_corrected, size(X));
-P = reshape(p, size(X));
+Pc = reshape(Pc, size(X));
+P = reshape(P, size(X));
 
 % add on driving pressure
 if solution.problem.periodic

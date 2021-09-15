@@ -1,41 +1,29 @@
-function p_avg = compute_average_pressure(solution, xmin, xmax, ...
-    ymin, ymax, Nx, Ny, bodies)
+function p_avg = compute_average_pressure(solution, solution_local, xmin, xmax, ...
+    ymin, ymax, Nx, Ny)
 
 % find quadrature points inside averaging volume
-
-indices_bodies = [];
-for i = bodies
-    indices = [indices_bodies, solution.problem.domain.wall_indices(bodies,1) : ...
-                solution.problem.domain.wall_indices(bodies,2)];
-end
-
-z = solution.problem.domain.z(indices);
-zp = solution.problem.domain.zp(indices);
+domain = solution_local.problem.domain;
+z = domain.z;
+zp = domain.zp;
 
 
 p_avg = 0;
-if ~isempty(indices)
+if ~isempty(z)
     
-    x = real(z(indices));
-    y = imag(z(indices));
-    r = abs(z(indices));
-    n1 = real(-1i*zp(indices))./abs(zp(indices));
-    n2 = imag(-1i*zp(indices))./abs(zp(indices));
-    wazp = solution.problem.domain.wazp(indices);
+    x = real(z);
+    y = imag(z);
+    r = abs(z);
+    n1 = real(-1i*zp)./abs(zp);
+    n2 = imag(-1i*zp)./abs(zp);
+    wazp = solution_local.problem.domain.wazp;
     
     %outward pointing normal
     n1 = -n1;
     n2 = -n2;
     
     % compute integral over boundary
-    [Px, Py] = evaluate_pressure_gradient_on_surface(solution, bodies);
-    P = evaluate_pressure_on_surface(solution, bodies);
-    
-    Px = Px(indices);
-    Py = Py(indices);
-    P = P(indices);
-    
-    
+    [Px, Py] = evaluate_pressure_gradient_on_surface(solution, solution_local);
+    P = evaluate_pressure_on_surface(solution, solution_local);
     
     p_avg = p_avg + sum((2*P.*(x.*n1+y.*n2) - r.^2.*(Px.*n1 + Py.*n2)).*wazp);
 end
@@ -100,4 +88,5 @@ w(end) = hx/2;
 P = evaluate_pressure(solution,x,y);
 p_avg = p_avg + sum((2*P.*(x.*n1+y.*n2) - r.^2.*(Px.*n1 + Py.*n2)).*w);
 
-p_avg = 0.25*p_avg;
+V = (xmax - xmin)*(ymax - ymin);
+p_avg = 0.25*p_avg/V;

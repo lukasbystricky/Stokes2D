@@ -38,7 +38,32 @@ qwazp = qc.*domain.wazp;
 outer_wall_indices = domain.wall_indices(1,1):domain.wall_indices(1,2);
 inner_wall_indices = domain.wall_indices(2,1):domain.wall_indices(end,2);
 
-[u1, u2] = stokesDLPfmm(real(qwazp(:)),imag(qwazp(:)),x(:),y(:),n1(:),n2(:));
+fmm = true;
+if fmm
+    [u1, u2] = stokesDLPfmm(real(qwazp(:)),imag(qwazp(:)),x(:),y(:),n1(:),n2(:));
+else
+    u1 = zeros(numel(q1),1);
+    u2 = zeros(numel(q1),1);
+    for k = 1:numel(q1)
+        
+        % skip self interaction term
+        ind = [(1:k-1) (k+1:numel(q1))];
+        
+        rx = x(k) - x(ind);
+        ry = y(k) - y(ind);
+        rho4 = (rx.^2 + ry.^2).^2;
+        
+        rdotq = rx.*real(qwazp(ind)) + ry.*imag(qwazp(ind));
+        rdotn = rx.*n1(ind) + ry.*n2(ind);
+        
+        u1(k) = 4*sum(rdotn.*rdotq./rho4.*rx);
+        u2(k) = 4*sum(rdotn.*rdotq./rho4.*ry);
+    end
+    
+    u1 = u1/4/pi;
+    u2 = u2/4/pi;
+end
+
 u = -u1 + -1i*u2;
 
 %% diagonal elements of the double-layer
@@ -61,19 +86,13 @@ u(outer_wall_indices) = u(outer_wall_indices) - quad_weights_out.*...
     (qc_out.*imag(zpp_out./zp_out) + ...
     conj(qc_out).*imag(zpp_out.*conj(zp_out))./conj(zp_out).^2)/(4*pi);
 
-% quad_weights = domain.quad_weights;
-% zp = domain.zp;
-% zpp = domain.zpp;
-% u = u + quad_weights.*(qc.*imag(zpp./zp) + ...
-%     conj(qc).*imag(zpp.*conj(zp))./conj(zp).^2)/(4*pi);
-
 %% remove container nullspace
 n_outer1 = n1(outer_wall_indices);
 n_outer2 = n2(outer_wall_indices);
 qw_outer1 = real(qwazp(outer_wall_indices));
 qw_outer2 = imag(qwazp(outer_wall_indices));
-N0 = (n_outer1 + 1i*n_outer2).*sum((n_outer1.*qw_outer1 + n_outer2.*qw_outer2));
- 
+N0 = (n_outer1 + 1i*n_outer2).*(n_outer1.*qw_outer1 + n_outer2.*qw_outer2);
+
 u(outer_wall_indices) = u(outer_wall_indices) + N0;
 
 %% add rotlet and Stokelet contribution and put everything back to real 
