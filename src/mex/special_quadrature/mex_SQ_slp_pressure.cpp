@@ -183,7 +183,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                             
                             for (int k = 0; k<16; k++) {
                                 // pressure is -Ic[q/in] 
-                                Ic16 += tf[k] * tW[k] * tzp[k]/(_i*tn[k]*(z - tz[k]));
+                                Ic16 += tf[k] * tW[k] * tzp[k]/(tn[k]*(z - tz[k]));
                                 
                                 //compute in real variables
                                 r1 = real(z - tz[k]);
@@ -196,7 +196,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                             }
                             
                             //sum16 = Ic16real/(2*pi);
-                            sum16 = real(Ic16)/(2*pi);
+                            sum16 = imag(Ic16)/(2*pi);
                             // upsample density
                             IPmultR(tf,tf32);
  
@@ -213,7 +213,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                 
                                 for (int k=0; k<32; k++) {
                                     // pressure is -real(Ic[q/in])
-                                    Ic32 += tf32[k] * tW32[k] * tzp32[k]/(_i*tn32[k]*(z - tz32[k]));
+                                    Ic32 += tf32[k] * tW32[k] * tzp32[k]/(tn32[k]*(z - tz32[k]));
                                     
                                     r1 = real(z - tz32[k]);
                                     r2 = imag(z - tz32[k]);
@@ -225,7 +225,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                 }
                                 
                                 //sum32 = Ic32real/(2*pi);
-                                sum32 = real(Ic32)/(2*pi);
+                                sum32 = imag(Ic32)/(2*pi);
                                 
                                 // add 32 point quadrature, take off existing 16 point quadrature                                
                                 double modif = sum32 - sum16;
@@ -240,7 +240,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                 
                                 int sign = -1;
                                 
-                                // p[k] is the expansion of T^[k-1]/(T - z)
+                                // p[k] is the expansion of t^[k-1]/(t - z)
                                 for (int k = 1; k<33; k++) {
                                     p32[k] = nz*p32[k-1] + (1.0-sign)/k;
                                     sign = -sign;
@@ -253,11 +253,11 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                 Complex Ic_helsing = 0;
                                 Complex f;                                
                                 for (int k = 0; k<32; k++) {                                    
-                                    f = tf32[k] / (-_i*tn32[k]);
-                                    Ic_helsing += p32[k]*f;
+                                    f = tf32[k] / tn32[k];
+                                    Ic_helsing -= p32[k]*f; //minus sign because we're actually interested in 1/(z-t)
                                 }
                                 
-                                double modif = real(Ic_helsing)/(2*pi) - sum16;
+                                double modif = imag(Ic_helsing)/(2*pi) - sum16;
                                 out_p[j] += modif;
                             }
                             

@@ -207,7 +207,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                 
                                 
                                 
-                                mexPrintf("q[%d] = (%3.3e, %3.3e)\n", k, real(tf[k]), imag(tf[k]));
+  //                              mexPrintf("q[%d] = (%3.3e, %3.3e)\n", k, real(tf[k]), imag(tf[k]));
                             }
                             
                             Ic16 = -(_i*conj(btar)/2*conj(conj(z)*Ih1 - Ih2 + Ic1) -
