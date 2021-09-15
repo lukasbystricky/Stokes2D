@@ -39,7 +39,6 @@ solution = solve_stokes(problem);
 [Uc, Vc, X, Y,U] = evaluate_velocity(solution, 100);
 Pc  = evaluate_pressure(solution, X, Y);
 [Uxc, Uyc, Vxc, Vyc, Ux, Uy, Vx, Vy] = evaluate_velocity_gradient(solution, X, Y);
-[Px, Py]  = evaluate_pressure_gradient(solution, X, Y);
 
 h = figure();
 if input_params.test
@@ -52,7 +51,6 @@ if input_params.test
     contourf(X,Y, log10(abs((Uc - exact_solution(X,Y))./...
                 max(max(abs(exact_solution(X,Y)))))+eps));
     colorbar
-    caxis([-16,-1]);
     axis equal
     title('velocity: log_{10}(relative error)');
     
@@ -60,12 +58,11 @@ if input_params.test
     plot_domain(problem, h);
     hold on
     
-    %exact_solution = @(x,y) mean(mean(Pc(~isnan(Pc)))); % constant pressure
-    exact_solution = @(x,y) zeros(size(x)); % constant pressure
-    contourf(X,Y, log10(abs((Px + 1i*Py - exact_solution(X,Y)))+eps));
+    exact_solution = @(x,y) mean(mean(Pc(~isnan(Pc)))); % constant pressure
+    contourf(X,Y, log10(abs((Pc - exact_solution(X,Y))./...
+                max(max(abs(exact_solution(X,Y)))))+eps));
    
     colorbar
-    caxis([-16,-1]);
     axis equal
     title('pressure: log_{10}(relative error)');
     

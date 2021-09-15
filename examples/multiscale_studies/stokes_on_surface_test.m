@@ -30,11 +30,12 @@ problem = starfish_periodic(input_params);
 
 % create solution structure
 solution = solve_stokes(problem);
+solution.local_indices = 1:length(solution.q);
 
 %% evaluate pressure both on and near surface
-Psurface = evaluate_pressure_on_surface(solution);
-[Uxsurf, Uysurf, Vxsurf, Vysurf] = evaluate_velocity_gradient_on_surface(solution);
-[Pxsurf, Pysurf] = evaluate_pressure_gradient_on_surface(solution);
+Psurface = evaluate_pressure_on_surface(solution, solution);
+[Uxsurf, Uysurf, Vxsurf, Vysurf] = evaluate_velocity_gradient_on_surface(solution, solution);
+[Pxsurf, Pysurf] = evaluate_pressure_gradient_on_surface(solution, solution);
 
 [P,~, X, Y] = evaluate_pressure(solution, 50);
 [Ux, Uy, Vx, Vy] = evaluate_velocity_gradient(solution, 50);
@@ -52,7 +53,7 @@ Pnear = evaluate_pressure(solution, real(ztar), imag(ztar));
 %% compute average velocity
 Lx = problem.domain.Lx;
 Ly = problem.domain.Ly;
-u_avg = compute_average_velocity(solution, -Lx/2, Lx/2, -Ly/2, Ly/2, 20, 20);
+u_avg = compute_average_velocity(solution, solution, -Lx/2, Lx/2, -Ly/2, Ly/2, 20, 20);
 
 h=figure();
 subplot(1,2,1);
