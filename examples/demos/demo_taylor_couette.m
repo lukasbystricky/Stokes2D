@@ -26,7 +26,7 @@ input_params.omega = 1; % angular velocity of outer wall
 problem = couette(input_params);
 
 % solve the problem
-solution = solve_stokes(problem);
+solution = solve_stokes(problem,'fmm',0);
 
 % grid in polar coordinates with M number of radial and angular points
 M = 200;
@@ -38,8 +38,8 @@ theta = (0:h:2*pi);
 X = R.*cos(T);
 Y = R.*sin(T);
 
-[Uc, Vc, X, Y, U, V] = evaluate_velocity(solution, X, Y);
-Pc = evaluate_pressure(solution, X, Y);
+[Uc, Vc, X, Y, U, V] = evaluate_velocity(solution, X, Y, 'fmm', 0, 'verbose', 1);
+Pc = evaluate_pressure(solution, X, Y, 'fmm', 0, 'verbose', 1);
 
 % convert Cartesian velocity to radial and angular velocity, using 
 % relationships:

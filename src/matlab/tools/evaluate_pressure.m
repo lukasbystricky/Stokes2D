@@ -26,7 +26,11 @@ n1 = real(-1i*solution.problem.domain.zp)./abs(solution.problem.domain.zp);
 n2 = imag(-1i*solution.problem.domain.zp)./abs(solution.problem.domain.zp);
 weights = solution.problem.domain.wazp;
 
-if nargin == 2 % N specified, evaluate on regular grid
+% default parameters
+fmm = 1;
+verbose = 0;
+
+if nargin == 2 || (nargin > 2 && ischar(varargin{2})) % N specified, evaluate on regular grid
     N = varargin{1};
     if solution.problem.periodic
         x = linspace(-Lx/2, Lx/2, N);
@@ -37,15 +41,31 @@ if nargin == 2 % N specified, evaluate on regular grid
     end
     
     [X,Y] = meshgrid(x,y);
-else
+elseif nargin == 3 && ~ischar(varargin{2}) % target points are specified
     X = varargin{1};
-    Y = varargin{2};    
+    Y = varargin{2};
+elseif nargin > 3 
+    % given target points
+    X = varargin{1};
+    Y = varargin{2};
+
+    % Go through all other input arguments and assign parameters
+   jv = 3;
+    while jv <= length(varargin)-1
+       switch varargin{jv}
+           case 'fmm'
+               fmm = varargin{jv+1}; 
+           case 'verbose'
+               verbose = varargin{jv+1};
+       end
+       jv = jv + 2;
+    end
 end
 
 if solution.problem.periodic
     pslp = StokesSLP_pressure_ewald_2p(xsrc, ysrc, X(:), Y(:),...
         solution.q(:,1).*weights, solution.q(:,2).*weights, Lx, Ly,...
-        'verbose', 0);
+        'verbose', verbose);
     
     % for special quadrature points must be inside reference cell
     Xtar_sq = mod(X+Lx/2,Lx)-Lx/2;
@@ -67,7 +87,7 @@ if solution.problem.periodic
         
         pdlp = StokesDLP_pressure_ewald_2p(xsrc, ysrc, X(:), Y(:), n1, n2,...
             solution.q(:,1).*weights, solution.q(:,2).*weights, Lx, Ly,...
-            'verbose', 0);
+            'verbose', verbose);
         
         [pdlp_corrected,~] = mex_SQ_dlp_pressure(Xtar_sq(:)+1i*(Ytar_sq(:)+1e-60),...
             domain.z, domain.zp, domain.quad_weights, domain.panel_breaks,...

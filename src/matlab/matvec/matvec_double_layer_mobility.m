@@ -1,4 +1,4 @@
-function m = matvec_double_layer_mobility(X, domain)
+function m = matvec_double_layer_mobility(X, domain, fmm)
 % MATVEC_DOUBLE_LAYER_MOBILITY: perform a matrix vector product using the 
 % double-layer formulation to compute the mobility problem on an unbounded 
 % domain, i.e. u_bg(x) = -q/2 + -D[q](x) - u_trans - omega(x - c)^\perp. 
@@ -39,7 +39,30 @@ qwazp = qc.*domain.wazp;
 zp = domain.zp;
 zpp = domain.zpp;
 
-[u1, u2] = stokesDLPfmm(real(qwazp(:)),imag(qwazp(:)),x(:),y(:),n1(:),n2(:));
+if fmm
+    [u1, u2] = stokesDLPfmm(real(qwazp(:)),imag(qwazp(:)),x(:),y(:),n1(:),n2(:));
+else
+    u1 = zeros(numel(q1),1);
+    u2 = zeros(numel(q1),1);
+    for k = 1:numel(q1)
+        
+        % skip self interaction term
+        ind = [(1:k-1) (k+1:numel(q1))];
+        
+        rx = x(k) - x(ind);
+        ry = y(k) - y(ind);
+        rho4 = (rx.^2 + ry.^2).^2;
+        
+        rdotq = rx.*real(qwazp(ind)) + ry.*imag(qwazp(ind));
+        rdotn = rx.*n1(ind) + ry.*n2(ind);
+        
+        u1(k) = 4*sum(rdotn.*rdotq./rho4.*rx);
+        u2(k) = 4*sum(rdotn.*rdotq./rho4.*ry);
+    end
+    
+    u1 = u1/4/pi;
+    u2 = u2/4/pi;
+end
 u = -u1 + -1i*u2;
 
 %% correct using special quadrature

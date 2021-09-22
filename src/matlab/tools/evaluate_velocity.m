@@ -25,7 +25,11 @@ n1 = real(-1i*solution.problem.domain.zp)./abs(solution.problem.domain.zp);
 n2 = imag(-1i*solution.problem.domain.zp)./abs(solution.problem.domain.zp);
 weights = solution.problem.domain.wazp;
 
-if nargin == 2 % N specified, evaluate on regular grid
+% default parameters
+fmm = 1;
+verbose = 0;
+
+if nargin == 2 || (nargin > 2 && ischar(varargin{2})) % N specified, evaluate on regular grid
     N = varargin{1};
     if solution.problem.periodic
         x = linspace(-Lx/2, Lx/2, N);
@@ -36,9 +40,25 @@ if nargin == 2 % N specified, evaluate on regular grid
     end
     
     [X,Y] = meshgrid(x,y);
-else % target points are specified
+elseif nargin == 3 && ~ischar(varargin{2}) % target points are specified
     X = varargin{1};
     Y = varargin{2};
+elseif nargin > 3 
+    % given target points
+    X = varargin{1};
+    Y = varargin{2};
+
+    % Go through all other input arguments and assign parameters
+   jv = 3;
+    while jv <= length(varargin)-1
+       switch varargin{jv}
+           case 'fmm'
+               fmm = varargin{jv+1}; 
+           case 'verbose'
+               verbose = varargin{jv+1};
+       end
+       jv = jv + 2;
+    end
 end
 
 % if the problem is periodic use spectral Ewald and combined layer
@@ -47,14 +67,14 @@ if solution.problem.periodic
    
     [uslp1, uslp2] = StokesSLP_ewald_2p(xsrc, ysrc, X(:), Y(:),...
         solution.q(:,1).*weights, solution.q(:,2).*weights, Lx, Ly,...
-        'verbose', 0);
+        'verbose', verbose);
     
     uslp = uslp1 + 1i*uslp2;
     if ~isinf(solution.problem.eta)
         
         [udlp1, udlp2] = StokesDLP_ewald_2p(xsrc, ysrc, X(:), Y(:), n1, n2,...
             solution.q(:,1).*weights, solution.q(:,2).*weights, Lx, Ly,...
-            'verbose', 0);
+            'verbose', verbose);
         udlp = udlp1 + 1i*udlp2;
         
     end
@@ -97,7 +117,6 @@ if solution.problem.periodic
 % if the problem is not periodic, use FMM and the completed double-layer
 % potential, i.e. Power-Miranda
 else
-    fmm = true;
     if fmm
         % FMM can only evaluate for source=targets, so we include all the
         % target points as source points with strength 0
@@ -168,7 +187,6 @@ u2_corrected = imag(u_corrected);
 %     [test1, test2] = StokesDLP_ewald_2p(xsrc, ysrc, X(:), Y(:), n1, n2,...
 %         ones(length(n1),1).*weights, zeros(length(n1),1).*weights, Lx, Ly);
 % else
-%     fmm = true;
 %     if fmm
 %         % again, FMM for DLP assumes sources=targets, so we have to artifically
 %         % add sources with strength zero
@@ -207,7 +225,7 @@ u2_corrected = imag(u_corrected);
 %     end
 % end
 %         
-% correct using special quadrature
+% %correct using special quadrature
 % [test,~] = mex_SQ_dlp(Xtar_sq(:)+1i*(Ytar_sq(:)+1e-60), Xsrc_sq+1i*(Ysrc_sq+1e-60),...
 %                 domain.zp, domain.quad_weights, ...
 %                 domain.panel_breaks, domain.wazp, domain.z32, domain.zp32,...
@@ -223,7 +241,7 @@ u2_corrected = imag(u_corrected);
 % 
 % u1(outside) = nan;
 % u2(outside) = nan;
-
+% 
 % X(outside) = nan;
 % Y(outside) = nan;
 

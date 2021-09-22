@@ -85,7 +85,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
     if (Nsrc == 0) //if no solids, return early
         return;
     
-#pragma omp parallel for
+//#pragma omp parallel for
     for(int j = 0;j<Ntar;j++) {
         
         Complex nzpan[16], tz[16], tzp[16], tn[16], tf[16];
@@ -183,7 +183,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                             
                             for (int k = 0; k<16; k++) {
                                 // pressure is -Ic[q/in] 
-                                Ic16 += tf[k] * tW[k] * tzp[k] /(_i*(z - tz[k])*(z - tz[k]));
+                                Ic16 += tf[k] * tW[k] * tzp[k] /((z - tz[k])*(z - tz[k]));
                                 
                                 //compute in real variables
                                 r1 = real(z - tz[k]);
@@ -197,7 +197,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                 Ic16real += (n1*dens1 + n2*dens2)/rsq - 2*(r1*n1+r2*n2)*(r1*dens1+r2*dens2)/(rsq*rsq);
                             }
                             
-                            sum16 = real(Ic16)/(2*pi);
+                            sum16 = imag(Ic16)/pi;
 
                             // upsample density
                             IPmultR(tf,tf32);
@@ -215,7 +215,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                 
                                 for (int k=0; k<32; k++) {
                                     // pressure is -real(Ic[q/in])
-                                    Ic32 += tf32[k] * tW32[k] * tzp32[k] /(_i*(z - tz32[k])*(z - tz32[k]));
+                                    Ic32 += tf32[k] * tW32[k] * tzp32[k] /((z - tz32[k])*(z - tz32[k]));
                                     
                                     r1 = real(z - tz32[k]);
                                     r2 = imag(z - tz32[k]);
@@ -228,7 +228,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                     Ic32real += (n1*dens1 + n2*dens2)/rsq - 2*(r1*n1+r2*n2)*(r1*dens1+r2*dens2)/(rsq*rsq);
                                 }
                                 
-                                sum32 = real(Ic32)/(2*pi);
+                                sum32 = imag(Ic32)/pi;
                                 
                                 // add 32 point quadrature, take off existing 16 point quadrature                                
                                 double modif = sum32 - sum16;
@@ -258,11 +258,12 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                 Complex Ih_helsing = 0;
                                 Complex f;                                
                                 for (int k = 0; k<32; k++) {                                    
-                                    f = tf32[k] / _i;
+                                    f = tf32[k];
                                     Ih_helsing += q32[k]*f;
                                 }
                                 
-                                double modif = real(2*Ih_helsing/len)/(2*pi) - sum16;                                
+                                double modif = imag(2*Ih_helsing/len)/pi - sum16;                                
+                            
                                 out_p[j] += modif;
                             }
                             

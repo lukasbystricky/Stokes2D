@@ -1,4 +1,4 @@
-function m = matvec_double_layer_resistance(X, domain)
+function m = matvec_double_layer_resistance(X, domain, fmm)
 % MATVEC_DOUBLE_LAYER: perform a matrix vector product using the 
 % double-layer formulation with Power-Miranda completion, i.e. 
 % u(x) = -q/2 + -D[q](x) + S[F](x) + R[T](x), F is the net force on all 
@@ -38,7 +38,6 @@ qwazp = qc.*domain.wazp;
 outer_wall_indices = domain.wall_indices(1,1):domain.wall_indices(1,2);
 inner_wall_indices = domain.wall_indices(2,1):domain.wall_indices(end,2);
 
-fmm = true;
 if fmm
     [u1, u2] = stokesDLPfmm(real(qwazp(:)),imag(qwazp(:)),x(:),y(:),n1(:),n2(:));
 else

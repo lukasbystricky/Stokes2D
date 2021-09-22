@@ -1,4 +1,22 @@
-function solution = solve_stokes(problem)
+function solution = solve_stokes(problem, varargin)
+% default parameters
+fmm = 1;
+verbose = 0;
+
+% read in optional input parameters
+if nargin > 1
+    % Go through all other input arguments and assign parameters
+    jv = 1;
+    while jv <= length(varargin)-1
+       switch varargin{jv}
+           case 'fmm'
+               fmm = varargin{jv+1}; 
+           case 'verbose'
+               verbose = varargin{jv+1};
+       end
+       jv = jv + 2;
+    end
+end
 
 solution.problem = problem;
 
@@ -22,7 +40,7 @@ else
     if problem.resistance 
         rhs = [rhs; zeros(3*(nwalls-1), 1)];
         
-        X = gmres(@(x) matvec_double_layer_resistance(x, problem.domain), rhs, [], ...
+        X = gmres(@(x) matvec_double_layer_resistance(x, problem.domain, fmm), rhs, [], ...
                 problem.gmres_tol, length(rhs));
     else
         rhs = [-rhs; real(problem.forces);imag(problem.forces);problem.torques];
@@ -33,7 +51,7 @@ else
         rhs(1:length(z)) = rhs(1:length(z)) + real(uS + uR);
         rhs(length(z)+1:2*length(z)) = rhs(length(z)+1:2*length(z)) + imag(uS + uR);
          
-        X = gmres(@(x) matvec_double_layer_mobility(x, problem.domain), rhs, [], ...
+        X = gmres(@(x) matvec_double_layer_mobility(x, problem.domain, fmm), rhs, [], ...
                 problem.gmres_tol, length(rhs));
     end
 end
