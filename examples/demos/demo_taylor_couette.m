@@ -1,8 +1,9 @@
 % Computes the velocity between two rotating cylinders, i.e. Taylor-Couette
-% flow. The inner cylinder is fixed, while the outer cyliner rotates with
-% angular velocity omega. Then, the exact solution is known, with angular
-% velocity given by A*r + B/r, where A=omega r_out^2 / (r_out^2 - r_in^2),
-% and B = -omega r_out^2 r_in^2 /(r_out^2 - r_in^2)
+% flow. The outer cylinder is fixed, while the inner cylinder rotates
+% counter clockwise with angular velocity omega. Then, the exact solution
+% is known, with angular velocity given by A*r + B/r, where
+% A = omega r_out^2 / (r_out^2 - r_in^2),
+% B = -omega r_out^2 r_in^2 /(r_out^2 - r_in^2)
 
 close all
 clearvars
@@ -14,7 +15,7 @@ test = 1;
 input_params = default_input_params('couette', 0);
 
 % modify structure as needed, or add additional problem-dependent params
-input_params.panels = [100, 50];
+input_params.panels = [20, 10];
 input_params.plot_domain = 0;
 
 % set up radii and centers, centers given as complex numbers (x+iy)
@@ -32,7 +33,6 @@ M = 200;
 r = linspace(input_params.radii(2)+1e-1, input_params.radii(1) - 1e-1, M);
 h = (2*pi)/M;
 theta = (0:h:2*pi);
-%theta = linspace(0,2*pi,M);
 [R, T] = meshgrid(r, theta);
 
 X = R.*cos(T);
@@ -48,11 +48,7 @@ Pc = evaluate_pressure(solution, X, Y);
 Ur = (Uc.*X + Vc.*Y)./sqrt(X.^2 + Y.^2);
 Utheta = (-Uc.*Y + Vc.*X)./sqrt(X.^2 + Y.^2);
 
-
-%A = input_params.omega * input_params.radii(1)^2 /...
-%    (input_params.radii(1)^2 - input_params.radii(2)^2);
-%B = -input_params.omega * input_params.radii(1)^2 * input_params.radii(2)^2/...
-%    (input_params.radii(1)^2 - input_params.radii(2)^2);
+% Quantities for exact solution
 ro = input_params.radii(1);
 ri = input_params.radii(2);
 omega = input_params.omega;

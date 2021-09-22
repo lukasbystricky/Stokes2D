@@ -13,3 +13,4 @@ addpath(genpath('../FastTools2D/PeriodicEwald/src'))
 addpath(genpath('../legtools'));
 addpath(genpath('src'));
 addpath(genpath('examples'));
+addpath(genpath('tests'));
