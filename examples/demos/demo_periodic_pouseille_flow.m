@@ -35,6 +35,7 @@ y = linspace(0,1,20);
 [Pc, P, ~, ~] = evaluate_pressure(solution, X, Y, 'fmm', 0, 'verbose', 1);
 [Uxc, Uyc, Vxc, Vyc, Ux, Uy, Vx, Vy] = evaluate_velocity_gradient(solution, X, Y);
 
+%%
 subplot(3,2,1)
 contourf(X,Y,Uc);
 colorbar
@@ -68,3 +69,9 @@ contourf(X,Y,Uyc);
 colorbar
 axis equal
 title('u_y');
+
+subplot(3,2,6)
+contourf(X,Y,exact_solution_uy(X,Y));
+colorbar
+axis equal
+title('u_y exact');

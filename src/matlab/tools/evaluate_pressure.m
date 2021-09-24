@@ -114,7 +114,6 @@ else % not periodic, only double-layer plus Stokeslets
         pstokeslets = pstokeslets + real(conj(solution.forces(i))*R)./abs(R).^2;
     end
     
-    
     [pdlp_corrected,~] = mex_SQ_dlp_pressure(X(:)+1i*Y(:), domain.z, domain.zp,...
         domain.quad_weights, domain.panel_breaks, domain.wazp, domain.z32,...
         domain.zp32, domain.quad_weights32, domain.wazp32, ...
@@ -125,7 +124,6 @@ else % not periodic, only double-layer plus Stokeslets
     
     P = pdlp + pstokeslets;
     Pc = pdlp_corrected + pstokeslets;
-    
 end
 
 % % find points inside domain by applying stresslet identity

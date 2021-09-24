@@ -1,5 +1,5 @@
 %% Run stresslet ID tests
-%close all
+close all
 clearvars
 clc
 
@@ -23,63 +23,63 @@ y = linspace(1, -1, 50);
 
 %% Single-layer pressure
 % Here we set the density function to be the normal vector
-
 problem.eta = inf; % just SLP 
 solution.problem = problem;
 q = 1i*problem.domain.zp./abs(problem.domain.zp);
 solution.q = [real(q), imag(q)];
-Pslp = evaluate_pressure(solution, x, y);
+Pslp = evaluate_pressure(solution, x, y, 'verbose', 0);
 
 % on-surface evalution
 solution.local_indices = 1:length(solution.q);
-Pslp_on = evaluate_pressure_on_surface(solution, solution, 'surface');
+Pslp_on = evaluate_pressure_on_surface(solution, solution, 'fluid');
 
-% figure(1);
-% semilogy(solution.problem.domain.theta, abs(Pslp_on));
-% hold on
+%% Double-layer pressure
 solution.problem.eta = 0; % just DLP
 q = problem.domain.z;
 solution.q = [real(q), imag(q)];
-Pdlp = evaluate_pressure(solution, x, y);
+Pdlp = evaluate_pressure(solution, x, y, 'verbose', 0);
 
-% on-surface evalution
+% on-surface evaluation
 solution.local_indices = 1:length(solution.q);
-Pdlp_on = evaluate_pressure_on_surface(solution, solution, 'surface');
+Pdlp_on = evaluate_pressure_on_surface(solution, solution, 'fluid');
 
+%% Calculate error
 e_slp = zeros(size(Pslp));
-e_dlp = zeros(size(Pslp));
-% calculate error
+e_dlp = zeros(size(Pdlp));
 for i = 1:length(Pslp)
     e_slp(i) = min(Pslp(i), abs(Pslp(i) - 1));
     e_dlp(i) = min(abs(Pdlp(i)), abs(Pdlp(i) - 1));
 end
 
-addpath('../matlab2tikz/src');
-% plot(solution.problem.domain.z);
-% hold on
-% plot(x,y);
-% axis off
-% axis equal
-% matlab2tikz('standalone', true, 'domain_evaluation.tex');
+% on-surface
+e_slp_on = zeros(size(Pslp_on));
+e_dlp_on = zeros(size(Pdlp_on));
+for i = 1:length(Pslp_on)
+    e_slp_on(i) = min(Pslp_on(i), abs(Pslp_on(i) - 0.5));
+    e_dlp_on(i) = min(abs(Pdlp_on(i)), abs(Pdlp_on(i) - 0.5));
+end
 
-figure(1);
+%% Plot
+% Single-layer pressure
+figure;
 semilogy(x,abs(e_slp));
-hold on
+ylabel('error in single-layer pressure identity');
 set(gca,'xticklabel',{[]});
-%matlab2tikz('standalone', true, 'pressure_slp_identity.tex');
 
-figure(2);
+figure;
+semilogy(solution.problem.domain.theta,abs(e_slp_on));
+xlabel('t');
+ylabel('surface limiting value single-layer pressure identity');
+set(gca,'xticklabel',{[]});
+
+% Double-layer pressure
+figure;
 semilogy(x,abs(e_dlp));
-hold on
+ylabel('error in double-layer pressure identity');
 set(gca,'xticklabel',{[]});
 
-%figure(2)
-%semilogy(solution.problem.domain.theta, abs(Pdlp_on));
-%hold on
-%figure();
-%plot(x, e_dlp);
-% 
-% figure()
-% plot(Pdlp_on);
-
-
+figure;
+semilogy(solution.problem.domain.theta,abs(e_dlp_on));
+xlabel('t');
+ylabel('surface limiting value double-layer pressure identity');
+set(gca,'xticklabel',{[]});

@@ -197,7 +197,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                 Ic16real += (n1*dens1 + n2*dens2)/rsq - 2*(r1*n1+r2*n2)*(r1*dens1+r2*dens2)/(rsq*rsq);
                             }
                             
-                            sum16 = imag(Ic16)/pi;
+                            sum16 = imag(Ic16)/(2*pi);
 
                             // upsample density
                             IPmultR(tf,tf32);
@@ -228,7 +228,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                     Ic32real += (n1*dens1 + n2*dens2)/rsq - 2*(r1*n1+r2*n2)*(r1*dens1+r2*dens2)/(rsq*rsq);
                                 }
                                 
-                                sum32 = imag(Ic32)/pi;
+                                sum32 = imag(Ic32)/(2*pi);
                                 
                                 // add 32 point quadrature, take off existing 16 point quadrature                                
                                 double modif = sum32 - sum16;
@@ -262,7 +262,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                     Ih_helsing += q32[k]*f;
                                 }
                                 
-                                double modif = imag(2*Ih_helsing/len)/pi - sum16;                                
+                                double modif = imag(2*Ih_helsing/len)/(2*pi) - sum16;                                
                             
                                 out_p[j] += modif;
                             }

@@ -131,7 +131,6 @@ else
 
         [udlp1, udlp2] = stokesDLPfmm(qtmp1, qtmp2, xtmp, ytmp, ntmp1, ntmp2);
 
-
         % note negative sign in front of double-layer
         udlp = -udlp1(length(xsrc)+1:end) - 1i*udlp2(length(xsrc)+1:end);
     
@@ -139,8 +138,6 @@ else
         udlp1 = zeros(numel(X(:)),1);
         udlp2 = zeros(numel(X(:)),1);
         for k = 1:numel(X(:))
-            
-            
             rx = X(k) - xsrc;
             ry = Y(k) - ysrc;
             rho4 = (rx.^2 + ry.^2).^2;
