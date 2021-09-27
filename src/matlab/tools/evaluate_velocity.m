@@ -179,68 +179,70 @@ u2 = imag(u);
 u1_corrected = real(u_corrected);
 u2_corrected = imag(u_corrected);
 
-% % find points inside domain by applying stresslet identity
-% if solution.problem.periodic
-%     [test1, test2] = StokesDLP_ewald_2p(xsrc, ysrc, X(:), Y(:), n1, n2,...
-%         ones(length(n1),1).*weights, zeros(length(n1),1).*weights, Lx, Ly);
-% else
-%     if fmm
-%         % again, FMM for DLP assumes sources=targets, so we have to artifically
-%         % add sources with strength zero
-%         qtmp1 = [ones(length(xsrc),1).*weights; zeros(length(X(:)),1)];
-%         qtmp2 = [zeros(length(xsrc),1).*weights; zeros(length(X(:)),1)];
-%         ntmp1 = [n1(:); zeros(length(X(:)),1)];
-%         ntmp2 = [n2(:); zeros(length(X(:)),1)];
-% 
-%         xtmp = [xsrc; X(:)];
-%         ytmp = [ysrc; Y(:)];
-% 
-%         [test1, test2] = stokesDLPfmm(qtmp1, qtmp2, xtmp, ytmp, ntmp1, ntmp2);
-% 
-%         % extract data at target points only
-%         test1 = -test1(length(xsrc)+1:end);
-%         test2 = -test2(length(xsrc)+1:end);
-%     else
-%         test1 = zeros(numel(q1),1);
-%         test2 = zeros(numel(q1),1);
-%         for k = 1:numel(q1)
-%             
-%             
-%             rx = xsrc(k) - xsrc;
-%             ry = ysrc(k) - ysrc;
-%             rho4 = (rx.^2 + ry.^2).^2;
-%             
-%             rdotq = rx.*ones(numel(q1)).*weights;
-%             rdotn = rx.*n1 + ry.*n2;
-%             
-%             test1(k) = 4*sum(rdotn.*rdotq./rho4.*rx);
-%             test2(k) = 4*sum(rdotn.*rdotq./rho4.*ry);
-%         end
-%         
-%         test1 = test1/4/pi;
-%         test2 = test2/4/pi;         
-%     end
-% end
-%         
-% %correct using special quadrature
-% [test,~] = mex_SQ_dlp(Xtar_sq(:)+1i*(Ytar_sq(:)+1e-60), Xsrc_sq+1i*(Ysrc_sq+1e-60),...
-%                 domain.zp, domain.quad_weights, ...
-%                 domain.panel_breaks, domain.wazp, domain.z32, domain.zp32,...
-%                 domain.quad_weights32, domain.wazp32,ones(length(n1),1) + 1e-14*1i,...
-%                 test1 + 1i*test2,domain.mean_panel_length,domain.extra.gridSolidmat, ...
-%                 domain.extra.Nrows,domain.extra.Ncols,domain.extra.panels2wall,...
-%                 domain.reference_cell,solution.problem.periodic);
-% 
-% % anything that is greater than 0 is outside the fluid domain
-% outside = find(solution.problem.stresslet_id_test(real(test)) == 1);
-% u1_corrected(outside) = nan;
-% u2_corrected(outside) = nan;
-% 
-% u1(outside) = nan;
-% u2(outside) = nan;
-% 
-% X(outside) = nan;
-% Y(outside) = nan;
+if solution.problem.periodic
+    % find points inside domain by applying stresslet identity
+    if solution.problem.periodic
+        [test1, test2] = StokesDLP_ewald_2p(xsrc, ysrc, X(:), Y(:), n1, n2,...
+            ones(length(n1),1).*weights, zeros(length(n1),1).*weights, Lx, Ly);
+    else
+        if fmm
+            % again, FMM for DLP assumes sources=targets, so we have to artifically
+            % add sources with strength zero
+            qtmp1 = [ones(length(xsrc),1).*weights; zeros(length(X(:)),1)];
+            qtmp2 = [zeros(length(xsrc),1).*weights; zeros(length(X(:)),1)];
+            ntmp1 = [n1(:); zeros(length(X(:)),1)];
+            ntmp2 = [n2(:); zeros(length(X(:)),1)];
+
+            xtmp = [xsrc; X(:)];
+            ytmp = [ysrc; Y(:)];
+
+            [test1, test2] = stokesDLPfmm(qtmp1, qtmp2, xtmp, ytmp, ntmp1, ntmp2);
+
+            % extract data at target points only
+            test1 = -test1(length(xsrc)+1:end);
+            test2 = -test2(length(xsrc)+1:end);
+        else
+            test1 = zeros(numel(q1),1);
+            test2 = zeros(numel(q1),1);
+            for k = 1:numel(q1)
+
+
+                rx = xsrc(k) - xsrc;
+                ry = ysrc(k) - ysrc;
+                rho4 = (rx.^2 + ry.^2).^2;
+
+                rdotq = rx.*ones(numel(q1)).*weights;
+                rdotn = rx.*n1 + ry.*n2;
+
+                test1(k) = 4*sum(rdotn.*rdotq./rho4.*rx);
+                test2(k) = 4*sum(rdotn.*rdotq./rho4.*ry);
+            end
+
+            test1 = test1/4/pi;
+            test2 = test2/4/pi;         
+        end
+    end
+
+    %correct using special quadrature
+    [test,~] = mex_SQ_dlp(Xtar_sq(:)+1i*(Ytar_sq(:)+1e-60), Xsrc_sq+1i*(Ysrc_sq+1e-60),...
+                    domain.zp, domain.quad_weights, ...
+                    domain.panel_breaks, domain.wazp, domain.z32, domain.zp32,...
+                    domain.quad_weights32, domain.wazp32,ones(length(n1),1) + 1e-14*1i,...
+                    test1 + 1i*test2,domain.mean_panel_length,domain.extra.gridSolidmat, ...
+                    domain.extra.Nrows,domain.extra.Ncols,domain.extra.panels2wall,...
+                    domain.reference_cell,solution.problem.periodic);
+
+    % anything that is greater than 0 is outside the fluid domain
+    outside = find(solution.problem.stresslet_id_test(real(test)) == 1);
+    u1_corrected(outside) = nan;
+    u2_corrected(outside) = nan;
+
+    u1(outside) = nan;
+    u2(outside) = nan;
+
+    X(outside) = nan;
+    Y(outside) = nan;
+end
 
 U1c = reshape(u1_corrected, size(X));
 U2c = reshape(u2_corrected, size(X));
