@@ -27,7 +27,6 @@ problem.combined = 0;
 
 % solve the problem
 solution = solve_stokes(problem,'fmm',0);
-solution.problem.eta = 0;
 
 % grid in polar coordinates with M number of radial and angular points
 M = 200;
@@ -41,13 +40,11 @@ Y = R.*sin(T);
 
 [Uc, Vc, X, Y, U, V] = evaluate_velocity(solution, X, Y, 'fmm', 0, 'verbose', 1);
 [Pc, P, ~, ~] = evaluate_pressure(solution, X, Y, 'fmm', 0, 'verbose', 1);
-
 [Uxc, Uyc, Vxc, Vyc, Ux, Uy, Vx, Vy] = evaluate_velocity_gradient(solution, X, Y);
 
-%%
 % convert Cartesian velocity to radial and angular velocity, using 
 % relationships:
-% theta_hat = -i sin(theta) +j cos(theta) - i y/r + j x/r
+% theta_hat = -i sin(theta) +j cos(theta) = i y/r + j x/r
 % r_hat = i cos(theta) + j sin(theta) = i x/r + j y/r
 Ur = (Uc.*X + Vc.*Y)./sqrt(X.^2 + Y.^2);
 Utheta = (-Uc.*Y + Vc.*X)./sqrt(X.^2 + Y.^2);
@@ -64,6 +61,9 @@ exact_solution_r = @(x,y) zeros(size(x));
 exact_solution_theta = @(x,y) A*sqrt(x.^2 + y.^2) + B./sqrt(x.^2 + y.^2);
 exact_solution_pressure = @(x,y) A^2*(x.^2+y.^2)/2 + 2*A*B*log(sqrt(x.^2+y.^2)) - B^2./(x.^2+y.^2);
 exact_solution_angular_velocity_dr = @(x,y) A + B./(x.^2+y.^2).^2;
+exact_solution_ux = @(x,y) -(2*B*x.*y)./(x.^2+y.^2).^2;
+exact_solution_uy = @(x,y) B*(y.^2-x.^2)./(x.^2+y.^2).^2 - A;
+exact_solution_vy = @(x,y) exact_solution_ux(x,y);
 
 %%
 h = figure();
@@ -74,7 +74,7 @@ if test
     contourf(X,Y, log10(abs(Ur - exact_solution_r(X,Y))+eps));
     colorbar;
     axis equal
-    title('log_{10}(error in radial velocity)');
+    title('u_r: log_{10}(error in radial velocity)');
     
     subplot(3,2,2);    
     plot_domain(problem, h);
@@ -83,7 +83,7 @@ if test
         max(max(abs(exact_solution_theta(X,Y)))) + eps));
     colorbar;
     axis equal
-    title('log_{10}(relative error angular velocity)');
+    title('u_phi: log_{10}(relative error angular velocity)');
     
     subplot(3,2,3);
     plot_domain(problem, h);
@@ -96,26 +96,27 @@ if test
     subplot(3,2,4);
     plot_domain(problem, h);
     hold on
-    contourf(X,Y,exact_solution_pressure(X,Y));
+    contourf(X,Y,log10(abs(Vyc - exact_solution_vy(X,Y))./...
+        max(max(abs(exact_solution_theta(X,Y)))) + eps));
     colorbar
     axis equal
-    title('log_{10} (error in pressure gradient TODO)');
+    title('dudy: log_{10}(relative error)');
     
     subplot(3,2,5);
     plot_domain(problem, h);
     hold on
-    contourf(X,Y,Uyc);
+    contourf(X,Y,Uxc);
     colorbar
     axis equal
-    title('Uyc');
+    title('dudx');
 
     subplot(3,2,6);
     plot_domain(problem, h);
     hold on
-    contourf(X,Y,exact_solution_angular_velocity_dr(X,Y));
+    contourf(X,Y,exact_solution_ux(X,Y));
     colorbar
     axis equal
-    title('exact angular velocity gradient');
+    title('exact du/dy');
 else
     subplot(2,2,1);
     plot_domain(problem, h);

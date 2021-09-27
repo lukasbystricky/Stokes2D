@@ -16,11 +16,11 @@ problem.stresslet_id_test = input_params.stresslet_id_test;
 
 % discretize domain
 % top wall
-walls{1} = @(T) geometry_periodic_channel(@(t) ones(size(t)), ...
+walls{1} = @(T) geometry_periodic_channel(@(t) 0.5*ones(size(t)), ...
             @(t) zeros(size(t)), @(t) zeros(size(t)),T, 1,problem.Lx);
      
 % bottom wall            
-walls{2} = @(T) geometry_periodic_channel(@(t) 0*ones(size(t)), ...
+walls{2} = @(T) geometry_periodic_channel(@(t) -0.5*ones(size(t)), ...
             @(t) zeros(size(t)), @(t) zeros(size(t)),T, -1, problem.Lx);
 
 if length(input_params.panels) > 1
