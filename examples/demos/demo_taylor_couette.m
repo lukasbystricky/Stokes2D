@@ -63,12 +63,13 @@ exact_solution_pressure = @(x,y) A^2*(x.^2+y.^2)/2 + 2*A*B*log(sqrt(x.^2+y.^2)) 
 exact_solution_angular_velocity_dr = @(x,y) A + B./(x.^2+y.^2).^2;
 exact_solution_ux = @(x,y) -(2*B*x.*y)./(x.^2+y.^2).^2;
 exact_solution_uy = @(x,y) B*(y.^2-x.^2)./(x.^2+y.^2).^2 - A;
+exact_solution_vx = @(x,y) B*(y.^2-x.^2)./(x.^2+y.^2).^2 + A;
 exact_solution_vy = @(x,y) exact_solution_ux(x,y);
 
 %%
 h = figure();
 if test
-    subplot(3,2,1);
+    subplot(4,2,1);
     plot_domain(problem, h);
     hold on;
     contourf(X,Y, log10(abs(Ur - exact_solution_r(X,Y))+eps));
@@ -76,16 +77,16 @@ if test
     axis equal
     title('u_r: log_{10}(error in radial velocity)');
     
-    subplot(3,2,2);    
+    subplot(4,2,2);    
     plot_domain(problem, h);
     hold on;
     contourf(X,Y,log10(abs(Utheta - exact_solution_theta(X,Y))./...
         max(max(abs(exact_solution_theta(X,Y)))) + eps));
     colorbar;
     axis equal
-    title('u_phi: log_{10}(relative error angular velocity)');
+    title('u_{phi}: log_{10}(relative error angular velocity)');
     
-    subplot(3,2,3);
+    subplot(4,2,3);
     plot_domain(problem, h);
     hold on
     contourf(X,Y,Pc);
@@ -93,30 +94,41 @@ if test
     axis equal
     title('pressure');
 
-    subplot(3,2,4);
+    subplot(4,2,5);
     plot_domain(problem, h);
     hold on
-    contourf(X,Y,log10(abs(Vyc - exact_solution_vy(X,Y))./...
-        max(max(abs(exact_solution_theta(X,Y)))) + eps));
+    contourf(X,Y,log10(abs(Uxc - exact_solution_ux(X,Y))./...
+        max(max(abs(exact_solution_ux(X,Y)))) + eps));
+    colorbar
+    axis equal
+    title('dudx: log_{10}(relative error)');
+    
+    subplot(4,2,6);
+    plot_domain(problem, h);
+    hold on
+    contourf(X,Y,log10(abs(Uyc - exact_solution_uy(X,Y))./...
+        max(max(abs(exact_solution_uy(X,Y)))) + eps));
     colorbar
     axis equal
     title('dudy: log_{10}(relative error)');
-    
-    subplot(3,2,5);
-    plot_domain(problem, h);
-    hold on
-    contourf(X,Y,Uxc);
-    colorbar
-    axis equal
-    title('dudx');
 
-    subplot(3,2,6);
+    subplot(4,2,7);
     plot_domain(problem, h);
     hold on
-    contourf(X,Y,exact_solution_ux(X,Y));
+    contourf(X,Y,log10(abs(Vxc - exact_solution_vx(X,Y))./...
+        max(max(abs(exact_solution_vx(X,Y)))) + eps));
     colorbar
     axis equal
-    title('exact du/dy');
+    title('dvdx: log_{10}(relative error)');
+    
+    subplot(4,2,8);
+    plot_domain(problem, h);
+    hold on
+    contourf(X,Y,log10(abs(Vyc - exact_solution_vy(X,Y))./...
+        max(max(abs(exact_solution_vy(X,Y)))) + eps));
+    colorbar
+    axis equal
+    title('dvdy: log_{10}(relative error)');
 else
     subplot(2,2,1);
     plot_domain(problem, h);
