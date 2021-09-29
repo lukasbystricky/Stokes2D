@@ -85,7 +85,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
     if (Nsrc == 0) //if no solids, return early
         return;
     
-#pragma omp parallel for
+//#pragma omp parallel for
     for(int j = 0;j<Ntar;j++) {
         
         Complex nzpan[16], tz[16], tzp[16], tn[16], tf[16];

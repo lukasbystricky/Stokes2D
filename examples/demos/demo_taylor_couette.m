@@ -61,10 +61,10 @@ exact_solution_r = @(x,y) zeros(size(x));
 exact_solution_theta = @(x,y) A*sqrt(x.^2 + y.^2) + B./sqrt(x.^2 + y.^2);
 exact_solution_pressure = @(x,y) A^2*(x.^2+y.^2)/2 + 2*A*B*log(sqrt(x.^2+y.^2)) - B^2./(x.^2+y.^2);
 exact_solution_angular_velocity_dr = @(x,y) A + B./(x.^2+y.^2).^2;
-exact_solution_ux = @(x,y) -(2*B*x.*y)./(x.^2+y.^2).^2;
+exact_solution_ux = @(x,y) (2*B*x.*y)./(x.^2+y.^2).^2;
 exact_solution_uy = @(x,y) B*(y.^2-x.^2)./(x.^2+y.^2).^2 - A;
 exact_solution_vx = @(x,y) B*(y.^2-x.^2)./(x.^2+y.^2).^2 + A;
-exact_solution_vy = @(x,y) exact_solution_ux(x,y);
+exact_solution_vy = @(x,y) -(2*B*x.*y)./(x.^2+y.^2).^2;
 
 %%
 h = figure();

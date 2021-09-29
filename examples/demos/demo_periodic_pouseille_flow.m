@@ -14,7 +14,7 @@ clc
 input_params = default_input_params('pouseuille_demo', 1);
 
 % modify structure as needed
-input_params.box_size = [5,1];
+input_params.box_size = [5,2];
 input_params.panels = 10;
 input_params.eta = 1;
 
