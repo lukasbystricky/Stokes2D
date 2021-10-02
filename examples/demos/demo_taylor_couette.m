@@ -23,7 +23,6 @@ input_params.centers = [0, 0];
 input_params.omega = 1; % angular velocity of outer wall
 
 problem = couette(input_params);
-problem.combined = 0;
 
 % solve the problem
 solution = solve_stokes(problem,'fmm',0);
@@ -41,6 +40,7 @@ Y = R.*sin(T);
 [Uc, Vc, X, Y, U, V] = evaluate_velocity(solution, X, Y, 'fmm', 0, 'verbose', 1);
 [Pc, P, ~, ~] = evaluate_pressure(solution, X, Y, 'fmm', 0, 'verbose', 1);
 [Uxc, Uyc, Vxc, Vyc, Ux, Uy, Vx, Vy] = evaluate_velocity_gradient(solution, X, Y);
+[Pxc, Pyc, Px, Py, ~, ~] = evaluate_pressure_gradient(solution, X, Y);
 
 % convert Cartesian velocity to radial and angular velocity, using 
 % relationships:
@@ -59,8 +59,6 @@ B = omega/(1/ri^2-1/ro^2);
 % exact solution in polar coordinates
 exact_solution_r = @(x,y) zeros(size(x));
 exact_solution_theta = @(x,y) A*sqrt(x.^2 + y.^2) + B./sqrt(x.^2 + y.^2);
-exact_solution_pressure = @(x,y) A^2*(x.^2+y.^2)/2 + 2*A*B*log(sqrt(x.^2+y.^2)) - B^2./(x.^2+y.^2);
-exact_solution_angular_velocity_dr = @(x,y) A + B./(x.^2+y.^2).^2;
 exact_solution_ux = @(x,y) (2*B*x.*y)./(x.^2+y.^2).^2;
 exact_solution_uy = @(x,y) B*(y.^2-x.^2)./(x.^2+y.^2).^2 - A;
 exact_solution_vx = @(x,y) B*(y.^2-x.^2)./(x.^2+y.^2).^2 + A;
@@ -69,7 +67,7 @@ exact_solution_vy = @(x,y) -(2*B*x.*y)./(x.^2+y.^2).^2;
 %%
 h = figure();
 if test
-    subplot(4,2,1);
+    subplot(5,2,1);
     plot_domain(problem, h);
     hold on;
     contourf(X,Y, log10(abs(Ur - exact_solution_r(X,Y))+eps));
@@ -77,7 +75,7 @@ if test
     axis equal
     title('u_r: log_{10}(error in radial velocity)');
     
-    subplot(4,2,2);    
+    subplot(5,2,2);    
     plot_domain(problem, h);
     hold on;
     contourf(X,Y,log10(abs(Utheta - exact_solution_theta(X,Y))./...
@@ -86,49 +84,65 @@ if test
     axis equal
     title('u_{phi}: log_{10}(relative error angular velocity)');
     
-    subplot(4,2,3);
+    subplot(5,2,3);
     plot_domain(problem, h);
     hold on
     contourf(X,Y,Pc);
     colorbar
     axis equal
     title('pressure');
+    
+    subplot(5,2,5);
+    plot_domain(problem, h);
+    hold on
+    contourf(X,Y,log10(abs(Pxc) + eps));
+    colorbar
+    axis equal
+    title('dp/dx: log_{10}(absolute error)');
 
-    subplot(4,2,5);
+    subplot(5,2,6);
+    plot_domain(problem, h);
+    hold on
+    contourf(X,Y,log10(abs(Pyc) + eps));
+    colorbar
+    axis equal
+    title('dp/dy: log_{10}(absolute error)');
+
+    subplot(5,2,7);
     plot_domain(problem, h);
     hold on
     contourf(X,Y,log10(abs(Uxc - exact_solution_ux(X,Y))./...
         max(max(abs(exact_solution_ux(X,Y)))) + eps));
     colorbar
     axis equal
-    title('dudx: log_{10}(relative error)');
+    title('du/dx: log_{10}(relative error)');
     
-    subplot(4,2,6);
+    subplot(5,2,8);
     plot_domain(problem, h);
     hold on
     contourf(X,Y,log10(abs(Uyc - exact_solution_uy(X,Y))./...
         max(max(abs(exact_solution_uy(X,Y)))) + eps));
     colorbar
     axis equal
-    title('dudy: log_{10}(relative error)');
+    title('du/dy: log_{10}(relative error)');
 
-    subplot(4,2,7);
+    subplot(5,2,9);
     plot_domain(problem, h);
     hold on
     contourf(X,Y,log10(abs(Vxc - exact_solution_vx(X,Y))./...
         max(max(abs(exact_solution_vx(X,Y)))) + eps));
     colorbar
     axis equal
-    title('dvdx: log_{10}(relative error)');
+    title('dv/dx: log_{10}(relative error)');
     
-    subplot(4,2,8);
+    subplot(5,2,10);
     plot_domain(problem, h);
     hold on
     contourf(X,Y,log10(abs(Vyc - exact_solution_vy(X,Y))./...
         max(max(abs(exact_solution_vy(X,Y)))) + eps));
     colorbar
     axis equal
-    title('dvdy: log_{10}(relative error)');
+    title('dv/dy: log_{10}(relative error)');
 else
     subplot(2,2,1);
     plot_domain(problem, h);

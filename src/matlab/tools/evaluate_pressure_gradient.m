@@ -1,4 +1,4 @@
-function [Px, Py, X, Y] = evaluate_pressure_gradient(solution, varargin)
+function [Pxc, Pyc, Px, Py, X, Y] = evaluate_pressure_gradient(solution, varargin)
 %EVALUTATE_PRESSURE evaluates the pressure at either regular grid over the
 %reference cell or at specified target points. Uses the stresslet identity
 %to identify points inside the domain. Supports periodic and non-periodic 
@@ -68,7 +68,7 @@ if solution.problem.periodic
         pdlp = StokesDLP_pressure_grad_ewald_2p(xsrc, ysrc, X(:), Y(:), n1, n2,...
             solution.q(:,1).*weights, solution.q(:,2).*weights, Lx, Ly,...
             'verbose', 0);
-        
+    
         [pdlp_corrected,~] = mex_SQ_dlp_pressure_grad(Xtar_sq(:)+1i*(Ytar_sq(:)+1e-60),...
             domain.z, domain.zp, domain.quad_weights, domain.panel_breaks,...
             domain.wazp, domain.z32, domain.zp32, domain.quad_weights32,...
@@ -79,8 +79,28 @@ if solution.problem.periodic
             domain.reference_cell, true);
         
         p = pdlp + solution.problem.eta*pslp;
+        p = p(1,:)'+1i*p(2,:)';
         p_corrected = pdlp_corrected + solution.problem.eta*pslp_corrected;
     end    
+else % completion flow
+    pdlp = evaluate_double_layer_pressure_gradient_direct(X(:),Y(:),...
+        domain.z,domain.zp,solution.q(:,1)+1i*solution.q(:,2),domain.quad_weights);
+
+    %correct using special quadrature
+    [pdlp_corrected,~] = mex_SQ_dlp_pressure_grad(X(:)+1i*(Y(:)+1e-60), ...
+        domain.z, domain.zp, domain.quad_weights, domain.panel_breaks,...
+        domain.wazp, domain.z32, domain.zp32, domain.quad_weights32,...
+        domain.wazp32, solution.q(:,1)+1i*solution.q(:,2)+1i*1e-60,...
+        real(pdlp)+1i*(imag(pdlp)+1e-60), domain.mean_panel_length, domain.extra.gridSolidmat, ...
+        domain.extra.Nrows, domain.extra.Ncols, domain.extra.panels2wall,...
+        domain.reference_cell,false);
+    
+    % add on completion flow gradient pressure Stokeslet
+    dPs = completion_contribution_pressure_gradient(domain.centers(2:end),...
+        X(:)+1i*Y(:),solution.forces);
+    
+    p = pdlp + dPs;
+    p_corrected = pdlp_corrected + dPs;
 end
 
 if solution.problem.periodic
@@ -124,10 +144,18 @@ if solution.problem.periodic
     Y(outside) = nan;
 end
 
-dP = reshape(p_corrected, size(X));
+dP = reshape(p, size(X));
+dPc = reshape(p_corrected, size(X));
+
+Px = real(dP);
+Py = imag(dP);
+Pxc = real(dPc);
+Pyc = imag(dPc);
 
 % add on driving pressure
 if solution.problem.periodic
-    Px = real(dP) + solution.problem.pressure_gradient_x;
-    Py = imag(dP) + solution.problem.pressure_gradient_y;
+    Px = Px + solution.problem.pressure_gradient_x;
+    Py = Py + solution.problem.pressure_gradient_y;
+    Pxc = Pxc + solution.problem.pressure_gradient_x;
+    Pyc = Pyc + solution.problem.pressure_gradient_y;
 end

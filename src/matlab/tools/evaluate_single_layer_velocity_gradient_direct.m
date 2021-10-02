@@ -1,7 +1,6 @@
 function dV = evaluate_single_layer_velocity_gradient_direct(xtar, ytar, z, btar, zp, q, w)
 ztar = xtar + 1i*ytar;
 n = -1i*zp./abs(zp);
-%dV = zeros(size(xtar));
 
 Ih_qn = evaluate_hypersingular_integral(xtar, ytar, z, zp, q./n, w);
 Ih_tqn = evaluate_hypersingular_integral(xtar, ytar, z, zp, conj(z).*q./n, w);
@@ -28,16 +27,3 @@ for k = 1:length(xtar)
     Ih(k) = sum(q.*zp.*w./rho.^2);
 end
 end
-
-function  Is = evaluate_supersingular_integral(xtar, ytar, z, zp, q, w)
-Is = zeros(size(xtar));
-for k = 1:length(xtar)
-    rho = (xtar(k) + 1i*ytar(k)) - z;
-    Is(k) = sum(q.*zp.*w./rho.^3);
-end
-end
-
-%rho = (xtar(k) + 1i*ytar(k)) - z;
-%sum(conj(zsrc(j))*qtmp./(ntmp.*r.^2))
-%sum(conj(ztmp).*qtmp./(ntmp.*r.^2))
-%sum(conj(qtmp)./(ntmp.*r)).*wtmp.*zptmp))

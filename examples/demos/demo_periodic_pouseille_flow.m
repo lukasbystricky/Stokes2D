@@ -15,7 +15,7 @@ input_params = default_input_params('pouseuille_demo', 1);
 
 % modify structure as needed
 input_params.box_size = [5,2];
-input_params.panels = 10;
+input_params.panels = 12;
 input_params.eta = 1;
 
 problem = flat_pipe_periodic(input_params);
@@ -35,9 +35,6 @@ exact_solution_u = @(x,y) P/2*(d^2-y.^2);
 exact_solution_uy = @(x,y) -P*y;
 exact_solution_p = @(x,y) problem.pressure_gradient_x * x;
 exact_solution_dP = @(x,y) problem.pressure_gradient_x;
-
-%x = linspace(0,5,20);
-%y = linspace(0,1,20);
 
 [Uc, Vc, X, Y, U, V] = evaluate_velocity(solution, 100, 'fmm', 0, 'verbose', 0);
 [Pc, P, ~, ~] = evaluate_pressure(solution, X, Y, 'fmm', 0, 'verbose', 0);
