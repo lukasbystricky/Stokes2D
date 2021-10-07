@@ -22,8 +22,8 @@ if ~isempty(z)
     n2 = -n2;
     
     % compute integral over boundary
-    [Px, Py] = evaluate_pressure_gradient_on_surface(solution, solution_local);
-    P = evaluate_pressure_on_surface(solution, solution_local);
+    [Px, Py] = evaluate_pressure_gradient_on_surface(solution, solution_local,'fluid');
+    P = evaluate_pressure_on_surface(solution, solution_local,'fluid');
     
     p_avg = p_avg + sum((2*P.*(x.*n1+y.*n2) - r.^2.*(Px.*n1 + Py.*n2)).*wazp);
 end

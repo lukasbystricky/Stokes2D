@@ -1,4 +1,4 @@
-function [Px, Py] = evaluate_pressure_gradient_on_surface(solution, solution_local)
+function [Px, Py] = evaluate_pressure_gradient_on_surface(solution, solution_local, type)
 %EVALUTATE_PRESSURE_GRADIENT_ON_SURFACE evaluates the pressure gradient at 
 %the quadrature points on the surface of a domain. Adds on the jump 
 %corresponding to approaching the boundary from the fluid part of the domain.
@@ -39,7 +39,7 @@ if solution.problem.periodic
         'verbose', 1)';
 
     % correct with special quadrature
-    dpslp = pressure_gradient_slp_on_surface_correction(dpslp(:,1) + 1i*dpslp(:,2), solution_local);
+    dpslp = pressure_gradient_slp_on_surface_correction(dpslp(:,1) + 1i*dpslp(:,2), solution_local, type);
     
     if isinf(solution.problem.eta)
         dP = dpslp;
@@ -50,7 +50,7 @@ if solution.problem.periodic
             'verbose', 1)';
         
         % correct with special quadrature
-        dpdlp = pressure_gradient_dlp_on_surface_correction(dpdlp(:,1) + 1i*dpdlp(:,2), solution_local);
+        dpdlp = pressure_gradient_dlp_on_surface_correction(dpdlp(:,1) + 1i*dpdlp(:,2), solution_local, type);
     
         dP = dpdlp + solution.problem.eta*dpslp;
     end

@@ -1,4 +1,4 @@
-function dPc = pressure_gradient_slp_on_surface_correction(dP, solution_local)
+function dPc = pressure_gradient_slp_on_surface_correction(dP, solution_local, type)
 %PRESSURE_GRADIENT_SLP_ON_SURFACE_CORRECTION corrects the single-layer 
 %pressure gradient for on-surface evaluation. Adds on the jump as the 
 %target approaches the boundary from the fluid part of the domain.
@@ -43,7 +43,7 @@ for i = size(domain.wall_indices,1)
     
     %add on special quadrature
     dPc(indices) = dPc(indices) - 1i*conj(hypersingular_on_surface_evaluation(qsrc(indices)./nsrc(indices), ...
-                zsrc(indices), zpsrc(indices), wsrc(indices), panel_breaks_z))/(2*pi); 
+                zsrc(indices), zpsrc(indices), wsrc(indices), panel_breaks_z, type))/(2*pi); 
             
    wall_start = wall_start + npan + 1;       
 end

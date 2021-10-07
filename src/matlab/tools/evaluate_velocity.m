@@ -179,6 +179,7 @@ u2 = imag(u);
 u1_corrected = real(u_corrected);
 u2_corrected = imag(u_corrected);
 
+% comment out when running stresslet identity test
 if solution.problem.periodic
     % find points inside domain by applying stresslet identity
     if solution.problem.periodic

@@ -23,7 +23,7 @@ if ~isempty(z)
     
     
     % compute integral over boundary
-    [Ux, Uy, Vx, Vy] = evaluate_velocity_gradient_on_surface(solution, solution_local);
+    [Ux, Uy, Vx, Vy] = evaluate_velocity_gradient_on_surface(solution, solution_local, 'fluid');
     [U, V] = evaluate_velocity_on_surface(solution, solution_local);
     
     u_avg(1) = u_avg(1) + sum((r.^2.*(Ux.*n1 + Vx.*n2) - 2*(x.*U + y.*V).*n1).*wazp);

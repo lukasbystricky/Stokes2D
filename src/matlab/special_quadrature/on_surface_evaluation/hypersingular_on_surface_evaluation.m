@@ -1,5 +1,5 @@
 function Ih = hypersingular_on_surface_evaluation(qsrc, zsrc, zpsrc, wsrc,...
-                                panel_breaks_z)
+                                panel_breaks_z, type)
 %HYPERSINGULAR_ON_SURFACE_EVALUATION evaluates the finite part of the
 %integral q(tau)/(z_i - tau)^2, where z_i coincides with the quadrature 
 %points on the boundary. Corrects the value using special quadrature for
@@ -61,11 +61,25 @@ for i = 1:Nsrc
         p0 = sq.compute_exact_log(nz, nzsrc);
         
         % apply product integration correction
-        if j == 2
-            
-            if imag(nz) > 0
-                p0 = p0 - 2*1i*pi;
-            end            
+        if j == 2 
+            switch type % add limiting value if needed
+                case 'fluid'
+                    if imag(nz) > 0
+                        p0 = p0 - 2*1i*pi;
+                    end
+     
+                case 'solid'
+                    if imag(nz) < 0
+                        p0 = p0 + 2*1i*pi;
+                    end
+                    
+                case 'surface'
+                    if imag(nz) > 0
+                        p0 = p0 - 1i*pi;
+                    else
+                        p0 = p0 + 1i*pi;
+                    end
+            end
         end
         
         Ih(i) = Ih(i) ...

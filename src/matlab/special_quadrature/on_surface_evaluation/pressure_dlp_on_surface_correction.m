@@ -1,4 +1,4 @@
-function Ph = pressure_dlp_on_surface_correction(P, solution_local)
+function Ph = pressure_dlp_on_surface_correction(P, solution_local, type)
 %PRESSURE_DLP_ON_SURFACE_CORRECTION corrects the double-layer 
 %pressure for on-surface evaluation. Adds on the jump as the target
 %approaches the boundary from the fluid part of the domain.
@@ -42,7 +42,7 @@ for i = size(domain.wall_indices,1)
     
     %add on special quadrature
     Ph(indices) = Ph(indices) + imag(hypersingular_on_surface_evaluation(qsrc(indices), ...
-        zsrc(indices), zpsrc(indices), wsrc(indices), panel_breaks_z))/(2*pi);
+        zsrc(indices), zpsrc(indices), wsrc(indices), panel_breaks_z, type))/(2*pi);
     
     wall_start = wall_start + npan + 1;
 end

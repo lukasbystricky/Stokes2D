@@ -1,4 +1,4 @@
-function [Ux, Uy, Vx, Vy] = evaluate_velocity_gradient_on_surface(solution, solution_local)
+function [Ux, Uy, Vx, Vy] = evaluate_velocity_gradient_on_surface(solution, solution_local, type)
 %EVALUTATE_VELOCITY_GRADIENT_ON_SURFACE evaluates the velocity gradient at 
 %the quadrature points on the surface of a domain. Adds on the jump 
 %corresponding to approaching the boundary from the fluid part of the 
@@ -46,9 +46,9 @@ b2 = 1i*ones(size(solution_local.problem.domain.z));
 
 % correct with special quadrature
 ugrad_slp1 = velocity_gradient_slp_on_surface_correction(ux +...
-                1i*vx, b1, solution_local);
+                1i*vx, b1, solution_local, type);
 ugrad_slp2 = velocity_gradient_slp_on_surface_correction(uy +...
-                1i*vy, b2, solution_local);
+                1i*vy, b2, solution_local, type);
 
 if ~isinf(solution.problem.eta)
     % add on double-layer potential
@@ -62,8 +62,8 @@ if ~isinf(solution.problem.eta)
         Lx, Ly,'verbose', 1);
     
     % correct with special quadrature
-    ugrad_dlp1 = velocity_gradient_dlp_on_surface_correction(ux + 1i*vx, b1, solution_local);
-    ugrad_dlp2 = velocity_gradient_dlp_on_surface_correction(uy + 1i*vy, b2, solution_local);
+    ugrad_dlp1 = velocity_gradient_dlp_on_surface_correction(ux + 1i*vx, b1, solution_local, type);
+    ugrad_dlp2 = velocity_gradient_dlp_on_surface_correction(uy + 1i*vy, b2, solution_local, type);
     
     ugrad1 = solution.problem.eta*ugrad_slp1 + ugrad_dlp1;
     ugrad2 = solution.problem.eta*ugrad_slp2 + ugrad_dlp2;
