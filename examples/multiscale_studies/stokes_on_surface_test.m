@@ -1,9 +1,6 @@
-% Compute the permeability of an doubly-periodic array of obstacles. The 
-% general procedure is outline for example in 
-% https://arxiv.org/abs/1906.06884. For a reference cell containing a 
-% single circle, with volume fraction phi=0.4, we can compare to the 
-% results in that paper. There they get K = (5.671e-4, 0; 0, 5.671e-4). 
-
+% Compute pressure, pressure gradient, and velocity gradient on the surface
+% when the boundary is approached from the fluid. The on-surface quantities
+% are compared with them found using near surface evaluation.
 close all
 clearvars
 clc
@@ -16,7 +13,6 @@ input_params.box_size = [4,4];
 input_params.panels = 50;
 input_params.plot_domain = 0;
 input_params.eta = 1;
-
 
 % prescribe pressure drop
 input_params.pressure_drop_x = 1;
@@ -33,9 +29,9 @@ solution = solve_stokes(problem);
 solution.local_indices = 1:length(solution.q);
 
 %% evaluate pressure both on and near surface
-Psurface = evaluate_pressure_on_surface(solution, solution);
-[Uxsurf, Uysurf, Vxsurf, Vysurf] = evaluate_velocity_gradient_on_surface(solution, solution);
-[Pxsurf, Pysurf] = evaluate_pressure_gradient_on_surface(solution, solution);
+Psurface = evaluate_pressure_on_surface(solution, solution, 'fluid');
+[Uxsurf, Uysurf, Vxsurf, Vysurf] = evaluate_velocity_gradient_on_surface(solution, solution, 'fluid');
+[Pxsurf, Pysurf] = evaluate_pressure_gradient_on_surface(solution, solution, 'fluid');
 
 [P,~, X, Y] = evaluate_pressure(solution, 50);
 [Ux, Uy, Vx, Vy] = evaluate_velocity_gradient(solution, 50);
@@ -55,6 +51,7 @@ Lx = problem.domain.Lx;
 Ly = problem.domain.Ly;
 u_avg = compute_average_velocity(solution, solution, -Lx/2, Lx/2, -Ly/2, Ly/2, 20, 20);
 
+%% plot
 h=figure();
 subplot(1,2,1);
 contourf(X,Y,P);
@@ -62,7 +59,6 @@ hold on
 plot_domain(problem, h);
 axis equal;
 colorbar;
- 
 
 subplot(1,2,2);
 plot(problem.domain.theta, Psurface)
@@ -114,5 +110,3 @@ subplot(2,1,2);
 plot(problem.domain.theta, Pysurf);
 hold on
 plot(real(theta), dPynear);
-
-

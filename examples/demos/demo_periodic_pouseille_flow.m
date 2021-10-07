@@ -14,8 +14,8 @@ clc
 input_params = default_input_params('pouseuille_demo', 1);
 
 % modify structure as needed
-input_params.box_size = [5,2];
-input_params.panels = 12;
+input_params.box_size = [5,5];
+input_params.panels = 14;
 input_params.eta = 1;
 
 problem = flat_pipe_periodic(input_params);
@@ -24,15 +24,10 @@ problem = flat_pipe_periodic(input_params);
 solution = solve_stokes(problem,'fmm',0);
 
 % display solution
-%G = -problem.pressure_gradient_x;
-P = -problem.pressure_gradient_x;
-d = 0.5;
-%exact_solution_u = @(x,y) -problem.pressure_gradient_x * y.*(y-1)/2;
-%exact_solution_u = @(x,y) G/2 * y.*(1-y);
-exact_solution_u = @(x,y) P/2*(d^2-y.^2);
-%exact_solution_uy = @(x,y) -problem.pressure_gradient_x * (y - 0.5);
-%exact_solution_uy = @(x,y) G*(1/2-y);
-exact_solution_uy = @(x,y) -P*y;
+P = problem.pressure_gradient_x;
+d = 0.5;    % pipe walls are at +-0.5
+exact_solution_u = @(x,y) P/2*(y.^2-d^2);
+exact_solution_uy = @(x,y) P*y;
 exact_solution_p = @(x,y) problem.pressure_gradient_x * x;
 exact_solution_dP = @(x,y) problem.pressure_gradient_x;
 
@@ -51,7 +46,6 @@ title('u');
 subplot(4,2,2)
 contourf(X,Y, log10(abs((Uc - exact_solution_u(X,Y))./...
     max(max(abs(exact_solution_u(X,Y)))))+eps));
-%contourf(X,Y, log10(abs(-Uc - exact_solution_u(X,Y))+eps));
 colorbar
 %caxis([-16,-1]);
 axis equal
@@ -66,7 +60,6 @@ title('du/dy');
 subplot(4,2,4)
 contourf(X,Y, log10(abs((Uyc - exact_solution_uy(X,Y))./...
     max(max(abs(exact_solution_uy(X,Y)))))+eps));
-%contourf(X,Y,log10(abs(-Uyc - exact_solution_uy(X,Y))+eps));
 colorbar
 %caxis([-16,-1]);
 axis equal
@@ -81,7 +74,6 @@ title('P');
 subplot(4,2,6)
 contourf(X,Y, log10(abs((Pc - exact_solution_p(X,Y))./...
     max(max(abs(exact_solution_uy(X,Y)))))+eps));
-%contourf(X,Y,log10(abs(Pc - exact_solution_p(X,Y))+eps));
 colorbar
 %caxis([-16,-1]);
 axis equal

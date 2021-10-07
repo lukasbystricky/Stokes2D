@@ -2,8 +2,10 @@
 % flow. The outer cylinder is fixed, while the inner cylinder rotates
 % counter clockwise with angular velocity omega. Then, the exact solution
 % is known, with angular velocity given by A*r + B/r, where
-% A = omega r_out^2 / (r_out^2 - r_in^2),
-% B = -omega r_out^2 r_in^2 /(r_out^2 - r_in^2)
+% A = -omega/(ro^2*(1/ri^2-1/ro^2)),
+% B = omega/(1/ri^2-1/ro^2),
+% and where ro and ri denote the radius of the outer and inner cylinder
+% respectively
 close all
 clearvars
 clc
@@ -63,6 +65,7 @@ exact_solution_ux = @(x,y) (2*B*x.*y)./(x.^2+y.^2).^2;
 exact_solution_uy = @(x,y) B*(y.^2-x.^2)./(x.^2+y.^2).^2 - A;
 exact_solution_vx = @(x,y) B*(y.^2-x.^2)./(x.^2+y.^2).^2 + A;
 exact_solution_vy = @(x,y) -(2*B*x.*y)./(x.^2+y.^2).^2;
+exact_solution_avg_velocity = pi*(A*(ro^2-ri^2)+2*B*log(ro/ri));
 
 %%
 h = figure();
