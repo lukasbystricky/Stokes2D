@@ -48,7 +48,7 @@ for i = 1:Nsrc
         if local_panels(j) ~= npan
             zb = panel_breaks_z(local_panels(j)+1);
         else
-            zb = panel_breaks_z(1);
+            zb = panel_breaks_z(local_panels(j)) + (panel_breaks_z(local_panels(j))-panel_breaks_z(local_panels(j)-1));
         end
         
         % scale points

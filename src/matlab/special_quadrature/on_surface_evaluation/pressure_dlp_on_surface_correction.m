@@ -23,7 +23,7 @@ Ph = P;
 
 wall_start = 1;
 
-for i = size(domain.wall_indices,1)
+for i = 1:size(domain.wall_indices,1)
     
     indices = domain.wall_indices(i,1):domain.wall_indices(i,2);
     npan = length(indices)/16;

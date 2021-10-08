@@ -49,7 +49,7 @@ for i = 1:Nsrc
         if local_panels(j) ~= npan
             zb = panel_breaks_z(local_panels(j)+1);
         else
-            zb = panel_breaks_z(1);
+            zb = panel_breaks_z(local_panels(j)) + (panel_breaks_z(local_panels(j))-panel_breaks_z(local_panels(j)-1));
         end
         
         % scale points
@@ -59,7 +59,7 @@ for i = 1:Nsrc
         
         nz = 2*(zsrc(i)-mid)/len;
         p0 = sq.compute_exact_log(nz, nzsrc);
-        
+
         if j == 2 
             switch type % add limiting value if needed
                 case 'fluid'

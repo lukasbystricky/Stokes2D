@@ -24,14 +24,14 @@ qsrc = (solution_local.q(:,1) + 1i*solution_local.q(:,2))./nsrc;
 Pc = P;
 
 wall_start = 1;
-for i = size(domain.wall_indices,1)
+for i = 1:size(domain.wall_indices,1)
 
     
     indices = domain.wall_indices(i,1):domain.wall_indices(i,2);
     npan = length(indices)/16;
-    
+
     panel_breaks_z = domain.panel_breaks(wall_start:wall_start + npan - 1);
-    
+
     %subract off self contribution
     for j = indices
         
@@ -46,5 +46,5 @@ for i = size(domain.wall_indices,1)
     Pc(indices) = Pc(indices) + imag(cauchy_on_surface_evaluation(qsrc(indices), ...
                 zsrc(indices), zpsrc(indices), wsrc(indices), panel_breaks_z, type))/(2*pi); 
             
-   wall_start = wall_start + npan + 1;       
+    wall_start = wall_start + npan + 1;       
 end

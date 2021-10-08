@@ -4,13 +4,14 @@ clearvars
 clc
 
 % create input structure
-input_params = default_input_params('periodic_circles', 1);
+input_params = default_input_params('periodic_starfish', 1);
 
 % modify structure as needed
 input_params.box_size = [5,3];
 input_params.panels = 40;
 input_params.centers = 0;
 input_params.radii = 1;
+input_params.plot_domain = 0;
 
 problem = starfish_periodic(input_params);
 problem.pressure_gradient_x = 0;

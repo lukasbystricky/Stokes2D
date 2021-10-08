@@ -26,7 +26,7 @@ dVh = dV;
 
 wall_start = 1;
 
-for i = size(domain.wall_indices,1)
+for i = 1:size(domain.wall_indices,1)
     
     indices = domain.wall_indices(i,1):domain.wall_indices(i,2);
     npan = (domain.wall_indices(i,2)-domain.wall_indices(i,1)+1)/16;
@@ -58,7 +58,7 @@ for i = size(domain.wall_indices,1)
     zptmp = zpsrc(indices);
     wtmp = wsrc(indices);
     btmp = btar(indices);
-    
+
     dVh(indices) = dVh(indices) + (-1i*conj(btmp)/2.*conj(...
          conj(ztmp).*hypersingular_on_surface_evaluation(qtmp./ntmp, ztmp, zptmp, wtmp, panel_breaks_z, type) - ...
          hypersingular_on_surface_evaluation(conj(ztmp).*qtmp./ntmp, ztmp, zptmp, wtmp, panel_breaks_z, type) + ...

@@ -9,9 +9,9 @@ clc
 input_params = default_input_params('permeability_demo', 1);
 
 % modify structure as needed, or add additional problem-dependent params
-input_params.box_size = [4,4];
-input_params.panels = 50;
-input_params.plot_domain = 0;
+input_params.box_size = [5,3];
+input_params.panels = 40;
+input_params.plot_domain = 1;
 input_params.eta = 1;
 
 % prescribe pressure drop
@@ -84,6 +84,8 @@ subplot(2,2,1)
 plot(problem.domain.theta, Uxsurf);
 hold on
 plot(real(theta), Uxnear);
+legend('Uxsurf','Uxnear');
+title('Ux');
 
 subplot(2,2,2)
 plot(problem.domain.theta, Uysurf);

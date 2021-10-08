@@ -47,7 +47,7 @@ G = u_slp1 + 1i*u_slp2;
 
 wall_indices = domain_local.wall_indices;
 % apply log-quadrature corrections for the Stokeslet
-for i = size(domain_local.wall_indices,1)
+for i = 1:size(domain_local.wall_indices,1)
     
     thiswall = wall_indices(i,1):wall_indices(i,2);
     panels_per_wall = (wall_indices(i,2)-wall_indices(i,1)+1)/16;

@@ -23,12 +23,21 @@ walls{1} = @(T) geometry_periodic_channel(@(t) 0.5*ones(size(t)), ...
 walls{2} = @(T) geometry_periodic_channel(@(t) -0.5*ones(size(t)), ...
             @(t) zeros(size(t)), @(t) zeros(size(t)),T, -1, problem.Lx);
 
+% periodic sine as wall
+% top wall
+% A = 5*1e-2;
+% walls{1} = @(T) geometry_periodic_channel(@(t) 0.5+A*sin(2*pi*t), ...
+%             @(t) 2*pi*A*cos(2*pi*t), @(t) -4*pi*pi*A*sin(2*pi*t),T, 1,problem.Lx);
+%      
+% % bottom wall            
+% walls{2} = @(T) geometry_periodic_channel(@(t) -0.5+A*sin(2*pi*t), ...
+%             @(t) 2*pi*A*cos(2*pi*t), @(t) -4*pi*pi*A*sin(2*pi*t),T, -1, problem.Lx);
+        
 if length(input_params.panels) > 1
     problem.panels = input_params.panels;
 else
     problem.panels = input_params.panels*ones(length(walls),1);
 end
-
 
 problem.domain = discretize_domain(walls, problem.panels,...
             problem.Lx, problem.Ly);

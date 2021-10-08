@@ -21,7 +21,6 @@ if ~isempty(z)
     n1 = -n1;
     n2 = -n2;
     
-    
     % compute integral over boundary
     [Ux, Uy, Vx, Vy] = evaluate_velocity_gradient_on_surface(solution, solution_local, 'fluid');
     [U, V] = evaluate_velocity_on_surface(solution, solution_local);

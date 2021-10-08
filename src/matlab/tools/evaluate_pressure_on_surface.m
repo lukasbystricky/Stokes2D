@@ -38,9 +38,8 @@ if solution.problem.periodic
         q(:,1).*wazp, q(:,2).*wazp, Lx, Ly,...
         'verbose', 1)';
 
-    % correct with special quadrature
     pslp = pressure_slp_on_surface_correction(pslp, solution_local, type);
-    
+
     if isinf(solution.problem.eta)
         P = pslp;
     else
@@ -61,6 +60,9 @@ else % not periodic, only double-layer plus Stokeslets
     % quite slow to evaluate if the number of target points is large
     pdlp = evaluate_double_layer_pressure_direct(xtar(:), ytar(:), domain.z, domain.zp,...
         solution.q(:,1)+1i*solution.q(:,2), domain.quad_weights);
+    
+    % correct with special quadrature
+    % TODO
     
     pstokeslets = zeros(size(xtar(:)));
     for i = 1:length(solution.forces)
