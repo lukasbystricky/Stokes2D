@@ -15,6 +15,7 @@ input_params = default_input_params('pouseuille_demo', 1);
 
 % modify structure as needed
 input_params.box_size = [5,5];
+input_params.h = 0.5;    % pipe walls at +-0.5
 input_params.panels = 14;
 input_params.eta = 1;
 input_params.plot_domain = 0;
@@ -28,18 +29,18 @@ solution = solve_stokes(problem,'fmm',0);
 
 %% exact solution
 p = problem.pressure_gradient_x;
-h = 0.5;    % pipe walls are at +-0.5
-V = 2*Lx*h;
+h = problem.h;
+volume = 2*Lx*h;
 
 exact_solution_u = @(x,y) p/2*(y.^2-h^2);
 exact_solution_uy = @(x,y) p*y;
-exact_solution_p = @(x,y) p * x;
+exact_solution_p = @(x,y) p*x;
 exact_solution_dP = @(x,y) p;
 
-exact_solution_u_avg = (-2*h^3*Lx*p/3)/V;
-exact_solution_uy_avg = 0;
+exact_solution_u_avg = (-2*h^3*Lx*p)/3/volume;
+exact_solution_u_grad_avg = [0 0; 0 0];
 exact_solution_p_avg = 0;
-exact_solution_dP_avg = (2*h*Lx*p)/V;
+exact_solution_p_grad_avg = [(2*h*Lx*p)/volume; 0];
 
 %% compute quantities
 [Uc, Vc, X, Y, U, V] = evaluate_velocity(solution, 100, 'fmm', 0, 'verbose', 0);
@@ -47,21 +48,16 @@ exact_solution_dP_avg = (2*h*Lx*p)/V;
 [Uxc, Uyc, Vxc, Vyc, Ux, Uy, Vx, Vy] = evaluate_velocity_gradient(solution, X, Y);
 [Px, Py] = evaluate_pressure_gradient(solution, X, Y);
 
-%%
-%solution.local_indices = 1:length(solution.q);
-%Psurf = evaluate_pressure_on_surface(solution, solution, 'fluid');
-%semilogy(abs(Psurf),'x--');
-
 %% compute averages
-[u_avg, p_avg, p_grad_avg, u_grad_avg] = compute_cell_averages(solution, 0, 0, Lx+1, Ly+1);
-u_avg = u_avg(:,1) + 1i*u_avg(:,2);
+solution.trim = 0;      % do not remove values outside the domain
+[u_avg, u_grad_avg, p_avg, p_grad_avg] = compute_pipe_averages(solution);
+u_avg = u_avg(1) + 1i*u_avg(2);
 
-%%
-clc;
-[u_avg solution.u_avg(1) exact_solution_u_avg]
-[u_grad_avg(:,1,1) exact_solution_uy_avg]
-[p_avg exact_solution_p_avg]
-[p_grad_avg(1) exact_solution_dP_avg]
+%% print averages errors
+u_avg_err = abs(exact_solution_u_avg-u_avg)
+u_grad_avg_err = abs(exact_solution_u_grad_avg-u_grad_avg)
+p_avg_err = abs(exact_solution_p_avg-p_avg)
+p_grad_avg_err = abs(exact_solution_p_grad_avg-p_grad_avg)
 
 %% plot
 figure;

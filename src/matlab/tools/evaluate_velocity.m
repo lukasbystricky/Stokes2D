@@ -49,7 +49,7 @@ elseif nargin > 3
     Y = varargin{2};
 
     % Go through all other input arguments and assign parameters
-   jv = 3;
+    jv = 3;
     while jv <= length(varargin)-1
        switch varargin{jv}
            case 'fmm'
@@ -179,8 +179,7 @@ u2 = imag(u);
 u1_corrected = real(u_corrected);
 u2_corrected = imag(u_corrected);
 
-% comment out when running stresslet identity test
-if solution.problem.periodic
+if solution.problem.periodic && solution.trim
     % find points inside domain by applying stresslet identity
     if solution.problem.periodic
         [test1, test2] = StokesDLP_ewald_2p(xsrc, ysrc, X(:), Y(:), n1, n2,...

@@ -126,7 +126,7 @@ else % not periodic, only double-layer plus Stokeslets
     Pc = pdlp_corrected + pstokeslets;
 end
 
-if solution.problem.periodic
+if solution.problem.periodic && solution.trim
     % find points inside domain by applying stresslet identity
     if solution.problem.periodic
         [test1, test2] = StokesDLP_ewald_2p(xsrc, ysrc, X(:), Y(:), n1, n2,...

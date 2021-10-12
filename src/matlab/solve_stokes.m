@@ -61,6 +61,9 @@ solution.q = [X(1:nsrc), X(nsrc+1:2*nsrc)];
 if problem.periodic
     % extract average velocity
     solution.u_avg = [X(end-1);X(end)];
+    
+    % trim post-processed results by removing all values outside the domain
+    solution.trim = 1;
 else
    % extract net force and torques
    if problem.resistance

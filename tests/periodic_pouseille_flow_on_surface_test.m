@@ -7,6 +7,7 @@ input_params = default_input_params('pouseuille_demo', 1);
 
 % modify structure as needed
 input_params.box_size = [5,5];
+input_params.h = 0.5;
 input_params.panels = 40;
 input_params.eta = 1;
 input_params.plot_domain = 0;

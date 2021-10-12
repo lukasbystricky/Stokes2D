@@ -19,6 +19,7 @@ problem.pressure_gradient_y = 0;
 
 %% Double-layer velocity
 solution.problem = problem;
+solution.trim = 0;      % do not remove values outside the domain
 solution.problem.eta = 0;   % just DLP
 solution.q = [ones(size(problem.domain.z)), zeros(size(problem.domain.z))];
 solution.u_avg = [0; 0];

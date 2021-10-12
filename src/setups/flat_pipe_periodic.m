@@ -7,6 +7,7 @@ problem.Ly = input_params.box_size(2);
 
 problem.plot_domain = input_params.plot_domain;
 problem.periodic = 1;
+problem.h = input_params.h;
 problem.pressure_gradient_x = input_params.pressure_drop_x / problem.Lx;
 problem.pressure_gradient_y = input_params.pressure_drop_y / problem.Ly;
 problem.name = input_params.name;
@@ -16,11 +17,11 @@ problem.stresslet_id_test = input_params.stresslet_id_test;
 
 % discretize domain
 % top wall
-walls{1} = @(T) geometry_periodic_channel(@(t) 0.5*ones(size(t)), ...
+walls{1} = @(T) geometry_periodic_channel(@(t) problem.h*ones(size(t)), ...
             @(t) zeros(size(t)), @(t) zeros(size(t)),T, 1,problem.Lx);
      
 % bottom wall            
-walls{2} = @(T) geometry_periodic_channel(@(t) -0.5*ones(size(t)), ...
+walls{2} = @(T) geometry_periodic_channel(@(t) -problem.h*ones(size(t)), ...
             @(t) zeros(size(t)), @(t) zeros(size(t)),T, -1, problem.Lx);
 
 % periodic sine as wall

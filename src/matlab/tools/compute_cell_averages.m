@@ -23,7 +23,8 @@ for i = 1:length(x)
             bodies = [];
             wall_start = 1;
             n_bodies = size(domain.wall_indices,1);
-            for k = n_bodies
+            
+            for k = 1:n_bodies
                 indices_tmp = domain.wall_indices(k,1):domain.wall_indices(k,2);
                 if min(imag(z(indices_tmp))) > ymin && max(imag(z(indices_tmp))) < ymax && ...
                         min(real(z(indices_tmp))) > xmin && max(real(z(indices_tmp))) < xmax
