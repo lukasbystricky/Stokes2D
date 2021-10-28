@@ -43,6 +43,7 @@ Y = R.*sin(T);
 [Pc, P, ~, ~] = evaluate_pressure(solution, X, Y, 'fmm', 0, 'verbose', 1);
 [Uxc, Uyc, Vxc, Vyc, Ux, Uy, Vx, Vy] = evaluate_velocity_gradient(solution, X, Y);
 [Pxc, Pyc, Px, Py, ~, ~] = evaluate_pressure_gradient(solution, X, Y);
+[omegac, ~, X, Y] = evaluate_vorticity(solution, X, Y);
 
 % convert Cartesian velocity to radial and angular velocity, using 
 % relationships:
@@ -66,6 +67,7 @@ exact_solution_uy = @(x,y) B*(y.^2-x.^2)./(x.^2+y.^2).^2 - A;
 exact_solution_vx = @(x,y) B*(y.^2-x.^2)./(x.^2+y.^2).^2 + A;
 exact_solution_vy = @(x,y) -(2*B*x.*y)./(x.^2+y.^2).^2;
 exact_solution_avg_velocity = pi*(A*(ro^2-ri^2)+2*B*log(ro/ri));
+exact_solution_vorticity = @(x,y) 2*A*ones(length(x),length(y)-1);
 
 %%
 h = figure();
@@ -94,6 +96,15 @@ if test
     colorbar
     axis equal
     title('pressure');
+    
+    subplot(5,2,4);
+    plot_domain(problem, h);
+    hold on
+    contourf(X,Y,log10(abs(omegac - exact_solution_vorticity(X,Y))./...
+        max(max(abs(exact_solution_vorticity(X,Y)))) + eps));
+    colorbar
+    axis equal
+    title('vorticity: log_{10}(relative error)');
     
     subplot(5,2,5);
     plot_domain(problem, h);
@@ -146,20 +157,4 @@ if test
     colorbar
     axis equal
     title('dv/dy: log_{10}(relative error)');
-else
-    subplot(2,2,1);
-    plot_domain(problem, h);
-    hold on
-    contourf(X,Y,Ur);
-    colorbar
-    axis equal
-    title('radial velocity');
-    
-    subplot(1,2,2);
-    plot_domain(problem, h);
-    hold on
-    contourf(X,Y,Utheta);
-    colorbar
-    axis equal
-    title('angular velocity');
 end
