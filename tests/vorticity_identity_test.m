@@ -16,14 +16,14 @@ problem = starfish_periodic(input_params);
 problem.pressure_gradient_x = 0;
 problem.pressure_gradient_y = 0;
 problem.periodic = 0;
-solution.forces = 0;
+solution.forces = 0;    % just DLP
 
 % set target points
 x = linspace(-2.5, 2.5, 50);
 y = linspace(1, -1, 50);
 
 %% Double-layer vorticity
-problem.eta = 0; % just DLP
+problem.eta = 0;    % just DLP
 solution.problem = problem;
 q = 1i*problem.domain.z;
 solution.q = [real(q), imag(q)];

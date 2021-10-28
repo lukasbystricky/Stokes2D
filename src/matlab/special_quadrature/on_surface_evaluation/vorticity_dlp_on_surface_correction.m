@@ -16,7 +16,6 @@ domain = solution_local.problem.domain;
 
 zsrc = domain.z;
 zpsrc = domain.zp;
-nsrc = -1i*zpsrc./abs(zpsrc);
 wsrc = domain.quad_weights;
 
 qsrc = solution_local.q(:,1) + 1i*solution_local.q(:,2);

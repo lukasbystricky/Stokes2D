@@ -30,7 +30,6 @@ n2 = imag(-1i*solution.problem.domain.zp)./abs(solution.problem.domain.zp);
 wazp = solution.problem.domain.wazp;
 q = solution.q;
 
-
 if solution.problem.periodic
     
     % evaluate solution using Ewald, to account for periodic replicates
@@ -38,10 +37,10 @@ if solution.problem.periodic
         q(:,1).*wazp, q(:,2).*wazp, Lx, Ly,...
         'verbose', 1)';
 
-    pslp = pressure_slp_on_surface_correction(pslp, solution_local, type);
+    pslp_corrected = pressure_slp_on_surface_correction(pslp, solution_local, type);
 
     if isinf(solution.problem.eta)
-        P = pslp;
+        P = pslp_corrected;
     else
         
         pdlp = StokesDLP_pressure_ewald_2p(xsrc, ysrc, xtar(:), ytar(:), n1, n2,...
@@ -49,9 +48,9 @@ if solution.problem.periodic
             'verbose', 1)';
         
         % correct with special quadrature
-        pdlp = pressure_dlp_on_surface_correction(pdlp, solution_local, type);
+        pdlp_corrected = pressure_dlp_on_surface_correction(pdlp, solution_local, type);
     
-        P = pdlp + solution.problem.eta*pslp;
+        P = pdlp_corrected + solution.problem.eta*pslp_corrected;
     end
     
 else % not periodic, only double-layer plus Stokeslets

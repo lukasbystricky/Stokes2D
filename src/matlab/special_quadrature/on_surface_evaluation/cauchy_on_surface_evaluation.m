@@ -22,6 +22,16 @@ sq = special_quad(32);
 Nsrc = length(qsrc);
 npan = Nsrc/16;
 
+% check if boundary is a "closed curve". Used to handle periodicities.
+% Assumes that the panels are of equal length.
+panel_length = abs(panel_breaks_z(2)-panel_breaks_z(1));
+endpanel_length = abs(panel_breaks_z(end)-panel_breaks_z(1));
+if abs(panel_length-endpanel_length) > 1e-12
+    closed_curve = 0;
+else
+    closed_curve = 1;
+end
+
 Ic = zeros(Nsrc,1);
 
 for i = 1:Nsrc
@@ -49,7 +59,12 @@ for i = 1:Nsrc
         if local_panels(j) ~= npan
             zb = panel_breaks_z(local_panels(j)+1);
         else
-            zb = panel_breaks_z(local_panels(j)) + (panel_breaks_z(local_panels(j))-panel_breaks_z(local_panels(j)-1));
+            if closed_curve
+                zb = panel_breaks_z(1);
+            else
+                % add the difference between the current and previous panel
+                zb = panel_breaks_z(local_panels(j)) + panel_breaks_z(local_panels(j))-panel_breaks_z(local_panels(j)-1);
+            end
         end
         
         % scale points
