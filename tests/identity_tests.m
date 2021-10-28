@@ -4,7 +4,7 @@ clearvars
 clc
 
 % create input structure
-input_params = default_input_params('periodic_circles', 1);
+input_params = default_input_params('periodic_starfish', 1);
 
 % modify structure as needed
 input_params.box_size = [5,3];
@@ -12,8 +12,7 @@ input_params.panels = 40;
 input_params.centers = 0;
 input_params.radii = 1;
 
-problem =  starfish_periodic(input_params);
-%problem = circles_periodic(input_params);
+problem = starfish_periodic(input_params);
 problem.pressure_gradient_x = 0;
 problem.pressure_gradient_y = 0;
 
@@ -25,13 +24,14 @@ y = linspace(1, -1, 50);
 % Here we set the density function to be the normal vector
 problem.eta = inf; % just SLP 
 solution.problem = problem;
+solution.trim = 0;
 q = 1i*problem.domain.zp./abs(problem.domain.zp);
 solution.q = [real(q), imag(q)];
 Pslp = evaluate_pressure(solution, x, y, 'verbose', 0);
 
 % on-surface evalution
 solution.local_indices = 1:length(solution.q);
-Pslp_on = evaluate_pressure_on_surface(solution, solution, 'fluid');
+Pslp_on = evaluate_pressure_on_surface(solution, solution, 'surface');
 
 %% Double-layer pressure
 solution.problem.eta = 0; % just DLP
@@ -41,7 +41,7 @@ Pdlp = evaluate_pressure(solution, x, y, 'verbose', 0);
 
 % on-surface evaluation
 solution.local_indices = 1:length(solution.q);
-Pdlp_on = evaluate_pressure_on_surface(solution, solution, 'fluid');
+Pdlp_on = evaluate_pressure_on_surface(solution, solution, 'surface');
 
 %% Calculate error
 e_slp = zeros(size(Pslp));
@@ -70,7 +70,7 @@ figure;
 semilogy(solution.problem.domain.theta,abs(e_slp_on));
 xlabel('t');
 ylabel('surface limiting value single-layer pressure identity');
-set(gca,'xticklabel',{[]});
+xlim([0,2*pi]);
 
 % Double-layer pressure
 figure;
@@ -82,4 +82,4 @@ figure;
 semilogy(solution.problem.domain.theta,abs(e_dlp_on));
 xlabel('t');
 ylabel('surface limiting value double-layer pressure identity');
-set(gca,'xticklabel',{[]});
+xlim([0,2*pi]);

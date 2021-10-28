@@ -14,7 +14,7 @@ clc
 input_params = default_input_params('pouseuille_demo', 1);
 
 % modify structure as needed
-input_params.box_size = [5,5];
+input_params.box_size = [3,5];
 input_params.h = 0.5;    % pipe walls at +-0.5
 input_params.panels = 14;
 input_params.eta = 1;
@@ -115,3 +115,49 @@ colorbar
 %caxis([-16,-1]);
 axis equal
 title('nabla p: log_{10}(relative error)');
+
+%% individual figures
+set(groot,'defaultAxesTickLabelInterpreter','latex');
+
+figure;
+contourf(X,Y, log10(abs((Uc - exact_solution_u(X,Y))./...
+    max(max(abs(exact_solution_u(X,Y)))))+eps));
+colorbar
+caxis([-16,-10]);
+axis equal;
+xlabel({'$x$'},'interpreter','latex','fontsize',16);
+ylabel({'$y$'},'interpreter','latex','fontsize',16);
+title('Relative error $\mathbf{u}$ ($\log_{10}$)','interpreter','latex','fontsize',16);
+%saveas(gca,'/afs/kth.se/home/d/a/davkra/Documents/phd_project_presentation_2021/rel_err_u','epsc');
+
+figure;
+contourf(X,Y, log10(abs((Pc - exact_solution_p(X,Y))./...
+    max(max(abs(exact_solution_uy(X,Y)))))+eps));
+colorbar
+caxis([-16,-10]);
+axis equal;
+xlabel({'$x$'},'interpreter','latex','fontsize',16);
+ylabel({'$y$'},'interpreter','latex','fontsize',16);
+title('Relative error $p$ ($\log_{10}$)','interpreter','latex','fontsize',16);
+%saveas(gca,'/afs/kth.se/home/d/a/davkra/Documents/phd_project_presentation_2021/rel_err_p','epsc');
+
+figure;
+contourf(X,Y, log10(abs((Uyc - exact_solution_uy(X,Y))./...
+    max(max(abs(exact_solution_uy(X,Y)))))+eps));
+colorbar
+caxis([-16,-10]);
+axis equal;
+xlabel({'$x$'},'interpreter','latex','fontsize',16);
+ylabel({'$y$'},'interpreter','latex','fontsize',16);
+title('Relative error $\nabla\mathbf{u}$ ($\log_{10}$)','interpreter','latex','fontsize',16);
+%saveas(gca,'/afs/kth.se/home/d/a/davkra/Documents/phd_project_presentation_2021/rel_err_nabla_u','epsc');
+
+figure;
+contourf(X,Y,log10(abs(Px + 1i*Py  - exact_solution_dP(X,Y))+eps));
+colorbar
+caxis([-16,-10]);
+axis equal;
+xlabel({'$x$'},'interpreter','latex','fontsize',16);
+ylabel({'$y$'},'interpreter','latex','fontsize',16);
+title('Absolute error $\nabla p$ ($\log_{10}$)','interpreter','latex','fontsize',16);
+%saveas(gca,'/afs/kth.se/home/d/a/davkra/Documents/phd_project_presentation_2021/abs_err_nabla_p','epsc');
