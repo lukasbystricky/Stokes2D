@@ -55,11 +55,7 @@ if solution.problem.periodic
     end
     
 else % not periodic, only double-layer plus Stokeslets
-    
-    % note that the pressure is evaluated without an FMM, so it will be
-    % quite slow to evaluate if the number of target points is large
-    pdlp = evaluate_double_layer_pressure_direct(xtar(:), ytar(:), domain.z, domain.zp,...
-        solution.q(:,1)+1i*solution.q(:,2), domain.quad_weights);
+    % TODO
     
     % correct with special quadrature
     % TODO
