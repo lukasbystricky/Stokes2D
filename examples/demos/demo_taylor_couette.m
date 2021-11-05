@@ -44,6 +44,13 @@ Y = R.*sin(T);
 [Uxc, Uyc, Vxc, Vyc, Ux, Uy, Vx, Vy] = evaluate_velocity_gradient(solution, X, Y);
 [Pxc, Pyc, Px, Py, ~, ~] = evaluate_pressure_gradient(solution, X, Y);
 [omegac, ~, X, Y] = evaluate_vorticity(solution, X, Y);
+[sxxc, sxyc, syxc, syyc, sxx, sxy, syx, syy] = evaluate_stress(solution, X, Y);
+
+% Stresses from velocity gradient (correct)
+%velsxx = 2*Uxc;
+%velsxy = Vxc+Uyc;
+%velsyx = Uyc+Vxc;
+%velsyy = 2*Vyc;
 
 % convert Cartesian velocity to radial and angular velocity, using 
 % relationships:
@@ -68,10 +75,12 @@ exact_solution_vx = @(x,y) B*(y.^2-x.^2)./(x.^2+y.^2).^2 + A;
 exact_solution_vy = @(x,y) -(2*B*x.*y)./(x.^2+y.^2).^2;
 exact_solution_avg_velocity = pi*(A*(ro^2-ri^2)+2*B*log(ro/ri));
 exact_solution_vorticity = @(x,y) 2*A*ones(length(x),length(y)-1);
+sigma = exact_solution_sigma(X,Y,A,B);
 
 %%
-h = figure();
 if test
+    h = figure();
+    
     subplot(5,2,1);
     plot_domain(problem, h);
     hold on;
@@ -157,4 +166,62 @@ if test
     colorbar
     axis equal
     title('dv/dy: log_{10}(relative error)');
+    
+    h2 = figure();
+    subplot(2,2,1);
+    plot_domain(problem, h2);
+    hold on;
+    contourf(X,Y,log10(abs(sxxc - sigma(:,:,1))./...
+        max(max(abs(sigma(:,:,1)))) + eps));
+    colorbar;
+    axis equal;
+    title('sxx: log_{10} relative error');
+
+    subplot(2,2,2);
+    plot_domain(problem, h2);
+    hold on;
+    contourf(X,Y,log10(abs(sxyc - sigma(:,:,3))./...
+        max(max(abs(sigma(:,:,3)))) + eps));
+    colorbar;
+    axis equal;
+    title('sxy: log_{10} relative error');
+
+    subplot(2,2,3);
+    plot_domain(problem, h2);
+    hold on;
+    contourf(X,Y,log10(abs(syxc - sigma(:,:,2))./...
+        max(max(abs(sigma(:,:,2)))) + eps));
+    colorbar;
+    axis equal;
+    title('syx: log_{10} relative error');
+
+    subplot(2,2,4);
+    plot_domain(problem, h2);
+    hold on;
+    contourf(X,Y,log10(abs(syyc - sigma(:,:,4))./...
+        max(max(abs(sigma(:,:,4)))) + eps));
+    colorbar;
+    axis equal;
+    title('syy: log_{10} relative error');
+end
+
+function S = exact_solution_sigma(X,Y,A,B)
+[m,n] = size(X);
+S = zeros(m,n,4);
+for i = 1:m
+    for j = 1:n
+        x = X(i,j);
+        y = Y(i,j);
+
+        exact_solution_ux = (2*B*x.*y)./(x.^2+y.^2).^2;
+        exact_solution_uy = B*(y.^2-x.^2)./(x.^2+y.^2).^2 - A;
+        exact_solution_vx = B*(y.^2-x.^2)./(x.^2+y.^2).^2 + A;
+        exact_solution_vy = -(2*B*x.*y)./(x.^2+y.^2).^2;
+
+        U = [exact_solution_ux exact_solution_vx;
+             exact_solution_uy exact_solution_vy];
+        s = U + U';
+        S(i,j,:) = s(:);
+    end
+end
 end
