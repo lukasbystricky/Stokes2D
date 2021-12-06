@@ -175,7 +175,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                         if (!accurate) {
                             //No! First: attempt 32-point quadrature
                             Complex Ic16 = 0;
-                            Complex rc;
+                            Complex rho;
                             double sum16;
                             Complex Ic1 = 0;
                             Complex Ic2 = 0;
@@ -186,8 +186,8 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                             
                             for (int k = 0; k<16; k++) {
                                 // vorticity is real(int_C(q/(n*(z-tau))))/(2*pi)
-                                rc = tz[k] - z;
-                                Ic16 += tf[k]/(tn[k]*rc)*tW[k]*tzp[k];
+                                rho = z - tz[k];
+                                Ic16 += tf[k]/(tn[k]*rho)*tW[k]*tzp[k];
                             }
 
                             sum16 = real(Ic16)/(2*pi);
@@ -206,8 +206,8 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                 
                                 for (int k=0; k<32; k++) {
                                     // vorticity is real(int_C(q/(n*(z-tau))))/(2*pi)
-                                    rc = tz32[k] - z;
-                                    Ic32 += tf32[k]/(tn32[k]*rc)*tW32[k]*tzp32[k];
+                                    rho = z - tz[k];
+                                    Ic32 += tf32[k]/(tn32[k]*rho)*tW32[k]*tzp32[k];
                                 }
 
                                 sum32 = real(Ic32)/(2*pi);

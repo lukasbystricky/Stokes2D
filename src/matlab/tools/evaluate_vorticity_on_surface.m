@@ -24,7 +24,7 @@ xsrc = real(solution.problem.domain.z);
 ysrc = imag(solution.problem.domain.z);
 xtar = xsrc(local_indices);
 ytar = ysrc(local_indices);
-
+omega=0;
 % certain things are easier in complex notation
 zsrc = xsrc + 1i*ysrc;
 ztar = xtar + 1i*ytar;
