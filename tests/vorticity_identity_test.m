@@ -31,8 +31,8 @@ solution.q = [real(q), imag(q)];
 omegaslp = evaluate_vorticity(solution, x, y, 'verbose', 0);
 
 % on-surface evalution
-%solution.local_indices = 1:length(solution.q);
-%omegaslp_on = evaluate_vorticity_on_surface(solution, solution, 'surface');
+solution.local_indices = 1:length(solution.q);
+omegaslp_on = evaluate_vorticity_on_surface(solution, solution, 'surface');
 
 %% Double-layer vorticity
 problem.eta = 0;    % just DLP
@@ -43,9 +43,9 @@ solution.trim = 0;
 
 omegadlp = evaluate_vorticity(solution, x, y, 'verbose', 0);
 
-% % on-surface evalution
-% solution.local_indices = 1:length(solution.q);
-% omegadlp_on = evaluate_vorticity_on_surface(solution, solution, 'surface');
+% on-surface evalution
+solution.local_indices = 1:length(solution.q);
+omegadlp_on = evaluate_vorticity_on_surface(solution, solution, 'surface');
 
 %% Calculate error
 e_slp = zeros(size(omegaslp));
@@ -55,13 +55,13 @@ for i = 1:length(omegaslp)
     e_dlp(i) = min(abs(omegadlp(i)), abs(omegadlp(i) - 2));
 end
 
-% % on-surface
-% e_slp_on = zeros(size(omegaslp_on));
-% e_dlp_on = zeros(size(omegadlp_on));
-% for i = 1:length(omegaslp_on)
-%     e_slp_on(i) = min(abs(omegaslp_on(i)), abs(omegaslp_on(i) - 0.5));
-%     e_dlp_on(i) = min(abs(omegadlp_on(i)), abs(omegadlp_on(i) - 1));
-% end
+% on-surface
+e_slp_on = zeros(size(omegaslp_on));
+e_dlp_on = zeros(size(omegadlp_on));
+for i = 1:length(omegaslp_on)
+    e_slp_on(i) = min(abs(omegaslp_on(i)), abs(omegaslp_on(i) - 0.5));
+    e_dlp_on(i) = min(abs(omegadlp_on(i)), abs(omegadlp_on(i) - 1));
+end
 
 %% Plot
 % Single-layer vorticity
@@ -71,11 +71,11 @@ ylabel('error in single-layer vorticity identity');
 set(gca,'xticklabel',{[]});
 
 % on-surface
-% figure;
-% semilogy(solution.problem.domain.theta,abs(e_slp_on));
-% xlabel('t');
-% ylabel('surface limiting value single-layer vorticity identity');
-% xlim([0,2*pi]);
+figure;
+semilogy(solution.problem.domain.theta,abs(e_slp_on));
+xlabel('t');
+ylabel('error in surface limiting value single-layer vorticity identity');
+xlim([0,2*pi]);
 
 % Double-layer vorticity
 figure;
@@ -84,8 +84,8 @@ ylabel('error in double-layer vorticity identity');
 set(gca,'xticklabel',{[]});
 
 % on-surface
-% figure;
-% semilogy(solution.problem.domain.theta,abs(e_dlp_on));
-% xlabel('t');
-% ylabel('surface limiting value double-layer vorticity identity');
-% xlim([0,2*pi]);
+figure;
+semilogy(solution.problem.domain.theta,abs(e_dlp_on));
+xlabel('t');
+ylabel('error in surface limiting value double-layer vorticity identity');
+xlim([0,2*pi]);

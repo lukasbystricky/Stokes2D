@@ -24,15 +24,38 @@ xsrc = real(solution.problem.domain.z);
 ysrc = imag(solution.problem.domain.z);
 xtar = xsrc(local_indices);
 ytar = ysrc(local_indices);
-omega=0;
+
 % certain things are easier in complex notation
 zsrc = xsrc + 1i*ysrc;
 ztar = xtar + 1i*ytar;
+n1 = real(-1i*solution.problem.domain.zp)./abs(solution.problem.domain.zp);
+n2 = imag(-1i*solution.problem.domain.zp)./abs(solution.problem.domain.zp);
+wazp = solution.problem.domain.wazp;
 qc = solution.q(:,1)+1i*solution.q(:,2);
 N = length(ztar);
 
 if solution.problem.periodic
-    % TODO
+    % evaluate solution using Ewald, to account for periodic replicates
+    omega_slp = StokesSLP_vorticity_ewald_2p(xsrc, ysrc, xtar(:), ytar(:),...
+        solution.q(:,1).*wazp, solution.q(:,2).*wazp, Lx, Ly,...
+        'verbose', 1);
+    
+    % correct with special quadrature
+    omega_slp_corrected = vorticity_slp_on_surface_correction(omega_slp', solution_local, type);
+    
+    if isinf(solution.problem.eta)
+        omega = omega_slp_corrected;
+    else
+        % add on double-layer potential
+        omega_dlp = StokesDLP_vorticity_ewald_2p(xsrc, ysrc, xtar(:), ytar(:), n1, n2,...
+            solution.q(:,1).*wazp, solution.q(:,2).*wazp, Lx, Ly,...
+            'verbose', 1);
+        
+        % correct with special quadrature
+        omega_dlp_corrected = vorticity_dlp_on_surface_correction(omega_dlp', solution_local, type);
+        
+        omega = omega_dlp_corrected + solution.problem.eta*omega_slp_corrected;
+    end
 else
     omega_dlp = zeros(N,1);
     for k = 1:N
