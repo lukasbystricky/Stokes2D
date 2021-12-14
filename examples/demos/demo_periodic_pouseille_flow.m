@@ -16,7 +16,7 @@ input_params = default_input_params('pouseuille_demo', 1);
 % modify structure as needed
 input_params.box_size = [3,5];
 input_params.h = 0.5;    % pipe walls at +-0.5
-input_params.panels = 14;
+input_params.panels = 20;
 input_params.eta = 1;
 input_params.plot_domain = 0;
 
@@ -36,6 +36,7 @@ exact_solution_u = @(x,y) p/2*(y.^2-h^2);
 exact_solution_uy = @(x,y) p*y;
 exact_solution_p = @(x,y) p*x;
 exact_solution_dP = @(x,y) p;
+exact_solution_omega = @(x,y) -p*y;
 
 exact_solution_u_avg = (-2*h^3*Lx*p)/3/volume;
 exact_solution_u_grad_avg = [0 0; 0 0];
@@ -47,6 +48,7 @@ exact_solution_p_grad_avg = [(2*h*Lx*p)/volume; 0];
 [Pc, P, ~, ~] = evaluate_pressure(solution, X, Y, 'fmm', 0, 'verbose', 0);
 [Uxc, Uyc, Vxc, Vyc, Ux, Uy, Vx, Vy] = evaluate_velocity_gradient(solution, X, Y);
 [Px, Py] = evaluate_pressure_gradient(solution, X, Y);
+[omegac, omega] = evaluate_vorticity(solution, X, Y);
 
 %% compute averages
 solution.trim = 0;      % do not remove values outside the domain
@@ -61,13 +63,13 @@ p_grad_avg_err = abs(exact_solution_p_grad_avg-p_grad_avg)
 
 %% plot
 figure;
-subplot(4,2,1)
+subplot(5,2,1)
 contourf(X,Y,Uc);
 colorbar
 axis equal
 title('u');
 
-subplot(4,2,2)
+subplot(5,2,2)
 contourf(X,Y, log10(abs((Uc - exact_solution_u(X,Y))./...
     max(max(abs(exact_solution_u(X,Y)))))+eps));
 colorbar
@@ -75,13 +77,13 @@ colorbar
 axis equal
 title('u: log_{10}(relative error)');
 
-subplot(4,2,3)
+subplot(5,2,3)
 contourf(X,Y,Uyc);
 colorbar
 axis equal
 title('du/dy');
 
-subplot(4,2,4)
+subplot(5,2,4)
 contourf(X,Y, log10(abs((Uyc - exact_solution_uy(X,Y))./...
     max(max(abs(exact_solution_uy(X,Y)))))+eps));
 colorbar
@@ -89,13 +91,13 @@ colorbar
 axis equal
 title('dudy: log_{10}(relative error)');
 
-subplot(4,2,5)
+subplot(5,2,5)
 contourf(X,Y,Pc);
 colorbar
 axis equal
 title('P');
 
-subplot(4,2,6)
+subplot(5,2,6)
 contourf(X,Y, log10(abs((Pc - exact_solution_p(X,Y))./...
     max(max(abs(exact_solution_uy(X,Y)))))+eps));
 colorbar
@@ -103,18 +105,32 @@ colorbar
 axis equal
 title('P: log_{10}(relative error)');
 
-subplot(4,2,7)
+subplot(5,2,7)
 contourf(X,Y,abs(Px + 1i*Py));
 colorbar
 axis equal
 title('nabla p');
 
-subplot(4,2,8)
+subplot(5,2,8)
 contourf(X,Y,log10(abs(Px + 1i*Py  - exact_solution_dP(X,Y))+eps));
 colorbar
 %caxis([-16,-1]);
 axis equal
 title('nabla p: log_{10}(relative error)');
+
+subplot(5,2,9)
+contourf(X,Y,omegac);
+colorbar
+axis equal
+title('omega');
+
+subplot(5,2,10)
+contourf(X,Y, log10(abs((omegac - exact_solution_omega(X,Y))./...
+    max(max(abs(exact_solution_omega(X,Y)))))+eps));
+colorbar
+%caxis([-16,-1]);
+axis equal
+title('omega: log_{10}(relative error)');
 
 %% individual figures
 set(groot,'defaultAxesTickLabelInterpreter','latex');
