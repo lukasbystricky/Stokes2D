@@ -17,7 +17,7 @@ input_params = default_input_params('pouseuille_demo', 1);
 input_params.box_size = [3,5];
 input_params.h = 0.5;    % pipe walls at +-0.5
 input_params.panels = 10;
-input_params.eta = inf;
+input_params.eta = 1;
 input_params.plot_domain = 0;
 
 problem = flat_pipe_periodic(input_params);
@@ -49,16 +49,14 @@ exact_solution_p_grad_avg = [(2*h*Lx*p)/volume; 0];
 [Uxc, Uyc, Vxc, Vyc, Ux, Uy, Vx, Vy] = evaluate_velocity_gradient(solution, X, Y);
 [Px, Py] = evaluate_pressure_gradient(solution, X, Y);
 [omegac, omega] = evaluate_vorticity(solution, X, Y);
-
-%%
-[sxxc, sxyc, syxc, syyc, sxx, sxy, syx, syy, ~, ~] = evaluate_stress(solution, X, Y);
+[sxxc, sxyc, syxc, syyc, sxx, sxy, syx, syy, X, Y] = evaluate_stress(solution, X, Y);
 sigma = exact_solution_sigma(X,Y,p);
 
-%% Stresses from pressure and velocity gradient calculations (works)
-velsxxc = -Pc+2*Uxc;
-velsxyc = Vxc+Uyc;
-velsyxc = Uyc+Vxc;
-velsyyc = -Pc+2*Vyc;
+% Stresses from pressure and velocity gradient calculations (works)
+% velsxxc = -Pc+2*Uxc;
+% velsxyc = Vxc+Uyc;
+% velsyxc = Uyc+Vxc;
+% velsyyc = -Pc+2*Vyc;
 
 %% compute averages
 solution.trim = 0;      % do not remove values outside the domain
@@ -141,6 +139,7 @@ colorbar
 %caxis([-16,-1]);
 axis equal
 title('omega: log_{10}(relative error)');
+
 %%
 h2 = figure();
 subplot(2,2,1);
@@ -174,66 +173,7 @@ contourf(X,Y,log10(abs(syyc - sigma(:,:,4))./...
 colorbar;
 axis equal;
 title('syy: log_{10} relative error');
-%%
-h3 = figure();
-subplot(2,2,1);
-hold on;
-contourf(X,Y,sigma(:,:,1));
-colorbar;
-axis equal;
-title('sxx true');
 
-subplot(2,2,2);
-hold on;
-contourf(X,Y,sigma(:,:,2));
-colorbar;
-axis equal;
-title('sxy true');
-
-subplot(2,2,3);
-hold on;
-contourf(X,Y,sigma(:,:,3));
-colorbar;
-axis equal;
-title('syx true');
-
-subplot(2,2,4);
-hold on;
-contourf(X,Y,sigma(:,:,4));
-colorbar;
-axis equal;
-title('syy true');
-
-%%
-h4 = figure();
-subplot(2,2,1);
-hold on;
-contourf(X,Y,sxxc);
-colorbar;
-axis equal;
-title('sxx num');
-
-subplot(2,2,2);
-hold on;
-contourf(X,Y,sxyc);
-colorbar;
-axis equal;
-title('sxy num');
-
-subplot(2,2,3);
-hold on;
-contourf(X,Y,syxc);
-colorbar;
-axis equal;
-title('syx num');
-
-subplot(2,2,4);
-hold on;
-contourf(X,Y,syyc);
-colorbar;
-axis equal;
-title('syy num');
-    
 %% individual figures
 set(groot,'defaultAxesTickLabelInterpreter','latex');
 

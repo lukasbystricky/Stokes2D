@@ -258,11 +258,10 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                 Complex Ih_helsing = 0;
                                 Complex f;                                
                                 for (int k = 0; k<32; k++) {                                    
-                                    f = tf32[k];
-                                    Ih_helsing += q32[k]*f;
+                                    Ih_helsing += 2*q32[k]*tf32[k]/len;
                                 }
                                 
-                                double modif = imag(2*Ih_helsing/len)/(2*pi) - sum16;                                
+                                double modif = imag(Ih_helsing)/(2*pi) - sum16;                                
                             
                                 out_p[j] += modif;
                             }

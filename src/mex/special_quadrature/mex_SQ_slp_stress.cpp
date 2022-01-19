@@ -6,9 +6,9 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
     double *xsrc, *ysrc, *xpsrc, *ypsrc, *quad_weights, *wazp;
     double *bx, *by;
     double *xsrc32, *ysrc32, *xpsrc32, *ypsrc32, *quad_weights32, *wazp32;
-    double *panel_breaks_x, *panel_breaks_y, *q1, *q2, *u1tar, *u2tar, *meanlen;
+    double *panel_breaks_x, *panel_breaks_y, *q1, *q2, *sigma1tar, *sigma2tar, *meanlen;
     int Ntar, Nsrc;
-    double *out_u1, *out_u2, *nmodifs;
+    double *out_sigma1, *out_sigma2, *nmodifs;
     double *pan2bndry, *bnds;
     bool periodic;
     
@@ -37,8 +37,8 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
     q2 = mxGetPi(prhs[10]);
     bx = mxGetPr(prhs[11]);
     by = mxGetPi(prhs[11]);
-    u1tar = mxGetPr(prhs[12]);
-    u2tar = mxGetPi(prhs[12]);
+    sigma1tar = mxGetPr(prhs[12]);
+    sigma2tar = mxGetPi(prhs[12]);
     meanlen = mxGetPr(prhs[13]);
         
     if (ysrc == NULL) {
@@ -72,8 +72,8 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
     periodic = static_cast<int>(mxGetScalar(prhs[19]));
     
     plhs[0] = mxCreateDoubleMatrix(Ntar,1,mxCOMPLEX);
-    out_u1 = mxGetPr(plhs[0]);
-    out_u2 = mxGetPi(plhs[0]);
+    out_sigma1 = mxGetPr(plhs[0]);
+    out_sigma2 = mxGetPi(plhs[0]);
     plhs[1] = mxCreateDoubleMatrix(1,1,mxREAL);
     nmodifs = mxGetPr(plhs[1]);
     
@@ -81,8 +81,8 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
     //our way past this, and write directly to us_re and us_im, but since
     //this memcpy is completely negligible time-wise we might as well do
     //things properly.
-    memcpy(out_u1,u1tar,Ntar*sizeof(double));
-    memcpy(out_u2,u2tar,Ntar*sizeof(double));
+    memcpy(out_sigma1,sigma1tar,Ntar*sizeof(double));
+    memcpy(out_sigma2,sigma2tar,Ntar*sizeof(double));
     
     double xmin = bnds[0];
     double xmax = bnds[1];
@@ -93,10 +93,11 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
         return;
         
 //#pragma omp parallel for
-    for(int j = 0;j<Ntar;j++) {        
+    for(int j = 0;j<Ntar;j++) {
+        
         Complex nzpan[16], tz[16], tzp[16], tf[16], tn[16];
         Complex tz32[32], tzp32[32], tf32[32];
-        Complex nzpan32[32], p32[33], q32[33], s32[33], tn32[32];
+        Complex nzpan32[32], p32[33], q32[33], tn32[32];
         double twazp[16], twazp32[32];
         double tmpT[16], tmpb[16], tW32[32], tW[16];
         
@@ -105,7 +106,6 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
         
         if (periodic || in_box)
         {
-                        
             // The point in the loop
             Complex z = Complex(xtar[j],ytar[j]);
             Complex btar = Complex(bx[j], by[j]);
@@ -123,7 +123,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                 // Go through all panels in the vector stored at gridSolidmat
                 ind = solidind+npj;
                 pk = static_cast<int>(gridSolidmat[ind])-1; // -1 here since C++ zero-based
-                
+                                
                 if (pk > -1) 
                 { // Only panels not equal to -1 will be considered
                     int b1 = static_cast<int>(pan2bndry[pk]);
@@ -131,7 +131,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                             0.5*(panel_breaks_y[pk+b1+1]+panel_breaks_y[pk+b1]));
                     Complex len = Complex(panel_breaks_x[pk+b1+1]-panel_breaks_x[pk+b1],
                             panel_breaks_y[pk+b1+1]-panel_breaks_y[pk+b1]);
-                    
+                                        
                     z = Complex(xtar[j],ytar[j]);
                     bool check_sq = find_target_pt(z, mid, len, bnds);
                     
@@ -185,57 +185,58 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                             Complex Ic16 = 0;
                             Complex rc;
                             Complex sum16;
+                            Complex Ic1 = 0;
+                            Complex Ic2 = 0;
                             Complex Ih1 = 0;
                             Complex Ih2 = 0;
-                            Complex Is1 = 0;
-                            Complex Is2 = 0;
-                   
-                            for (int k = 0; k<16; k++) {                                
+                            
+                            for (int k = 0; k<16; k++) {
+                                // stress is ...
                                 rc = z - tz[k];
-
-                                Ih1 += tf[k]/(rc*rc)*tW[k]*tzp[k];
-                                Ih2 += real(tf[k]*conj(tn[k]))/(tn[k]*rc*rc)*tW[k]*tzp[k];
-                                Is1 += (conj(tz[k])*tf[k])/(-rc*rc*rc)*tW[k]*tzp[k];
-                                Is2 += tf[k]/(-rc*rc*rc)*tW[k]*tzp[k];
+                                
+                                Ic1 += (tf[k]/(-tn[k]*rc))*tW[k]*tzp[k];
+                                Ic2 += conj(tf[k])/(-tn[k]*rc)*tW[k]*tzp[k];
+                                Ih1 += (conj(tz[k]*tf[k])/(tn[k]*rc*rc))*tW[k]*tzp[k];
+                                Ih2 += (conj(tf[k])/(tn[k]*rc*rc))*tW[k]*tzp[k];
                             }
                             
-                            Ic16 = -(btar*imag(Ih1)/2 - _i*conj(btar*(Ih2+Is1-conj(z)*Is2)))/pi;
-                            sum16 = Ic16;
-                                 
+                            Ic16 = 2*btar*imag(Ic1) + _i*conj(btar*(Ic2+Ih1-conj(z)*Ih2));
+                            sum16 = Ic16/(4*pi);
+                            
                             // upsample density
                             IPmultR(tf,tf32);
-
+                            
                             accurate = sq_necessary(lg1-lg2, 32, pk, z, xsrc32,
                                     ysrc32, xpsrc32, ypsrc32, q1, q2,
                                     quad_weights32, wazp32, tz32, tzp32, tW32, tn32, tf);
                             
                             if (accurate) {
                                 // 32 quad suffices!
-                                //Complex Ic32 = 0;
                                 Complex Ic32 = 0;
                                 Complex sum32;
-                                Ih1 = 0;
-                                Ih2 = 0;
-                                Is1 = 0;
-                                Is2 = 0;
+                                Ic1 = 0.0;
+                                Ic2 = 0.0;
+                                Ih1 = 0.0;
+                                Ih2 = 0.0;
                                 
                                 for (int k=0; k<32; k++) {
+                                    // stress is ...
                                     rc = z - tz32[k];
-
-                                    Ih1 += tf32[k]/(rc*rc)*tW32[k]*tzp32[k];
-                                    Ih2 += real(tf32[k]*conj(tn32[k]))/(tn32[k]*rc*rc)*tW32[k]*tzp32[k];
-                                    Is1 += (conj(tz32[k])*tf32[k])/(-rc*rc*rc)*tW32[k]*tzp32[k];
-                                    Is2 += tf32[k]/(-rc*rc*rc)*tW32[k]*tzp32[k];
+                                    
+                                    Ic1 += (tf32[k]/(-tn32[k]*rc))*tW32[k]*tzp32[k];
+                                    Ic2 += conj(tf32[k])/(-tn32[k]*rc)*tW32[k]*tzp32[k];
+                                    Ih1 += (conj(tz32[k]*tf32[k])/(tn32[k]*rc*rc))*tW32[k]*tzp32[k];
+                                    Ih2 += (conj(tf32[k])/(tn32[k]*rc*rc))*tW32[k]*tzp32[k];
                                 }
                                 
-                                Ic32 = -(btar*imag(Ih1)/2 - _i*conj(btar*(Ih2+Is1-conj(z)*Is2)))/pi;
-                                sum32 = Ic32;
+                                Ic32 = 2*btar*imag(Ic1) + _i*conj(btar*(Ic2+Ih1-conj(z)*Ih2));
+                                sum32 = Ic32/(4*pi);
                                 
                                 // add 32 point quadrature, take off existing 16 point quadrature
                                 Complex modif = sum32 - sum16;
-                                
-                                out_u1[j] += real(modif);
-                                out_u2[j] += imag(modif);
+
+                                out_sigma1[j] += real(modif);
+                                out_sigma2[j] += imag(modif);
                                 
                             } else {
                                 // Need to use SQ
@@ -247,14 +248,10 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                 
                                 // p[k] is the expansion of t^(k-1)/(t - z)
                                 // q[k] is the expansion of t^(k-1)/(t - z)^2
-                                // s[k] is the expansion of t^(k-1)/(t - z)^3
                                 q32[0] = -1/(1+nz)-1/(1-nz);
-                                s32[0] = 1/(2*pow(1+nz,2)) - 1/(2*pow(1-nz,2));
-                                
                                 for (int k = 1; k<33; k++) {
                                     p32[k] = nz*p32[k-1] + (1.0-sign)/k;
                                     q32[k] = nz*q32[k-1] + p32[k-1];
-                                    s32[k] = k*q32[k-1]/2 + pow(-1,k)/(2*pow(1+nz,2)) - 1/(2*pow(1-nz,2));
                                     sign = -sign;
                                 }
                                 
@@ -262,26 +259,25 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                 //quadrature weights.
                                 vandernewton(nzpan32,p32,32);
                                 vandernewton(nzpan32,q32,32);
-                                vandernewton(nzpan32,s32,32);
                                 
+                                Ic1 = 0;
+                                Ic2 = 0;
                                 Ih1 = 0;
                                 Ih2 = 0;
-                                Is1 = 0;
-                                Is2 = 0;
                                 
                                 for (int k = 0; k<32; k++) {
-                                    Ih1 += 2*q32[k]*tf32[k]/len;
-                                    Ih2 += 2*q32[k]*real(tf32[k]*conj(tn32[k]))/tn32[k]/len;
-                                    Is1 += 4*s32[k]*(conj(tz32[k])*tf32[k])/len/len;
-                                    Is2 += 4*s32[k]*tf32[k]/len/len;
-                                }                                
-                   
-                                Complex sq_prod = -(btar*imag(Ih1)/2 - _i*conj(btar*(Ih2+Is1-conj(z)*Is2)))/pi;
+                                    Ic1 += p32[k]*tf32[k]/tn32[k];
+                                    Ic2 += p32[k]*conj(tf32[k])/tn32[k];
+                                    Ih1 += 2*q32[k]*conj(tz32[k]*tf32[k])/tn32[k]/len;
+                                    Ih2 += 2*q32[k]*conj(tf32[k])/tn32[k]/len;
+                                }
+
+                                Complex sq_prod = (2*btar*imag(Ic1) + _i*conj(btar*(Ic2+Ih1-conj(z)*Ih2)))/(4*pi);
                                 
                                 Complex modif = sq_prod - sum16;
-
-                                out_u1[j] += real(modif);
-                                out_u2[j] += imag(modif);
+                                
+                                out_sigma1[j] += real(modif);
+                                out_sigma2[j] += imag(modif);
                             }
 
                             nmodifs[0] += 1;

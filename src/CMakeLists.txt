@@ -11,12 +11,12 @@ if(CMAKE_VERSION VERSION_LESS "3.18")
 endif()
 
 if(APPLE)
-    set(CC "/usr/local/bin/gcc-9")
-    set(CXX "/usr/local/bin/g++-9")
+    set(CC "/usr/local/bin/gcc-8")
+    set(CXX "/usr/local/bin/g++-8")
 
     set(CMAKE_SHARED_LIBRARY_CREATE_C_FLAGS "${CMAKE_SHARED_LIBRARY_CREATE_C_FLAGS} -undefined dynamic_lookup")
 
-    set(Matlab_ROOT_DIR "/Applications/MATLAB_R2019a.app")
+    set(Matlab_ROOT_DIR "/Applications/MATLAB_R2021a.app")
     set(CMAKE_MACOSX_RPATH 1)
 
 endif(APPLE)
