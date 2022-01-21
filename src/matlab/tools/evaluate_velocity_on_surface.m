@@ -40,7 +40,7 @@ qwazp_local = qwazp(local_indices);
 
 % evaluate solution using Ewald, to account for periodic replicates
 [u_slp1, u_slp2] = StokesSLP_ewald_2p(xsrc, ysrc, xtar, ytar, real(qwazp), imag(qwazp),...
-    Lx, Ly);
+    Lx, Ly, 'verbose', 0);
 
 % correct with special quadrature
 G = u_slp1 + 1i*u_slp2;
@@ -74,7 +74,7 @@ u_slp = G + (q(local_indices) + zp./conj(zp).*conj(q(local_indices))).*wazp(loca
 if ~isinf(solution.problem.eta)
     % add on double-layer potential
     [u_dlp1, u_dlp2] = StokesDLP_ewald_2p(xsrc, ysrc, xtar, ytar, n1, n2, real(qwazp), imag(qwazp),...
-        Lx, Ly);
+        Lx, Ly, 'verbose', 0);
     
     T = u_dlp1 + 1i*u_dlp2;
     

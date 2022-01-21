@@ -39,10 +39,10 @@ b2 = 1i*ones(size(solution_local.problem.domain.z));
 if solution.problem.periodic
     % evaluate solution using Ewald, to account for periodic replicates
     [sigmaxx_slp, sigmayx_slp] = StokesSLP_stress_ewald_2p(xsrc, ysrc, xtar(:), ytar(:),...
-        q(:,1).*wazp, q(:,2).*wazp, real(b1), imag(b1), Lx, Ly, 'verbose', 1);
+        q(:,1).*wazp, q(:,2).*wazp, real(b1), imag(b1), Lx, Ly, 'verbose', 0);
 
     [sigmaxy_slp, sigmayy_slp] = StokesSLP_stress_ewald_2p(xsrc, ysrc, xtar(:), ytar(:),...
-        q(:,1).*wazp, q(:,2).*wazp, real(b2), imag(b2), Lx, Ly, 'verbose', 1);
+        q(:,1).*wazp, q(:,2).*wazp, real(b2), imag(b2), Lx, Ly, 'verbose', 0);
 
     sigma_slp1 = sigmaxx_slp + 1i*sigmayx_slp;
     sigma_slp2 = sigmaxy_slp + 1i*sigmayy_slp;
@@ -54,10 +54,10 @@ if solution.problem.periodic
     if ~isinf(solution.problem.eta)
         % add on double-layer potential
         [sigmaxx_dlp, sigmayx_dlp] = StokesDLP_stress_ewald_2p(xsrc, ysrc, xtar(:), ytar(:),...
-            n1, n2, q(:,1).*wazp, q(:,2).*wazp, real(b1), imag(b1), Lx, Ly, 'verbose', 1);
+            n1, n2, q(:,1).*wazp, q(:,2).*wazp, real(b1), imag(b1), Lx, Ly, 'verbose', 0);
 
         [sigmaxy_dlp, sigmayy_dlp] = StokesDLP_stress_ewald_2p(xsrc, ysrc, xtar(:), ytar(:),...
-            n1, n2, q(:,1).*wazp, q(:,2).*wazp, real(b2), imag(b2), Lx, Ly, 'verbose', 1);
+            n1, n2, q(:,1).*wazp, q(:,2).*wazp, real(b2), imag(b2), Lx, Ly, 'verbose', 0);
 
         sigma_dlp1 = sigmaxx_dlp + 1i*sigmayx_dlp;
         sigma_dlp2 = sigmaxy_dlp + 1i*sigmayy_dlp;
