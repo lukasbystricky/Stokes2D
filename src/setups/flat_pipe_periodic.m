@@ -14,6 +14,7 @@ problem.name = input_params.name;
 problem.gmres_tol = input_params.gmres_tol;
 problem.eta = input_params.eta;
 problem.stresslet_id_test = input_params.stresslet_id_test;
+problem.alpha = input_params.alpha;
 
 % discretize domain
 % top wall

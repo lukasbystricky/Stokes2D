@@ -28,10 +28,18 @@ rhs = [real(problem.boundary_conditions(z));...
         imag(problem.boundary_conditions(z))];
 
 if problem.periodic
+    %%%% old %%%%
     % add pressure constraint
-    rhs = [rhs; problem.pressure_gradient_x; problem.pressure_gradient_y];
+    %rhs = [rhs; problem.pressure_gradient_x; problem.pressure_gradient_y];
 
-    X = gmres(@(x) matvec_combined(x, problem.domain, problem.eta), rhs, [], ...
+    %X = gmres(@(x) matvec_combined(x, problem.domain, problem.eta), rhs, [], ...
+    %            problem.gmres_tol, min(length(rhs),500));
+    
+    %%%% new %%%%
+    % add pressure constraint
+    rhs = [zeros(2*nsrc,1); problem.pressure_gradient_x; problem.pressure_gradient_y];
+    
+    X = gmres(@(x) matvec_combined_robin(x, problem), rhs, [], ...
                 problem.gmres_tol, min(length(rhs),500));
 else
     % add rows for net force and torque on inner walls
