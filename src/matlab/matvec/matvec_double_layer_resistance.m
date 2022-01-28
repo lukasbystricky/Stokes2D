@@ -17,7 +17,8 @@ N = length(domain.z);
 q = X(1:2*N);
 
 % extract net forces and torques
-n_inner_walls = size(domain.wall_indices,1) - 1;
+n_inner_walls = domain.n_inner_walls;
+
 if n_inner_walls > 0
     start = 2*N + 1;
     F1 = X(start: start+n_inner_walls-1);
@@ -35,8 +36,9 @@ q2 = q(N+1:2*N);
 % certain things are easier to do in complex variables
 qc = q1 + 1i*q2;
 qwazp = qc.*domain.wazp;
-outer_wall_indices = domain.wall_indices(1,1):domain.wall_indices(1,2);
-inner_wall_indices = domain.wall_indices(2,1):domain.wall_indices(end,2);
+
+outer_wall_indices = domain.outer_wall_indices;
+inner_wall_indices = domain.inner_wall_indices;
 
 if fmm
     [u1, u2] = stokesDLPfmm(real(qwazp(:)),imag(qwazp(:)),x(:),y(:),n1(:),n2(:));
@@ -66,7 +68,6 @@ end
 u = -u1 + -1i*u2;
 
 %% diagonal elements of the double-layer
-
 % NB: Not 100% sure why we have to split into the two cases here and not in
 % periodic case
 quad_weights_in = domain.quad_weights(inner_wall_indices);
@@ -92,7 +93,8 @@ qw_outer1 = real(qwazp(outer_wall_indices));
 qw_outer2 = imag(qwazp(outer_wall_indices));
 N0 = (n_outer1 + 1i*n_outer2).*(n_outer1.*qw_outer1 + n_outer2.*qw_outer2);
 
-u(outer_wall_indices) = u(outer_wall_indices) + N0;
+% This seems to be incorrect, which is why it is commented out. DK
+%u(outer_wall_indices) = u(outer_wall_indices) + N0;
 
 %% add rotlet and Stokelet contribution and put everything back to real 
 % variables
@@ -105,7 +107,6 @@ else
 end
 
 m(1:2*N) = [-q1/2 + real(u + uS + uR); -q2/2 + imag(u + uS + uR)];
-
 
 %% add density constraints to close system
 for i = 1:n_inner_walls

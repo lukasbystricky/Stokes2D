@@ -179,7 +179,7 @@ u2 = imag(u);
 u1_corrected = real(u_corrected);
 u2_corrected = imag(u_corrected);
 
-if solution.problem.periodic && solution.trim
+if solution.trim
     % find points inside domain by applying stresslet identity
     if solution.problem.periodic
         [test1, test2] = StokesDLP_ewald_2p(xsrc, ysrc, X(:), Y(:), n1, n2,...
@@ -204,9 +204,8 @@ if solution.problem.periodic && solution.trim
         else
             test1 = zeros(numel(q1),1);
             test2 = zeros(numel(q1),1);
+            
             for k = 1:numel(q1)
-
-
                 rx = xsrc(k) - xsrc;
                 ry = ysrc(k) - ysrc;
                 rho4 = (rx.^2 + ry.^2).^2;
@@ -224,7 +223,7 @@ if solution.problem.periodic && solution.trim
     end
 
     %correct using special quadrature
-    [test,~] = mex_SQ_dlp(Xtar_sq(:)+1i*(Ytar_sq(:)+1e-60), Xsrc_sq+1i*(Ysrc_sq+1e-60),...
+    [test,~] = mex_SQ_dlp(X(:)+1i*(Y(:)+1e-60), real(domain.z)+1i*(imag(domain.z)+1e-60),...
                     domain.zp, domain.quad_weights, ...
                     domain.panel_breaks, domain.wazp, domain.z32, domain.zp32,...
                     domain.quad_weights32, domain.wazp32,ones(length(n1),1) + 1e-14*1i,...

@@ -34,11 +34,14 @@ end
 
 problem.domain = discretize_domain(walls, problem.panels, centers);
 
+% additional domain properties
+problem.domain.n_inner_walls = 1;
+problem.domain.inner_wall_indices = problem.domain.wall_indices(2,1):problem.domain.wall_indices(end,2);
+problem.domain.outer_wall_indices = problem.domain.wall_indices(1,1):problem.domain.wall_indices(1,2);
+
 % zero on all walls except the outer, which is given by omega*[-y, x]
 problem.boundary_conditions = ...
   @(z) omega*(abs(abs(z)-radii(2))<1e-12).*(-imag(z) + 1i*real(z));
-% problem.boundary_conditions = ...
-%   @(z) (-imag(z) + 1i*real(z))./(abs(z).^2);
 
 if problem.plot_domain
     plot_domain(problem);
@@ -46,5 +49,3 @@ if problem.plot_domain
     pause;
     disp('Continuing...');
 end
-
-

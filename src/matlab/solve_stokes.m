@@ -28,25 +28,18 @@ rhs = [real(problem.boundary_conditions(z));...
         imag(problem.boundary_conditions(z))];
 
 if problem.periodic
-    %%%% old %%%%
     % add pressure constraint
-    %rhs = [rhs; problem.pressure_gradient_x; problem.pressure_gradient_y];
+    rhs = [rhs; problem.pressure_gradient_x; problem.pressure_gradient_y];
 
-    %X = gmres(@(x) matvec_combined(x, problem.domain, problem.eta), rhs, [], ...
-    %            problem.gmres_tol, min(length(rhs),500));
-    
-    %%%% new %%%%
-    % add pressure constraint
-    rhs = [zeros(2*nsrc,1); problem.pressure_gradient_x; problem.pressure_gradient_y];
-    
-    X = gmres(@(x) matvec_combined_robin(x, problem), rhs, [], ...
+    X = gmres(@(x) matvec_combined(x, problem.domain, problem.eta), rhs, [], ...
                 problem.gmres_tol, min(length(rhs),500));
+
 else
     % add rows for net force and torque on inner walls
-    nwalls = size(problem.domain.wall_indices, 1);    
+    n_inner_walls = problem.domain.n_inner_walls;
     
     if problem.resistance
-        rhs = [rhs; zeros(3*(nwalls-1), 1)];
+        rhs = [rhs; zeros(3*n_inner_walls, 1)];
         
         X = gmres(@(x) matvec_double_layer_resistance(x, problem.domain, fmm), rhs, [], ...
                 problem.gmres_tol, length(rhs));
@@ -74,9 +67,7 @@ if problem.periodic
     solution.trim = 1;
 else
    % extract net force and torques
-   if problem.resistance
-       n_inner_walls = length(problem.domain.centers) - 1;
-       
+   if problem.resistance       
        solution.forces = X(2*nsrc+1:2*nsrc+n_inner_walls) + ...
                 1i*X(2*nsrc+n_inner_walls+1:2*nsrc+2*n_inner_walls);
        solution.torques = X(2*nsrc+2*n_inner_walls+1:end);   
@@ -90,6 +81,8 @@ else
        solution.forces = problem.forces;
        solution.torques = problem.torques;       
    end
+   
+   solution.trim = 0;
 end
     
 
