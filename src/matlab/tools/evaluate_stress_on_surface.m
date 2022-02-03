@@ -14,7 +14,7 @@ function [sxx, sxy, syx, syy] = evaluate_stress_on_surface(solution, solution_lo
 % -[sxx, sxy, syx, syy]: components of stress tensor, evaluated at the 
 %quadrature points on the surface
 
-disp('Evaluating stress...');
+%disp('Evaluating stress...');
 local_indices = solution_local.local_indices;
 
 domain = solution.problem.domain;
@@ -27,6 +27,8 @@ xsrc = real(solution.problem.domain.z);
 ysrc = imag(solution.problem.domain.z);
 xtar = xsrc(local_indices);
 ytar = ysrc(local_indices);
+
+ntar = length(xtar);
 
 n1 = real(-1i*solution.problem.domain.zp)./abs(solution.problem.domain.zp);
 n2 = imag(-1i*solution.problem.domain.zp)./abs(solution.problem.domain.zp);
@@ -44,13 +46,29 @@ if solution.problem.periodic
     [sigmaxy_slp, sigmayy_slp] = StokesSLP_stress_ewald_2p(xsrc, ysrc, xtar(:), ytar(:),...
         q(:,1).*wazp, q(:,2).*wazp, real(b2), imag(b2), Lx, Ly, 'verbose', 0);
 
-    sigma_slp1 = sigmaxx_slp + 1i*sigmayx_slp;
-    sigma_slp2 = sigmaxy_slp + 1i*sigmayy_slp;
+    sigma1_slp = sigmaxx_slp + 1i*sigmayx_slp;
+    sigma2_slp = sigmaxy_slp + 1i*sigmayy_slp;
     
     % correct with special quadrature
-    sigma_slp1 = stress_slp_on_surface_correction(sigma_slp1, b1, solution_local, type);
-    sigma_slp2 = stress_slp_on_surface_correction(sigma_slp2, b2, solution_local, type);
+%     sigma1_slp_corrected = stress_slp_on_surface_correction(sigma1_slp, b1, solution_local, type);
+%     sigma2_slp_corrected = stress_slp_on_surface_correction(sigma2_slp, b2, solution_local, type);
 
+    [sigma1_slp_corrected,~] = mex_SQ_slp_stress(xtar(:)+1i*(ytar(:)+1e-60),...
+        xsrc(:)+1i*(ysrc(:)+1e-60), domain.zp, domain.quad_weights, domain.panel_breaks,...
+        domain.wazp, domain.z32, domain.zp32, domain.quad_weights32, domain.wazp32, ...
+        solution.q(:,1)+1i*(solution.q(:,2)+1e-60),ones(ntar,1)+1e-60*1i*ones(ntar,1),...
+        sigma1_slp,domain.mean_panel_length,domain.extra.gridSolidmat, ...
+        domain.extra.Nrows,domain.extra.Ncols,domain.extra.panels2wall,...
+        domain.reference_cell,true);
+    
+    [sigma2_slp_corrected,~] = mex_SQ_slp_stress(xtar(:)+1i*(ytar(:)+1e-60),...
+        xsrc(:)+1i*(ysrc(:)+1e-60), domain.zp, domain.quad_weights, domain.panel_breaks,...
+        domain.wazp, domain.z32, domain.zp32, domain.quad_weights32, domain.wazp32, ...
+        solution.q(:,1)+1i*(solution.q(:,2)+1e-60),1e-60*ones(ntar,1)+1i*ones(ntar,1),...
+        sigma2_slp,domain.mean_panel_length,domain.extra.gridSolidmat, ...
+        domain.extra.Nrows,domain.extra.Ncols,domain.extra.panels2wall,...
+        domain.reference_cell,true);
+    
     if ~isinf(solution.problem.eta)
         % add on double-layer potential
         [sigmaxx_dlp, sigmayx_dlp] = StokesDLP_stress_ewald_2p(xsrc, ysrc, xtar(:), ytar(:),...
@@ -59,18 +77,36 @@ if solution.problem.periodic
         [sigmaxy_dlp, sigmayy_dlp] = StokesDLP_stress_ewald_2p(xsrc, ysrc, xtar(:), ytar(:),...
             n1, n2, q(:,1).*wazp, q(:,2).*wazp, real(b2), imag(b2), Lx, Ly, 'verbose', 0);
 
-        sigma_dlp1 = sigmaxx_dlp + 1i*sigmayx_dlp;
-        sigma_dlp2 = sigmaxy_dlp + 1i*sigmayy_dlp;
+        sigma1_dlp = sigmaxx_dlp + 1i*sigmayx_dlp;
+        sigma2_dlp = sigmaxy_dlp + 1i*sigmayy_dlp;
     
         % correct with special quadrature
-        sigma_dlp1 = stress_dlp_on_surface_correction(sigma_dlp1, b1, solution_local, type);
-        sigma_dlp2 = stress_dlp_on_surface_correction(sigma_dlp2, b2, solution_local, type);
+%         sigma1_dlp_corrected = stress_dlp_on_surface_correction(sigma1_dlp, b1, solution_local, type);
+%         sigma2_dlp_corrected = stress_dlp_on_surface_correction(sigma2_dlp, b2, solution_local, type);
+        
+        [sigma1_dlp_corrected,~] = mex_SQ_dlp_stress(xtar(:)+1i*(ytar(:)+1e-60),...
+            xsrc(:)+1i*(ysrc(:)+1e-60), domain.zp, domain.quad_weights, domain.panel_breaks,...
+            domain.wazp, domain.z32, domain.zp32, domain.quad_weights32, domain.wazp32, ...
+            solution.q(:,1)+1i*(solution.q(:,2)+1e-60),ones(ntar,1)+1e-60*1i*ones(ntar,1),...
+            sigma1_dlp,domain.mean_panel_length,domain.extra.gridSolidmat, ...
+            domain.extra.Nrows,domain.extra.Ncols,domain.extra.panels2wall,...
+            domain.reference_cell,true);
 
-        sigma1 = solution.problem.eta*sigma_slp1 + sigma_dlp1;
-        sigma2 = solution.problem.eta*sigma_slp2 + sigma_dlp2;
+        [sigma2_dlp_corrected,~] = mex_SQ_dlp_stress(xtar(:)+1i*(ytar(:)+1e-60),...
+            xsrc(:)+1i*(ysrc(:)+1e-60), domain.zp, domain.quad_weights, domain.panel_breaks,...
+            domain.wazp, domain.z32, domain.zp32, domain.quad_weights32, domain.wazp32, ...
+            solution.q(:,1)+1i*(solution.q(:,2)+1e-60),1e-60*ones(ntar,1)+1i*ones(ntar,1),...
+            sigma2_dlp,domain.mean_panel_length,domain.extra.gridSolidmat, ...
+            domain.extra.Nrows,domain.extra.Ncols,domain.extra.panels2wall,...
+            domain.reference_cell,true);
+        
+        sigma1 = solution.problem.eta*sigma1_slp_corrected + sigma1_dlp_corrected;
+        sigma2 = solution.problem.eta*sigma2_slp_corrected + sigma2_dlp_corrected;
     else
-        sigma1 = sigma_slp1;
-        sigma2 = sigma_slp2;
+        %sigma1 = sigma1_slp;
+        %sigma2 = sigma2_slp;
+        sigma1 = sigma1_slp_corrected;
+        sigma2 = sigma2_slp_corrected;
     end
 else
     % TODO

@@ -15,6 +15,7 @@ problem.gmres_tol = input_params.gmres_tol;
 problem.eta = input_params.eta;
 problem.stresslet_id_test = input_params.stresslet_id_test;
 problem.alpha = input_params.alpha;
+problem.slip = input_params.slip;
 
 % discretize domain
 % top wall
@@ -24,16 +25,6 @@ walls{1} = @(T) geometry_periodic_channel(@(t) problem.h*ones(size(t)), ...
 % bottom wall            
 walls{2} = @(T) geometry_periodic_channel(@(t) -problem.h*ones(size(t)), ...
             @(t) zeros(size(t)), @(t) zeros(size(t)),T, -1, problem.Lx);
-
-% periodic sine as wall
-% top wall
-% A = 5*1e-2;
-% walls{1} = @(T) geometry_periodic_channel(@(t) 0.5+A*sin(2*pi*t), ...
-%             @(t) 2*pi*A*cos(2*pi*t), @(t) -4*pi*pi*A*sin(2*pi*t),T, 1,problem.Lx);
-%      
-% % bottom wall            
-% walls{2} = @(T) geometry_periodic_channel(@(t) -0.5+A*sin(2*pi*t), ...
-%             @(t) 2*pi*A*cos(2*pi*t), @(t) -4*pi*pi*A*sin(2*pi*t),T, -1, problem.Lx);
         
 if length(input_params.panels) > 1
     problem.panels = input_params.panels;

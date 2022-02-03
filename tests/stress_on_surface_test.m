@@ -8,16 +8,20 @@ input_params = default_input_params('periodic_starfish', 1);
 
 % modify structure as needed
 input_params.box_size = [5,3];
-input_params.panels = 80;
+input_params.panels = 40;
 input_params.centers = 0;
 input_params.radii = 1;
 input_params.plot_domain = 0;
 
 problem = starfish_periodic(input_params);
 problem.eta = 1;
+problem.slip = 0;
 
 % create solution structure
-solution = solve_stokes(problem);
+z = problem.domain.z;
+rhs = [real(problem.boundary_conditions(z)); imag(problem.boundary_conditions(z));
+       problem.pressure_gradient_x; problem.pressure_gradient_y];
+solution = solve_stokes(problem,rhs);
 solution.local_indices = 1:length(solution.q);
 
 % target points
