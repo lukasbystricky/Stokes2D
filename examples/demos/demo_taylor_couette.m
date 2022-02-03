@@ -27,7 +27,10 @@ input_params.omega = 1; % angular velocity of outer wall
 problem = couette(input_params);
 
 % solve the problem
-solution = solve_stokes(problem,'fmm',0);
+z = problem.domain.z;
+rhs = [real(problem.boundary_conditions(z));... 
+       imag(problem.boundary_conditions(z))];
+solution = solve_stokes(problem,rhs,'fmm',0);
 
 % grid in polar coordinates with M number of radial and angular points
 M = 200;

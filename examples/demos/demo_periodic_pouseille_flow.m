@@ -20,20 +20,29 @@ input_params.panels = 10;
 input_params.eta = 1;
 input_params.plot_domain = 0;
 input_params.alpha = 0;
+input_params.alpha = 1e-5;
+input_params.A = 5*1e-2;
+input_params.slip = 1;
 
 problem = flat_pipe_periodic(input_params);
+%problem = sine_pipe_periodic(input_params);
 Lx = problem.Lx;
 Ly = problem.Ly;
 
 %% solve the problem
-solution = solve_stokes(problem,'fmm',0);
+N = length(problem.domain.z);
+rhs = [zeros(N/2,1); zeros(N/2,1); zeros(N/2,1); zeros(N/2,1); 
+       problem.pressure_gradient_x; problem.pressure_gradient_y];
+solution = solve_stokes(problem,rhs,'fmm',0);
 
 %% exact solution
 p = problem.pressure_gradient_x;
 h = problem.h;
+alpha = problem.alpha;
 volume = 2*Lx*h;
 
-exact_solution_u = @(x,y) p/2*(y.^2-h^2);
+exact_solution_u = @(x,y) p/2*(y.^2-h^2) + h*p*alpha;
+exact_solution_v = @(x,y) zeros(size(x));
 exact_solution_uy = @(x,y) p*y;
 exact_solution_p = @(x,y) p*x;
 exact_solution_dP = @(x,y) p;
@@ -53,11 +62,36 @@ exact_solution_p_grad_avg = [(2*h*Lx*p)/volume; 0];
 [sxxc, sxyc, syxc, syyc, sxx, sxy, syx, syy, X, Y] = evaluate_stress(solution, X, Y);
 sigma = exact_solution_sigma(X,Y,p);
 
+%%
+[Uc, Vc, X, Y, U, V] = evaluate_velocity(solution, 200, 'fmm', 0, 'verbose', 0);
+[sxxc, sxyc, syxc, syyc, sxx, sxy, syx, syy, X, Y] = evaluate_stress(solution, 200);
+sigma = exact_solution_sigma(X,Y,p);
+
 % Stresses from pressure and velocity gradient calculations (works)
 % velsxxc = -Pc+2*Uxc;
 % velsxyc = Vxc+Uyc;
 % velsyxc = Uyc+Vxc;
 % velsyyc = -Pc+2*Vyc;
+
+%%
+figure;
+mesh(X,Y,Uc,'facecolor','interp');
+view(2);
+colorbar;
+title('U');
+axis('equal');
+grid off;
+
+figure;
+mesh(X,Y,Vc,'facecolor','interp');
+view(2);
+colorbar;
+title('V');
+axis('equal');
+grid off;
+
+figure;
+quiver(X,Y,Uc,Vc,3);
 
 %% compute averages
 solution.trim = 0;      % do not remove values outside the domain
@@ -74,20 +108,47 @@ p_grad_avg_err = abs(exact_solution_p_grad_avg-p_grad_avg)
 
 %% plot
 figure;
-subplot(5,2,1)
-contourf(X,Y,Uc);
+subplot(3,2,1)
+contourf(X,Y,Uc,20);
 colorbar
 axis equal
 title('u');
 
-subplot(5,2,2)
+subplot(3,2,2)
 contourf(X,Y, log10(abs((Uc - exact_solution_u(X,Y))./...
-    max(max(abs(exact_solution_u(X,Y)))))+eps));
+    max(max(abs(exact_solution_u(X,Y)))))+eps),20);
 colorbar
 %caxis([-16,-1]);
 axis equal
 title('u: log_{10}(relative error)');
 
+% V
+subplot(3,2,3)
+contourf(X,Y,Vc,20);
+colorbar
+axis equal
+title('v');
+
+subplot(3,2,4)
+contourf(X,Y, log10(abs(Vc - exact_solution_v(X,Y))+eps),20);
+colorbar
+%caxis([-16,-1]);
+axis equal
+title('v: log_{10}(relative error)');
+
+subplot(3,2,5)
+contourf(X,Y,exact_solution_u(X,Y),20);
+colorbar
+axis equal
+title('exact u');
+
+subplot(3,2,6)
+contourf(X,Y,exact_solution_v(X,Y),20);
+colorbar
+axis equal
+title('exact v');
+
+%%
 subplot(5,2,3)
 contourf(X,Y,Uyc);
 colorbar
@@ -177,6 +238,36 @@ colorbar;
 axis equal;
 title('syy: log_{10} relative error');
 
+%%
+h2 = figure();
+subplot(2,2,1);
+hold on;
+contourf(X,Y,sxxc);
+colorbar;
+axis equal;
+title('sxx');
+
+subplot(2,2,2);
+hold on;
+contourf(X,Y,sxyc);
+colorbar;
+axis equal;
+title('sxy');
+
+subplot(2,2,3);
+hold on;
+contourf(X,Y,syxc);
+colorbar;
+axis equal;
+title('syx');
+
+subplot(2,2,4);
+hold on;
+contourf(X,Y,syyc);
+colorbar;
+axis equal;
+title('syy');
+
 %% individual figures
 set(groot,'defaultAxesTickLabelInterpreter','latex');
 
@@ -236,5 +327,22 @@ for i = 1:m
 
         S(i,j,:) = s(:);
     end
+end
+end
+
+function sigma_surf = exact_solution_sigma_surface(problem)
+p = problem.pressure_gradient_x;
+z = problem.domain.z;
+
+N = length(z);
+sigma_surf = zeros(N,4);
+for i = 1:N
+    x = real(z(i));
+    y = imag(z(i));
+    s = exact_solution_sigma(x,y,p);
+    sigma_surf(i,1) = s(1);
+    sigma_surf(i,2) = s(2);
+    sigma_surf(i,3) = s(3);
+    sigma_surf(i,4) = s(4);
 end
 end

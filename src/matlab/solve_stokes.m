@@ -1,10 +1,10 @@
-function solution = solve_stokes(problem, varargin)
+function solution = solve_stokes(problem, rhs, varargin)
 % default parameters
 fmm = 1;
 verbose = 0;
 
 % read in optional input parameters
-if nargin > 1
+if nargin > 2
     % Go through all other input arguments and assign parameters
     jv = 1;
     while jv <= length(varargin)-1
@@ -24,23 +24,20 @@ solution.problem = problem;
 z = problem.domain.z;
 nsrc = length(z);
 
-rhs = [real(problem.boundary_conditions(z));... 
-        imag(problem.boundary_conditions(z))];
+% rhs = [real(problem.boundary_conditions(z));... 
+%         imag(problem.boundary_conditions(z))];
 
 if problem.periodic
-    %%%% old %%%%
     % add pressure constraint
     %rhs = [rhs; problem.pressure_gradient_x; problem.pressure_gradient_y];
-
-    %X = gmres(@(x) matvec_combined(x, problem.domain, problem.eta), rhs, [], ...
-    %            problem.gmres_tol, min(length(rhs),500));
     
-    %%%% new %%%%
-    % add pressure constraint
-    rhs = [zeros(2*nsrc,1); problem.pressure_gradient_x; problem.pressure_gradient_y];
-    
-    X = gmres(@(x) matvec_combined_robin(x, problem), rhs, [], ...
-                problem.gmres_tol, min(length(rhs),500));
+    if problem.slip
+        X = gmres(@(x) matvec_combined_slip(x, problem), rhs, [], ...
+            problem.gmres_tol, min(length(rhs),1000));
+    else
+        X = gmres(@(x) matvec_combined(x, problem.domain, problem.eta), rhs, [], ...
+        problem.gmres_tol, min(length(rhs),500));
+    end
 else
     % add rows for net force and torque on inner walls
     nwalls = size(problem.domain.wall_indices, 1);    
@@ -63,7 +60,7 @@ else
                 problem.gmres_tol, length(rhs));
     end
 end
-                        
+
 solution.q = [X(1:nsrc), X(nsrc+1:2*nsrc)];
 
 if problem.periodic
