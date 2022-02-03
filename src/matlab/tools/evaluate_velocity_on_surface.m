@@ -12,7 +12,7 @@ function [U, V] = evaluate_velocity_on_surface(solution, solution_local)
 % -[U,V]: velocity components, evaluated at the quadrature points on the 
 %surface
 
-disp('Evaluating velocity...');
+%disp('Evaluating velocity...');
 
 domain = solution.problem.domain;
 domain_local = solution_local.problem.domain;
