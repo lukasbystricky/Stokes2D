@@ -92,7 +92,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
     if (Nsrc == 0) //if no solids, return early
         return;
         
-//#pragma omp parallel for
+#pragma omp parallel for
     for(int j = 0;j<Ntar;j++) {
         
         Complex nzpan[16], tz[16], tzp[16], tf[16], tn[16];
@@ -123,8 +123,9 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                 // Go through all panels in the vector stored at gridSolidmat
                 ind = solidind+npj;
                 pk = static_cast<int>(gridSolidmat[ind])-1; // -1 here since C++ zero-based
-                                
-                if (pk > -1) 
+                
+                if (true)
+                //if (pk > -1) 
                 { // Only panels not equal to -1 will be considered
                     int b1 = static_cast<int>(pan2bndry[pk]);
                     Complex mid = Complex(0.5*(panel_breaks_x[pk+b1+1]+panel_breaks_x[pk+b1]),
@@ -175,12 +176,22 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                         
                         p32[0] = lg1-lg2;
                         
+                        bool add_limit = false;
+                        for (int k = 0; k<16; k++) {
+                            if (real(tz[k]) == real(z) && imag(tz[k]) == imag(z)) {
+                                if (imag(nz) > 0) {
+                                    add_limit = true;
+                                    p32[0] = p32[0] - 2*_i*pi;
+                                }
+                            }
+                        }
+                        
                         bool accurate = sq_necessary(lg1-lg2, 16, pk, z, xsrc,
                                 ysrc, xpsrc, ypsrc, q1, q2, quad_weights, wazp, tz,
                                 tzp, tW, tn, tf);
                         
                         // Does standard Q suffice? In that case, don't do anything!
-                        if (!accurate) {
+                        if (add_limit || !accurate) {
                             //No! First: attempt 32-point quadrature
                             Complex Ic16 = 0;
                             Complex rc;
@@ -192,12 +203,16 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                             
                             for (int k = 0; k<16; k++) {
                                 // stress is ...
-                                rc = z - tz[k];
-                                
-                                Ic1 += (tf[k]/(-tn[k]*rc))*tW[k]*tzp[k];
-                                Ic2 += conj(tf[k])/(-tn[k]*rc)*tW[k]*tzp[k];
-                                Ih1 += (conj(tz[k]*tf[k])/(tn[k]*rc*rc))*tW[k]*tzp[k];
-                                Ih2 += (conj(tf[k])/(tn[k]*rc*rc))*tW[k]*tzp[k];
+                                if (real(tz[k]) == real(z) && imag(tz[k]) == imag(z)) {
+                                    //skip self-interaction
+                                } else {
+                                    rc = z - tz[k];
+
+                                    Ic1 += (tf[k]/(-tn[k]*rc))*tW[k]*tzp[k];
+                                    Ic2 += conj(tf[k])/(-tn[k]*rc)*tW[k]*tzp[k];
+                                    Ih1 += (conj(tz[k]*tf[k])/(tn[k]*rc*rc))*tW[k]*tzp[k];
+                                    Ih2 += (conj(tf[k])/(tn[k]*rc*rc))*tW[k]*tzp[k];
+                                }
                             }
                             
                             Ic16 = 2*btar*imag(Ic1) + _i*conj(btar*(Ic2+Ih1-conj(z)*Ih2));
@@ -210,7 +225,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                     ysrc32, xpsrc32, ypsrc32, q1, q2,
                                     quad_weights32, wazp32, tz32, tzp32, tW32, tn32, tf);
                             
-                            if (accurate) {
+                            if (!add_limit && accurate) {
                                 // 32 quad suffices!
                                 Complex Ic32 = 0;
                                 Complex sum32;
@@ -221,12 +236,16 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                 
                                 for (int k=0; k<32; k++) {
                                     // stress is ...
-                                    rc = z - tz32[k];
-                                    
-                                    Ic1 += (tf32[k]/(-tn32[k]*rc))*tW32[k]*tzp32[k];
-                                    Ic2 += conj(tf32[k])/(-tn32[k]*rc)*tW32[k]*tzp32[k];
-                                    Ih1 += (conj(tz32[k]*tf32[k])/(tn32[k]*rc*rc))*tW32[k]*tzp32[k];
-                                    Ih2 += (conj(tf32[k])/(tn32[k]*rc*rc))*tW32[k]*tzp32[k];
+                                    if (real(tz32[k]) == real(z) && imag(tz[k]) == imag(z)) {
+                                        //skip
+                                    } else {
+                                        rc = z - tz32[k];
+
+                                        Ic1 += (tf32[k]/(-tn32[k]*rc))*tW32[k]*tzp32[k];
+                                        Ic2 += conj(tf32[k])/(-tn32[k]*rc)*tW32[k]*tzp32[k];
+                                        Ih1 += (conj(tz32[k]*tf32[k])/(tn32[k]*rc*rc))*tW32[k]*tzp32[k];
+                                        Ih2 += (conj(tf32[k])/(tn32[k]*rc*rc))*tW32[k]*tzp32[k];
+                                    }
                                 }
                                 
                                 Ic32 = 2*btar*imag(Ic1) + _i*conj(btar*(Ic2+Ih1-conj(z)*Ih2));

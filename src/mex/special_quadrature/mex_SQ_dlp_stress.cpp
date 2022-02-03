@@ -92,7 +92,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
     if (Nsrc == 0) //if no solids, return early
         return;
         
-//#pragma omp parallel for
+#pragma omp parallel for
     for(int j = 0;j<Ntar;j++) {        
         Complex nzpan[16], tz[16], tzp[16], tf[16], tn[16];
         Complex tz32[32], tzp32[32], tf32[32];
@@ -175,12 +175,22 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                         
                         p32[0] = lg1-lg2;
                         
+                        bool add_limit = false;
+                        for (int k = 0; k<16; k++) {
+                            if (real(tz[k]) == real(z) && imag(tz[k]) == imag(z)) {
+                                if (imag(nz) > 0) {
+                                    add_limit = true;
+                                    p32[0] = p32[0] - 2*_i*pi;
+                                }
+                            }
+                        }
+                        
                         bool accurate = sq_necessary(lg1-lg2, 16, pk, z, xsrc,
                                 ysrc, xpsrc, ypsrc, q1, q2, quad_weights, wazp, tz,
                                 tzp, tW, tn, tf);
                         
                         // Does standard Q suffice? In that case, don't do anything!
-                        if (!accurate) {
+                        if (add_limit || !accurate) {
                             //No! First: attempt 32-point quadrature
                             Complex Ic16 = 0;
                             Complex rc;
@@ -190,13 +200,17 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                             Complex Is1 = 0;
                             Complex Is2 = 0;
                    
-                            for (int k = 0; k<16; k++) {                                
-                                rc = z - tz[k];
+                            for (int k = 0; k<16; k++) {
+                                if (real(tz[k]) == real(z) && imag(tz[k]) == imag(z)) {
+                                    //skip self-interaction
+                                } else {
+                                    rc = z - tz[k];
 
-                                Ih1 += tf[k]/(rc*rc)*tW[k]*tzp[k];
-                                Ih2 += real(tf[k]*conj(tn[k]))/(tn[k]*rc*rc)*tW[k]*tzp[k];
-                                Is1 += (conj(tz[k])*tf[k])/(-rc*rc*rc)*tW[k]*tzp[k];
-                                Is2 += tf[k]/(-rc*rc*rc)*tW[k]*tzp[k];
+                                    Ih1 += tf[k]/(rc*rc)*tW[k]*tzp[k];
+                                    Ih2 += real(tf[k]*conj(tn[k]))/(tn[k]*rc*rc)*tW[k]*tzp[k];
+                                    Is1 += (conj(tz[k])*tf[k])/(-rc*rc*rc)*tW[k]*tzp[k];
+                                    Is2 += tf[k]/(-rc*rc*rc)*tW[k]*tzp[k];
+                                }
                             }
                             
                             Ic16 = -(btar*imag(Ih1)/2 - _i*conj(btar*(Ih2+Is1-conj(z)*Is2)))/pi;
@@ -209,7 +223,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                     ysrc32, xpsrc32, ypsrc32, q1, q2,
                                     quad_weights32, wazp32, tz32, tzp32, tW32, tn32, tf);
                             
-                            if (accurate) {
+                            if (!add_limit && accurate) {
                                 // 32 quad suffices!
                                 //Complex Ic32 = 0;
                                 Complex Ic32 = 0;
@@ -220,12 +234,16 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                 Is2 = 0;
                                 
                                 for (int k=0; k<32; k++) {
-                                    rc = z - tz32[k];
+                                    if (real(tz32[k]) == real(z) && imag(tz32[k]) == imag(z)) {
+                                        //skip
+                                    } else {
+                                        rc = z - tz32[k];
 
-                                    Ih1 += tf32[k]/(rc*rc)*tW32[k]*tzp32[k];
-                                    Ih2 += real(tf32[k]*conj(tn32[k]))/(tn32[k]*rc*rc)*tW32[k]*tzp32[k];
-                                    Is1 += (conj(tz32[k])*tf32[k])/(-rc*rc*rc)*tW32[k]*tzp32[k];
-                                    Is2 += tf32[k]/(-rc*rc*rc)*tW32[k]*tzp32[k];
+                                        Ih1 += tf32[k]/(rc*rc)*tW32[k]*tzp32[k];
+                                        Ih2 += real(tf32[k]*conj(tn32[k]))/(tn32[k]*rc*rc)*tW32[k]*tzp32[k];
+                                        Is1 += (conj(tz32[k])*tf32[k])/(-rc*rc*rc)*tW32[k]*tzp32[k];
+                                        Is2 += tf32[k]/(-rc*rc*rc)*tW32[k]*tzp32[k];
+                                    }
                                 }
                                 
                                 Ic32 = -(btar*imag(Ih1)/2 - _i*conj(btar*(Ih2+Is1-conj(z)*Is2)))/pi;

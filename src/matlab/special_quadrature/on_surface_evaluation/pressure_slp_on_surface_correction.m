@@ -26,7 +26,6 @@ Pc = P;
 wall_start = 1;
 for i = 1:size(domain.wall_indices,1)
 
-    
     indices = domain.wall_indices(i,1):domain.wall_indices(i,2);
     npan = length(indices)/16;
 
@@ -43,8 +42,8 @@ for i = 1:size(domain.wall_indices,1)
     end    
     
     %add on special quadrature
-    Pc(indices) = Pc(indices) + imag(cauchy_on_surface_evaluation(qsrc(indices), ...
-                zsrc(indices), zpsrc(indices), wsrc(indices), panel_breaks_z, type))/(2*pi); 
+    Ic = cauchy_on_surface_evaluation(qsrc(indices), zsrc(indices), zpsrc(indices), wsrc(indices), panel_breaks_z, type);
+    Pc(indices) = Pc(indices) + imag(Ic)/(2*pi); 
             
     wall_start = wall_start + npan + 1;       
 end
