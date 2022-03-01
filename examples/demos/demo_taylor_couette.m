@@ -16,22 +16,26 @@ test = 1;
 input_params = default_input_params('couette', 0);
 
 % modify structure as needed, or add additional problem-dependent params
-input_params.panels = [20, 10];
+input_params.panels = [10, 10];
 input_params.plot_domain = 0;
 
 % set up radii and centers, centers given as complex numbers (x+iy)
 input_params.radii = [2, 0.5]; % the outer wall must be the first radii
 input_params.centers = [0, 0];
-input_params.omega = 1; % angular velocity of outer wall
+input_params.omega = 1; % angular velocity of inner cylinder
+input_params.slip = 0;
 
 problem = couette(input_params);
 
 % solve the problem
 z = problem.domain.z;
+
 rhs = [real(problem.boundary_conditions(z));... 
        imag(problem.boundary_conditions(z))];
 solution = solve_stokes(problem,rhs,'fmm',0);
+solution.local_indices = 1:length(solution.q);
 
+%% off-surface
 % grid in polar coordinates with M number of radial and angular points
 M = 200;
 r = linspace(input_params.radii(2)+1e-1, input_params.radii(1) - 1e-1, M);
@@ -79,6 +83,17 @@ exact_solution_vy = @(x,y) -(2*B*x.*y)./(x.^2+y.^2).^2;
 exact_solution_avg_velocity = pi*(A*(ro^2-ri^2)+2*B*log(ro/ri));
 exact_solution_vorticity = @(x,y) 2*A*ones(length(x),length(y)-1);
 sigma = exact_solution_sigma(X,Y,A,B);
+
+%% on-surface
+[usurf,vsurf] = evaluate_velocity_on_surface(solution,solution);
+x = real(problem.domain.z);
+y = imag(problem.domain.z);
+nu1 = real(problem.domain.zp)./abs(problem.domain.zp);
+nu2 = imag(problem.domain.zp)./abs(problem.domain.zp);
+n1 = real(-1i*problem.domain.zp)./abs(problem.domain.zp);
+n2 = imag(-1i*problem.domain.zp)./abs(problem.domain.zp);
+ursurf = usurf.*n1 + vsurf.*n2;
+uthetasurf = usurf.*nu1 + vsurf.*nu2;
 
 %%
 if test

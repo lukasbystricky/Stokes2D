@@ -105,7 +105,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
         
         if (periodic || in_box)
         {
-                        
+
             // The point in the loop
             Complex z = Complex(xtar[j],ytar[j]);
             Complex btar = Complex(bx[j], by[j]);
@@ -174,23 +174,13 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                         }
                         
                         p32[0] = lg1-lg2;
-                        
-                        bool add_limit = false;
-                        for (int k = 0; k<16; k++) {
-                            if (real(tz[k]) == real(z) && imag(tz[k]) == imag(z)) {
-                                if (imag(nz) > 0) {
-                                    add_limit = true;
-                                    p32[0] = p32[0] - 2*_i*pi;
-                                }
-                            }
-                        }
-                        
+
                         bool accurate = sq_necessary(lg1-lg2, 16, pk, z, xsrc,
                                 ysrc, xpsrc, ypsrc, q1, q2, quad_weights, wazp, tz,
                                 tzp, tW, tn, tf);
                         
                         // Does standard Q suffice? In that case, don't do anything!
-                        if (add_limit || !accurate) {
+                        if (!accurate) {
                             //No! First: attempt 32-point quadrature
                             Complex Ic16 = 0;
                             Complex rc;
@@ -223,7 +213,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                     ysrc32, xpsrc32, ypsrc32, q1, q2,
                                     quad_weights32, wazp32, tz32, tzp32, tW32, tn32, tf);
                             
-                            if (!add_limit && accurate) {
+                            if (accurate) {
                                 // 32 quad suffices!
                                 //Complex Ic32 = 0;
                                 Complex Ic32 = 0;

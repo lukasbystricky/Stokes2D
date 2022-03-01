@@ -13,7 +13,7 @@ function [Ux, Uy, Vx, Vy] = evaluate_velocity_gradient_on_surface(solution, solu
 % -[Ux, Uy, Vx, Vy]: components of the velocity gradient, evaluated at the 
 %quadrature points on the surface
 
-disp('Evaluating velocity gradient...');
+%disp('Evaluating velocity gradient...');
 local_indices = solution_local.local_indices;
 
 domain = solution.problem.domain;
@@ -38,11 +38,11 @@ b2 = 1i*ones(size(solution_local.problem.domain.z));
 
 [ux, vx] = StokesSLP_gradient_ewald_2p(xsrc, ysrc, xtar(:), ytar(:),...
    q(:,1).*wazp, q(:,2).*wazp, real(b1), imag(b1), ...
-    Lx, Ly,'verbose', 1);
+    Lx, Ly,'verbose', 0);
 
 [uy, vy] = StokesSLP_gradient_ewald_2p(xsrc, ysrc, xtar(:), ytar(:),...
     q(:,1).*wazp, q(:,2).*wazp, real(b2), imag(b2), ...
-    Lx, Ly,'verbose', 1);
+    Lx, Ly,'verbose', 0);
 
 % correct with special quadrature
 ugrad_slp1 = velocity_gradient_slp_on_surface_correction(ux +...
@@ -55,11 +55,11 @@ if ~isinf(solution.problem.eta)
     
     [ux, vx] = StokesDLP_gradient_ewald_2p(xsrc, ysrc, xtar(:), ytar(:),...
         n1, n2, q(:,1).*wazp, q(:,2).*wazp, real(b1), imag(b1), ...
-        Lx, Ly,'verbose', 1);
+        Lx, Ly,'verbose', 0);
     
     [uy, vy] = StokesDLP_gradient_ewald_2p(xsrc, ysrc, xtar(:), ytar(:),...
         n1, n2, q(:,1).*wazp, q(:,2).*wazp, real(b2), imag(b2), ...
-        Lx, Ly,'verbose', 1);
+        Lx, Ly,'verbose', 0);
     
     % correct with special quadrature
     ugrad_dlp1 = velocity_gradient_dlp_on_surface_correction(ux + 1i*vx, b1, solution_local, type);

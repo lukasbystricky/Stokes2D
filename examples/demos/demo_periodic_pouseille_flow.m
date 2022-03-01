@@ -9,20 +9,21 @@
 close all
 clearvars
 clc
+format long
 
 % create input structure
 input_params = default_input_params('pouseuille_demo', 1);
 
 % modify structure as needed
-input_params.box_size = [3,5];
+input_params.box_size = [2,5];
 input_params.h = 0.5;    % pipe walls at +-0.5
 input_params.panels = 10;
-input_params.eta = 1;
+input_params.eta = inf;
 input_params.plot_domain = 0;
 input_params.alpha = 0;
-input_params.alpha = 1e-5;
-input_params.A = 5*1e-2;
-input_params.slip = 1;
+input_params.A = 0; %5*1e-2;
+input_params.slip = 0;
+input_params.d = 0.5;
 
 problem = flat_pipe_periodic(input_params);
 %problem = sine_pipe_periodic(input_params);
@@ -34,6 +35,7 @@ N = length(problem.domain.z);
 rhs = [zeros(N/2,1); zeros(N/2,1); zeros(N/2,1); zeros(N/2,1); 
        problem.pressure_gradient_x; problem.pressure_gradient_y];
 solution = solve_stokes(problem,rhs,'fmm',0);
+solution.local_indices = 1:length(solution.q);
 
 %% exact solution
 p = problem.pressure_gradient_x;
@@ -64,8 +66,9 @@ sigma = exact_solution_sigma(X,Y,p);
 
 %%
 [Uc, Vc, X, Y, U, V] = evaluate_velocity(solution, 200, 'fmm', 0, 'verbose', 0);
-[sxxc, sxyc, syxc, syyc, sxx, sxy, syx, syy, X, Y] = evaluate_stress(solution, 200);
-sigma = exact_solution_sigma(X,Y,p);
+[usurf,vsurf] = evaluate_velocity_on_surface(solution,solution);
+%[sxxc, sxyc, syxc, syyc, sxx, sxy, syx, syy, X, Y] = evaluate_stress(solution, 200);
+%sigma = exact_solution_sigma(X,Y,p);
 
 % Stresses from pressure and velocity gradient calculations (works)
 % velsxxc = -Pc+2*Uxc;

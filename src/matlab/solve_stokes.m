@@ -45,8 +45,13 @@ else
     if problem.resistance
         rhs = [rhs; zeros(3*(nwalls-1), 1)];
         
-        X = gmres(@(x) matvec_double_layer_resistance(x, problem.domain, fmm), rhs, [], ...
+        if problem.slip
+            X = gmres(@(x) matvec_double_layer_resistance_slip(x, problem), rhs, [], ...
+                problem.gmres_tol, min(length(rhs),1000));
+        else
+            X = gmres(@(x) matvec_double_layer_resistance(x, problem.domain, fmm), rhs, [], ...
                 problem.gmres_tol, length(rhs));
+        end
     else
         rhs = [-rhs; real(problem.forces);imag(problem.forces);problem.torques];
         
@@ -70,23 +75,23 @@ if problem.periodic
     % trim post-processed results by removing all values outside the domain
     solution.trim = 1;
 else
-   % extract net force and torques
-   if problem.resistance
-       n_inner_walls = length(problem.domain.centers) - 1;
-       
-       solution.forces = X(2*nsrc+1:2*nsrc+n_inner_walls) + ...
+    % extract net force and torques
+    if problem.resistance
+        n_inner_walls = length(problem.domain.centers) - 1;
+
+        solution.forces = X(2*nsrc+1:2*nsrc+n_inner_walls) + ...
                 1i*X(2*nsrc+n_inner_walls+1:2*nsrc+2*n_inner_walls);
-       solution.torques = X(2*nsrc+2*n_inner_walls+1:end);   
-   else % extract translational and rotational velocities
-       n_particles = length(problem.domain.centers);
-       
-       solution.u_trans = X(2*nsrc+1:2*nsrc+n_particles) + ...
+        solution.torques = X(2*nsrc+2*n_inner_walls+1:end);   
+    else % extract translational and rotational velocities
+        n_particles = length(problem.domain.centers);
+
+        solution.u_trans = X(2*nsrc+1:2*nsrc+n_particles) + ...
                 1i*X(2*nsrc+n_particles+1:2*nsrc+2*n_particles);
-       solution.omega = X(2*nsrc+2*n_particles+1:end);   
-       
-       solution.forces = problem.forces;
-       solution.torques = problem.torques;       
-   end
+        solution.omega = X(2*nsrc+2*n_particles+1:end);   
+
+        solution.forces = problem.forces;
+        solution.torques = problem.torques;       
+    end
 end
     
 

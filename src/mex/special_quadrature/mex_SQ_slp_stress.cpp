@@ -92,7 +92,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
     if (Nsrc == 0) //if no solids, return early
         return;
         
-#pragma omp parallel for
+//#pragma omp parallel for
     for(int j = 0;j<Ntar;j++) {
         
         Complex nzpan[16], tz[16], tzp[16], tf[16], tn[16];
@@ -124,8 +124,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                 ind = solidind+npj;
                 pk = static_cast<int>(gridSolidmat[ind])-1; // -1 here since C++ zero-based
                 
-                if (true)
-                //if (pk > -1) 
+                if (pk > -1)
                 { // Only panels not equal to -1 will be considered
                     int b1 = static_cast<int>(pan2bndry[pk]);
                     Complex mid = Complex(0.5*(panel_breaks_x[pk+b1+1]+panel_breaks_x[pk+b1]),
@@ -137,6 +136,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                     bool check_sq = find_target_pt(z, mid, len, bnds);
                     
                     if (check_sq) {
+                    //if (true) {
                         Complex nz = 2*(z-mid)/len; // rescale z
                         
                         for (int k = 0; k<16; k++) {
@@ -176,15 +176,24 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                         
                         p32[0] = lg1-lg2;
                         
+
                         bool add_limit = false;
+                        /*
                         for (int k = 0; k<16; k++) {
                             if (real(tz[k]) == real(z) && imag(tz[k]) == imag(z)) {
                                 if (imag(nz) > 0) {
+                                //if (imag(p32[0]) > 0) {
                                     add_limit = true;
-                                    p32[0] = p32[0] - 2*_i*pi;
+                                    if (imag(p32[0]) > 0) {
+                                        p32[0] = Complex(real(p32[0]),-imag(p32[0]));
+                                    }
+                                    //p32[0] -= 2*_i*2*pi;
+                                    nmodifs[0] += 1;
+                                    //mexPrintf("p32=%.16f %.16f\n",real(p32[0]),imag(p32[0])); 
                                 }
                             }
                         }
+                         */
                         
                         bool accurate = sq_necessary(lg1-lg2, 16, pk, z, xsrc,
                                 ysrc, xpsrc, ypsrc, q1, q2, quad_weights, wazp, tz,
@@ -192,6 +201,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                         
                         // Does standard Q suffice? In that case, don't do anything!
                         if (add_limit || !accurate) {
+                        //if (true) {
                             //No! First: attempt 32-point quadrature
                             Complex Ic16 = 0;
                             Complex rc;
@@ -236,7 +246,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                 
                                 for (int k=0; k<32; k++) {
                                     // stress is ...
-                                    if (real(tz32[k]) == real(z) && imag(tz[k]) == imag(z)) {
+                                    if (real(tz32[k]) == real(z) && imag(tz32[k]) == imag(z)) {
                                         //skip
                                     } else {
                                         rc = z - tz32[k];
@@ -299,7 +309,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                 out_sigma2[j] += imag(modif);
                             }
 
-                            nmodifs[0] += 1;
+                            //nmodifs[0] += 1;
                         }
                     }
                 }

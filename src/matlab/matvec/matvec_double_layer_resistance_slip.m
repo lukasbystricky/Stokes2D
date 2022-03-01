@@ -1,26 +1,35 @@
-function m = matvec_combined_slip(X, problem)
-% MATVEC_COMBINED_SLIP: perform a matrix vector product for the slip
-% boundary condition for periodic and non-periodic problems. Uses the
-% combined layer formulation,i.e. u(x) = q/2 + eta*S[q](x) + D[q](x) + <u>,
-% where <u> is the average velocity over a reference cell, is with periodic
-% spectral Ewald to compute the product quickly.
+function m = matvec_double_layer_resistance_slip(X, problem)
+% MATVEC_DOUBLE_LAYER_RESISTANCE_SLIP: perform a matrix vector product for
+% the slip boundary condition  non-periodic problems. Uses the double-layer
+% formulation with Power-Miranda completion, i.e. u(x) = -q/2 + -D[q](x) + 
+% S[F](x) + R[T](x) where F is the net force on all inner walls, and T is 
+% the net torque on all innerwalls. Uses FMM to compute this product
+% quickly.
 %
 % inputs:
-% -X: vector containing [q1; q2; <u1>; <u2>], where <u1> and <u2> are the 
-%   average velocity in the x and y direction.
+% -X: vector containing [q1; q2; F; T].
 % -problem: problem structure.
 %
 % output:
-% -m: vector containing [b2; b1; dp1; dp2], where b1 is  (u \dot \nu) + 
-%   alpha*(\nu \dot (\sigma \dot n)) and b1 is (u \dot \nu), and dp1 and 
-%   dp2 are the average pressure gradients in the x and y direction.
+% -m: vector containing [b2; b1; integral of q; integral of q(x-c)^perp],
+%   where b1 is  (u \dot \nu) + alpha*(\nu \dot (\sigma \dot n)) and b1 is 
+%   (u \dot \nu).
 
 m = zeros(length(X),1);
 
 domain = problem.domain;
-eta = problem.eta;
+x = real(domain.z);
+y = imag(domain.z);
 N = length(domain.z);
-V = domain.Lx * domain.Ly;
+
+% extract net forces and torques
+n_inner_walls = size(domain.wall_indices,1) - 1;
+if n_inner_walls > 0
+    start = 2*N + 1;
+    F1 = X(start:start+n_inner_walls-1);
+    F2 = X(start+n_inner_walls:start+2*n_inner_walls-1);
+    T = X(start+2*n_inner_walls:end);
+end
 
 % density components
 q = X(1:2*N);
@@ -42,7 +51,8 @@ n2 = imag(-1i*domain.zp)./abs(domain.zp);
 % temporary solution structure
 solution.problem = problem;
 solution.q = [q1 q2];
-solution.u_avg = X(2*N+1:2*N+2);
+solution.forces = F1 + 1i*F2;
+solution.torques = T;
 solution.local_indices = 1:length(solution.q);
 solution.alpha = problem.alpha;
 
@@ -68,9 +78,6 @@ if nnz(problem.alpha) > 0
     % tangential component of traction (\nu \dot t)
     nudott = t1.*nu1 + t2.*nu2;
     
-%     [ux,uy,vx,vy] = evaluate_velocity_gradient_on_surface(solution, solution, 'fluid');
-%     nudott = nu1.*(n1*2.*ux+n2.*(vx+uy)) + nu2.*(n1.*(vx+uy)+n2*2.*vy);
-    
     % check alpha
     numalpha = -mean(real(udotnu))/mean(nudott);
 
@@ -87,14 +94,19 @@ else
 end
 
 % add Robin boundary condition
-%m(1:2*N) = [b1; b2];   % worse
-m(1:2*N) = [b2; b1];    % better
+m(1:2*N) = [b2; b1];
 
-% add pressure constraint
-if ~isinf(eta)
-    m(2*N+1) = eta*real(sum(qwazp)) / V;
-    m(2*N+2) = eta*imag(sum(qwazp)) / V;
-else
-    m(2*N+1) = real(sum(qwazp)) / V;
-    m(2*N+2) = imag(sum(qwazp)) / V;
+% add density constraints to close system
+for i = 1:n_inner_walls
+    qw_wall = qwazp(domain.wall_indices(i+1,1):domain.wall_indices(i+1,2));
+    x_wall = x(domain.wall_indices(i+1,1):domain.wall_indices(i+1,2));
+    y_wall = y(domain.wall_indices(i+1,1):domain.wall_indices(i+1,2));
+
+    c1 = real(domain.centers(i+1));
+    c2 = imag(domain.centers(i+1));
+
+    m(2*N+i) = sum(real(qw_wall)) - F1(i);
+    m(2*N+n_inner_walls+i) = sum(imag(qw_wall)) - F2(i);
+    m(2*N+2*n_inner_walls+i) = sum(-real(qw_wall).*(y_wall - c2) + ...
+        imag(qw_wall).*(x_wall - c1)) - T(i);
 end

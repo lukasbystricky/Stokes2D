@@ -26,7 +26,7 @@ n2 = imag(-1i*solution.problem.domain.zp)./abs(solution.problem.domain.zp);
 weights = solution.problem.domain.wazp;
 
 % default parameters
-fmm = 1;
+fmm = 0;
 verbose = 0;
 
 if nargin == 2 || (nargin > 2 && ischar(varargin{2})) % N specified, evaluate on regular grid
@@ -178,6 +178,7 @@ u1 = real(u);
 u2 = imag(u);
 u1_corrected = real(u_corrected);
 u2_corrected = imag(u_corrected);
+fmm = 0;
 
 if solution.problem.periodic && solution.trim
     % find points inside domain by applying stresslet identity
