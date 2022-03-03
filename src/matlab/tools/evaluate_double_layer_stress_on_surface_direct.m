@@ -1,4 +1,4 @@
-function sigma = evaluate_double_layer_stress_direct(xtar, ytar, z, btar, zp, q, w)
+function sigma = evaluate_double_layer_stress_on_surface_direct(xtar, ytar, z, btar, zp, q, w)
 ztar = xtar + 1i*ytar;
 n = -1i*zp./abs(zp);
 
@@ -13,16 +13,22 @@ end
 
 function  Ih = evaluate_hypersingular_integral(xtar, ytar, z, zp, q, w)
 Ih = zeros(size(xtar));
+indices = 1:length(xtar);
 for k = 1:length(xtar)
-    rho = (xtar(k) + 1i*ytar(k)) - z;
-    Ih(k) = sum(q.*zp.*w./rho.^2);
+    indices_tmp = indices;
+    indices_tmp(indices==k) = [];
+    rho = (xtar(k) + 1i*ytar(k)) - z(indices_tmp);
+    Ih(k) = sum(q(indices_tmp).*zp(indices_tmp).*w(indices_tmp)./rho.^2);
 end
 end
 
 function  Is = evaluate_supersingular_integral(xtar, ytar, z, zp, q, w)
 Is = zeros(size(xtar));
+indices = 1:length(xtar);
 for k = 1:length(xtar)
-    rho = (xtar(k) + 1i*ytar(k)) - z;
-    Is(k) = sum(q.*zp.*w./(-rho).^3);
+    indices_tmp = indices;
+    indices_tmp(indices==k) = [];
+    rho = (xtar(k) + 1i*ytar(k)) - z(indices_tmp);
+    Is(k) = sum(q(indices_tmp).*zp(indices_tmp).*w(indices_tmp)./(-rho).^3);
 end
 end

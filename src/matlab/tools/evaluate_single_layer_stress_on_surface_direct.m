@@ -1,4 +1,4 @@
-function sigma = evaluate_single_layer_stress_direct(xtar, ytar, z, btar, zp, q, w)
+function sigma = evaluate_single_layer_stress_on_surface_direct(xtar, ytar, z, btar, zp, q, w)
 ztar = xtar + 1i*ytar;
 n = -1i*zp./abs(zp);
 
@@ -13,16 +13,22 @@ end
 
 function  Ic = evaluate_cauchy_integral(xtar, ytar, z, zp, q, w)
 Ic = zeros(size(xtar));
+indices = 1:length(xtar);
 for k = 1:length(xtar)
-    rho = -((xtar(k) + 1i*ytar(k)) - z);
-    Ic(k) = sum(q.*zp.*w./rho);
+    indices_tmp = indices;
+    indices_tmp(indices==k) = [];
+    rho = (xtar(k) + 1i*ytar(k)) - z(indices_tmp);
+    Ic(k) = sum(q(indices_tmp).*zp(indices_tmp).*w(indices_tmp)./-rho);
 end
 end
 
 function  Ih = evaluate_hypersingular_integral(xtar, ytar, z, zp, q, w)
 Ih = zeros(size(xtar));
+indices = 1:length(xtar);
 for k = 1:length(xtar)
-    rho = (xtar(k) + 1i*ytar(k)) - z;
-    Ih(k) = sum(q.*zp.*w./rho.^2);
+    indices_tmp = indices;
+    indices_tmp(indices==k) = [];
+    rho = (xtar(k) + 1i*ytar(k)) - z(indices_tmp);
+    Ih(k) = sum(q(indices_tmp).*zp(indices_tmp).*w(indices_tmp)./rho.^2);
 end
 end

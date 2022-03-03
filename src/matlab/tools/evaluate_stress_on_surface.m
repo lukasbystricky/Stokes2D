@@ -121,8 +121,8 @@ else % completion formulation
     ztar = zsrc(local_indices);
     qc = solution.q(:,1)+1i*solution.q(:,2);
     
-    sigma1_dlp = evaluate_double_layer_stress_direct(xtar,ytar,zsrc,b1,domain.zp,qc,domain.quad_weights);
-    sigma2_dlp = evaluate_double_layer_stress_direct(xtar,ytar,zsrc,b2,domain.zp,qc,domain.quad_weights);
+    sigma1_dlp = evaluate_double_layer_stress_on_surface_direct(xtar,ytar,zsrc,b1,domain.zp,qc,domain.quad_weights);
+    sigma2_dlp = evaluate_double_layer_stress_on_surface_direct(xtar,ytar,zsrc,b2,domain.zp,qc,domain.quad_weights);
     
     % correct using special quadrature
     sigma1_dlp_corrected = stress_dlp_on_surface_correction(sigma1_dlp, b1, solution_local, type);
