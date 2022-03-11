@@ -11,22 +11,23 @@ clc;
 set(groot,'defaultAxesTickLabelInterpreter','latex');
 
 % parameters
-alpha = 0;
-amp = 1e-1;
-use_exact_bc = 0;
+alpha_flat = 1e-1;
+alpha_curve = 0;
+amp = 1e-5;
+use_exact_bc = 1;
 
 % create input structure
-input_params = default_input_params('curved_pipe_dirichlet_test', 1);
+input_params = default_input_params('curved_pipe_slip_noslip_test', 1);
 
 % modify structure as needed
-input_params.box_size = [2,5];
+input_params.box_size = [2,2];
 input_params.h = 0.5;
-input_params.panels = 20;
-input_params.eta = 1;
+input_params.panels = 10;
+input_params.eta = inf;
 input_params.plot_domain = 0;
 input_params.slip = 1;
 
-input_params.alpha = alpha;
+input_params.alpha = alpha_flat;
 input_params.A = amp;
 input_params.d = 0.3;
 
@@ -36,7 +37,7 @@ problem_curve = sine_pipe_periodic(input_params);
 % exact solutions
 p = problem_flat.pressure_gradient_x;
 h = problem_flat.h;
-exact_solution_u = @(x,y) p/2*(y.^2-h^2) + h*p*alpha;
+exact_solution_u = @(x,y) p/2*(y.^2-h^2) + h*p*alpha_flat;
 exact_solution_v = @(x,y) zeros(size(x));
 
 %% solve with flat walls
@@ -117,10 +118,11 @@ t2 = n1.*sxy + n2.*syy;
 nudott = t1.*nu1 + t2.*nu2;
 
 % final boundary condition
+problem_curve.alpha = [alpha_curve*ones(N/2,1); alpha_flat*ones(N/2,1)];
 g1 = udotn;
-g2 = udotnu + alpha*nudott;
-%g2 = zeros(N,1);
+g2 = udotnu + problem_curve.alpha.*nudott;
 %problem_curve.alpha = -udotnu./nudott;
+%g2 = udotnu + problem_curve.alpha.*nudott;
 
 rhs_curve = [g2; g1; problem_curve.pressure_gradient_x; problem_curve.pressure_gradient_y];
 

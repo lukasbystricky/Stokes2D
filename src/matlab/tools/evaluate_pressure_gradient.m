@@ -62,6 +62,7 @@ if solution.problem.periodic
     
     if isinf(solution.problem.eta)
         p = pslp;
+        p = p(1,:)'+1i*p(2,:)';
         p_corrected = pslp_corrected;
     else
         
