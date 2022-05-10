@@ -13,7 +13,7 @@ set(groot,'defaultAxesTickLabelInterpreter','latex');
 % parameters
 alpha_flat = 1e-1;
 alpha_curve = 0;
-amp = 1e-5;
+amp = 1e-1;
 use_exact_bc = 1;
 
 % create input structure
@@ -25,13 +25,20 @@ input_params.h = 0.5;
 input_params.panels = 10;
 input_params.eta = inf;
 input_params.plot_domain = 0;
-input_params.slip = 1;
+input_params.slip = 0;
 
 input_params.alpha = alpha_flat;
 input_params.A = amp;
 input_params.d = 0.3;
 
-problem_flat = flat_pipe_periodic(input_params);
+%problem_flat = flat_pipe_periodic(input_params);
+input_params.d = 0.5;
+input_params.A = 0;
+problem_flat = sine_pipe_periodic(input_params);
+input_params.A = amp;
+input_params.d = 0.3;
+input_params.slip = 1;
+input_params.pressure_drop_x = 1;
 problem_curve = sine_pipe_periodic(input_params);
 
 % exact solutions
@@ -108,29 +115,33 @@ sxy = [sxycurve; sxyflat(N/2+1:N)];
 syx = [syxcurve; syxflat(N/2+1:N)];
 syy = [syycurve; syyflat(N/2+1:N)];
 
-% boundary condition in normal direction
+% normal direction
 udotn = u1.*n1 + u2.*n2;
 
-% boundary condition in tangential direction
+% tangential direction
 udotnu = u1.*nu1 + u2.*nu2;
 t1 = n1.*sxx + n2.*syx;
 t2 = n1.*sxy + n2.*syy;
 nudott = t1.*nu1 + t2.*nu2;
 
-% final boundary condition
+% boundary condition
 problem_curve.alpha = [alpha_curve*ones(N/2,1); alpha_flat*ones(N/2,1)];
-g1 = udotn;
-g2 = udotnu + problem_curve.alpha.*nudott;
-%problem_curve.alpha = -udotnu./nudott;
-%g2 = udotnu + problem_curve.alpha.*nudott;
+g1_curve = udotn(1:N/2);
+g2_curve = udotnu(1:N/2) + problem_curve.alpha(1:N/2).*nudott(1:N/2);
+g1_flat = udotn(N/2+1:end);
+g2_flat = udotnu(N/2+1:end) + problem_curve.alpha(N/2+1:end).*nudott(N/2+1:end);
+g1 = [g1_curve; g1_flat];
+g2 = [g2_curve; g2_flat];
 
 rhs_curve = [g2; g1; problem_curve.pressure_gradient_x; problem_curve.pressure_gradient_y];
+%rhs_curve = [g2; g1; 0; 0];
 
 %% solve new problem with curved top wall
 solution_curve = solve_stokes(problem_curve,rhs_curve,'fmm',0);
+solution_curve.local_indices = 1:length(solution_curve.q);
 %[solution_curve,K] = solve_direct(problem_curve,rhs_curve);
 
-%% compute velocities
+%% compute velocities off-surface
 [Ucurve,Vcurve,Xcurve,Ycurve] = evaluate_velocity(solution_curve,200,'fmm',0,'verbose',0);
 [Uflat,Vflat,Xflat,Yflat] = evaluate_velocity(solution_flat,200,'fmm',0,'verbose',0);
 [Uflat_inside,Vflat_inside] = evaluate_velocity(solution_flat,Xcurve,Ycurve,'fmm',0,'verbose',0);
@@ -139,6 +150,19 @@ Vexact = exact_solution_v(Xcurve,Ycurve);
 
 ymin = min(Yflat(:));
 ymax = max(Yflat(:));
+
+%% compute velocities on-surface
+[usurf,vsurf] = evaluate_velocity_on_surface(solution_curve,solution_curve);
+[sxxsurf,sxysurf,syxsurf,syysurf] = evaluate_stress_on_surface(solution_curve,solution_curve,'fluid');
+
+udotnsurf = usurf.*n1 + vsurf.*n2;
+udotnusurf = usurf.*nu1 + vsurf.*nu2;
+t1surf = n1.*sxxsurf + n2.*syxsurf;
+t2surf = n1.*sxysurf + n2.*syysurf;
+nudottsurf = t1surf.*nu1 + t2surf.*nu2;
+
+g1surf = udotnsurf;
+g2surf = udotnusurf + problem_curve.alpha.*nudottsurf;
 
 %% plot solutions
 figure('DefaultAxesFontSize',16);

@@ -22,7 +22,7 @@ x = linspace(-2.5, 2.5, 50);
 y = linspace(1, -1, 50);
 
 %% Single-layer vorticity
-problem.eta = inf;  % just SLP 
+problem.eta = inf;  % just SLP
 solution.problem = problem;
 solution.trim = 0;
 n = -1i*problem.domain.zp./abs(problem.domain.zp);

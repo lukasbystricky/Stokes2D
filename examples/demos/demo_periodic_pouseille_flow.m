@@ -15,18 +15,15 @@ format long
 input_params = default_input_params('pouseuille_demo', 1);
 
 % modify structure as needed
-input_params.box_size = [2,5];
+input_params.box_size = [2,2];
 input_params.h = 0.5;    % pipe walls at +-0.5
 input_params.panels = 10;
 input_params.eta = inf;
 input_params.plot_domain = 0;
-input_params.alpha = 0;
-input_params.A = 0; %5*1e-2;
-input_params.slip = 0;
-input_params.d = 0.5;
+input_params.alpha = 1e-1;
+input_params.slip = 1;
 
 problem = flat_pipe_periodic(input_params);
-%problem = sine_pipe_periodic(input_params);
 Lx = problem.Lx;
 Ly = problem.Ly;
 
@@ -50,13 +47,13 @@ exact_solution_p = @(x,y) p*x;
 exact_solution_dP = @(x,y) p;
 exact_solution_omega = @(x,y) -p*y;
 
-exact_solution_u_avg = (-2*h^3*Lx*p)/3/volume;
+exact_solution_u_avg = 2*Lx*p*h^2*(alpha-h/3)/volume;
 exact_solution_u_grad_avg = [0 0; 0 0];
 exact_solution_p_avg = 0;
 exact_solution_p_grad_avg = [(2*h*Lx*p)/volume; 0];
 
 %% compute quantities
-[Uc, Vc, X, Y, U, V] = evaluate_velocity(solution, 100, 'fmm', 0, 'verbose', 0);
+[Uc, Vc, X, Y, U, V] = evaluate_velocity(solution, 200, 'fmm', 0, 'verbose', 0);
 [Pc, P, ~, ~] = evaluate_pressure(solution, X, Y, 'fmm', 0, 'verbose', 0);
 [Uxc, Uyc, Vxc, Vyc, Ux, Uy, Vx, Vy] = evaluate_velocity_gradient(solution, X, Y);
 [Px, Py] = evaluate_pressure_gradient(solution, X, Y);
@@ -64,37 +61,11 @@ exact_solution_p_grad_avg = [(2*h*Lx*p)/volume; 0];
 [sxxc, sxyc, syxc, syyc, sxx, sxy, syx, syy, X, Y] = evaluate_stress(solution, X, Y);
 sigma = exact_solution_sigma(X,Y,p);
 
-%%
-[Uc, Vc, X, Y, U, V] = evaluate_velocity(solution, 200, 'fmm', 0, 'verbose', 0);
-[usurf,vsurf] = evaluate_velocity_on_surface(solution,solution);
-%[sxxc, sxyc, syxc, syyc, sxx, sxy, syx, syy, X, Y] = evaluate_stress(solution, 200);
-%sigma = exact_solution_sigma(X,Y,p);
-
 % Stresses from pressure and velocity gradient calculations (works)
 % velsxxc = -Pc+2*Uxc;
 % velsxyc = Vxc+Uyc;
 % velsyxc = Uyc+Vxc;
 % velsyyc = -Pc+2*Vyc;
-
-%%
-figure;
-mesh(X,Y,Uc,'facecolor','interp');
-view(2);
-colorbar;
-title('U');
-axis('equal');
-grid off;
-
-figure;
-mesh(X,Y,Vc,'facecolor','interp');
-view(2);
-colorbar;
-title('V');
-axis('equal');
-grid off;
-
-figure;
-quiver(X,Y,Uc,Vc,3);
 
 %% compute averages
 solution.trim = 0;      % do not remove values outside the domain
@@ -109,15 +80,15 @@ u_grad_avg_err = abs(exact_solution_u_grad_avg-u_grad_avg)
 p_avg_err = abs(exact_solution_p_avg-p_avg)
 p_grad_avg_err = abs(exact_solution_p_grad_avg-p_grad_avg)
 
-%% plot
+%% plot velocities
 figure;
-subplot(3,2,1)
+subplot(2,2,1)
 contourf(X,Y,Uc,20);
 colorbar
 axis equal
 title('u');
 
-subplot(3,2,2)
+subplot(2,2,2)
 contourf(X,Y, log10(abs((Uc - exact_solution_u(X,Y))./...
     max(max(abs(exact_solution_u(X,Y)))))+eps),20);
 colorbar
@@ -125,40 +96,55 @@ colorbar
 axis equal
 title('u: log_{10}(relative error)');
 
-% V
-subplot(3,2,3)
+subplot(2,2,3)
 contourf(X,Y,Vc,20);
 colorbar
 axis equal
 title('v');
 
-subplot(3,2,4)
+subplot(2,2,4)
 contourf(X,Y, log10(abs(Vc - exact_solution_v(X,Y))+eps),20);
 colorbar
 %caxis([-16,-1]);
 axis equal
 title('v: log_{10}(relative error)');
 
-subplot(3,2,5)
-contourf(X,Y,exact_solution_u(X,Y),20);
+%% plot velocity gradients
+figure;
+subplot(2,2,1)
+contourf(X,Y,Uxc);
 colorbar
 axis equal
-title('exact u');
+title('du/dx');
 
-subplot(3,2,6)
-contourf(X,Y,exact_solution_v(X,Y),20);
-colorbar
-axis equal
-title('exact v');
-
-%%
-subplot(5,2,3)
+subplot(2,2,2)
 contourf(X,Y,Uyc);
 colorbar
 axis equal
 title('du/dy');
 
-subplot(5,2,4)
+subplot(2,2,3)
+contourf(X,Y,Vxc);
+colorbar
+axis equal
+title('dv/dx');
+
+subplot(2,2,4)
+contourf(X,Y,Vyc);
+colorbar
+axis equal
+title('dv/dy');
+
+% errors
+figure;
+subplot(2,2,1)
+contourf(X,Y, log10(abs(Uxc)+eps));
+colorbar
+%caxis([-16,-1]);
+axis equal
+title('dudx: log_{10}(absolute error)');
+
+subplot(2,2,2)
 contourf(X,Y, log10(abs((Uyc - exact_solution_uy(X,Y))./...
     max(max(abs(exact_solution_uy(X,Y)))))+eps));
 colorbar
@@ -166,13 +152,29 @@ colorbar
 axis equal
 title('dudy: log_{10}(relative error)');
 
-subplot(5,2,5)
+subplot(2,2,3)
+contourf(X,Y, log10(abs(Vxc)+eps));
+colorbar
+%caxis([-16,-1]);
+axis equal
+title('dvdx: log_{10}(absolute error)');
+
+subplot(2,2,4)
+contourf(X,Y, log10(abs(Vxc)+eps));
+colorbar
+%caxis([-16,-1]);
+axis equal
+title('dudy: log_{10}(absolute error)');
+
+%% plot pressure
+figure;
+subplot(1,2,1)
 contourf(X,Y,Pc);
 colorbar
 axis equal
 title('P');
 
-subplot(5,2,6)
+subplot(1,2,2)
 contourf(X,Y, log10(abs((Pc - exact_solution_p(X,Y))./...
     max(max(abs(exact_solution_uy(X,Y)))))+eps));
 colorbar
@@ -180,26 +182,29 @@ colorbar
 axis equal
 title('P: log_{10}(relative error)');
 
-subplot(5,2,7)
+%% plot pressure gradient
+figure;
+subplot(1,2,1)
 contourf(X,Y,abs(Px + 1i*Py));
 colorbar
 axis equal
 title('nabla p');
 
-subplot(5,2,8)
+subplot(1,2,2)
 contourf(X,Y,log10(abs(Px + 1i*Py  - exact_solution_dP(X,Y))+eps));
 colorbar
 %caxis([-16,-1]);
 axis equal
 title('nabla p: log_{10}(relative error)');
 
-subplot(5,2,9)
+%% plot vorticity
+subplot(1,2,1)
 contourf(X,Y,omegac);
 colorbar
 axis equal
 title('omega');
 
-subplot(5,2,10)
+subplot(1,2,2)
 contourf(X,Y, log10(abs((omegac - exact_solution_omega(X,Y))./...
     max(max(abs(exact_solution_omega(X,Y)))))+eps));
 colorbar
@@ -207,8 +212,38 @@ colorbar
 axis equal
 title('omega: log_{10}(relative error)');
 
-%%
-h2 = figure();
+%% plot stress
+figure;
+subplot(2,2,1);
+hold on;
+contourf(X,Y,sxxc);
+colorbar;
+axis equal;
+title('sxx');
+
+subplot(2,2,2);
+hold on;
+contourf(X,Y,sxyc);
+colorbar;
+axis equal;
+title('sxy');
+
+subplot(2,2,3);
+hold on;
+contourf(X,Y,syxc);
+colorbar;
+axis equal;
+title('syx');
+
+subplot(2,2,4);
+hold on;
+contourf(X,Y,syyc);
+colorbar;
+axis equal;
+title('syy');
+
+% errors
+figure;
 subplot(2,2,1);
 hold on;
 contourf(X,Y,log10(abs(sxxc - sigma(:,:,1))./...
@@ -240,82 +275,6 @@ contourf(X,Y,log10(abs(syyc - sigma(:,:,4))./...
 colorbar;
 axis equal;
 title('syy: log_{10} relative error');
-
-%%
-h2 = figure();
-subplot(2,2,1);
-hold on;
-contourf(X,Y,sxxc);
-colorbar;
-axis equal;
-title('sxx');
-
-subplot(2,2,2);
-hold on;
-contourf(X,Y,sxyc);
-colorbar;
-axis equal;
-title('sxy');
-
-subplot(2,2,3);
-hold on;
-contourf(X,Y,syxc);
-colorbar;
-axis equal;
-title('syx');
-
-subplot(2,2,4);
-hold on;
-contourf(X,Y,syyc);
-colorbar;
-axis equal;
-title('syy');
-
-%% individual figures
-set(groot,'defaultAxesTickLabelInterpreter','latex');
-
-figure;
-contourf(X,Y, log10(abs((Uc - exact_solution_u(X,Y))./...
-    max(max(abs(exact_solution_u(X,Y)))))+eps));
-colorbar
-caxis([-16,-10]);
-axis equal;
-xlabel({'$x$'},'interpreter','latex','fontsize',16);
-ylabel({'$y$'},'interpreter','latex','fontsize',16);
-title('Relative error $\mathbf{u}$ ($\log_{10}$)','interpreter','latex','fontsize',16);
-%saveas(gca,'/afs/kth.se/home/d/a/davkra/Documents/phd_project_presentation_2021/rel_err_u','epsc');
-
-figure;
-contourf(X,Y, log10(abs((Pc - exact_solution_p(X,Y))./...
-    max(max(abs(exact_solution_uy(X,Y)))))+eps));
-colorbar
-caxis([-16,-10]);
-axis equal;
-xlabel({'$x$'},'interpreter','latex','fontsize',16);
-ylabel({'$y$'},'interpreter','latex','fontsize',16);
-title('Relative error $p$ ($\log_{10}$)','interpreter','latex','fontsize',16);
-%saveas(gca,'/afs/kth.se/home/d/a/davkra/Documents/phd_project_presentation_2021/rel_err_p','epsc');
-
-figure;
-contourf(X,Y, log10(abs((Uyc - exact_solution_uy(X,Y))./...
-    max(max(abs(exact_solution_uy(X,Y)))))+eps));
-colorbar
-caxis([-16,-10]);
-axis equal;
-xlabel({'$x$'},'interpreter','latex','fontsize',16);
-ylabel({'$y$'},'interpreter','latex','fontsize',16);
-title('Relative error $\nabla\mathbf{u}$ ($\log_{10}$)','interpreter','latex','fontsize',16);
-%saveas(gca,'/afs/kth.se/home/d/a/davkra/Documents/phd_project_presentation_2021/rel_err_nabla_u','epsc');
-
-figure;
-contourf(X,Y,log10(abs(Px + 1i*Py  - exact_solution_dP(X,Y))+eps));
-colorbar
-caxis([-16,-10]);
-axis equal;
-xlabel({'$x$'},'interpreter','latex','fontsize',16);
-ylabel({'$y$'},'interpreter','latex','fontsize',16);
-title('Absolute error $\nabla p$ ($\log_{10}$)','interpreter','latex','fontsize',16);
-%saveas(gca,'/afs/kth.se/home/d/a/davkra/Documents/phd_project_presentation_2021/abs_err_nabla_p','epsc');
 
 function S = exact_solution_sigma(X,Y,p)
 [m,n] = size(X);

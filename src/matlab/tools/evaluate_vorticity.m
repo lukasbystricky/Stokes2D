@@ -64,7 +64,7 @@ if solution.problem.periodic
         omega_slp, domain.mean_panel_length, domain.extra.gridSolidmat, ...
         domain.extra.Nrows, domain.extra.Ncols, domain.extra.panels2wall,...
         domain.reference_cell,true);
-    
+
     if isinf(solution.problem.eta)
         omega = omega_slp;
         omega_corrected = omega_slp_corrected;
@@ -79,7 +79,7 @@ if solution.problem.periodic
             solution.q(:,1)+1i*solution.q(:,2),omega_dlp,domain.mean_panel_length,...
             domain.extra.gridSolidmat,domain.extra.Nrows,domain.extra.Ncols,...
             domain.extra.panels2wall,domain.reference_cell, true);
-        
+
         omega = omega_dlp + solution.problem.eta*omega_slp;
         omega_corrected = omega_dlp_corrected + solution.problem.eta*omega_slp_corrected;
     end

@@ -24,13 +24,7 @@ solution.problem = problem;
 z = problem.domain.z;
 nsrc = length(z);
 
-% rhs = [real(problem.boundary_conditions(z));... 
-%         imag(problem.boundary_conditions(z))];
-
 if problem.periodic
-    % add pressure constraint
-    %rhs = [rhs; problem.pressure_gradient_x; problem.pressure_gradient_y];
-    
     if problem.slip
         X = gmres(@(x) matvec_combined_slip(x, problem), rhs, [], ...
             problem.gmres_tol, min(length(rhs),1000));
