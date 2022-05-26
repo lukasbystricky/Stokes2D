@@ -20,7 +20,7 @@ input_params.h = 0.5;    % pipe walls at +-0.5
 input_params.panels = 10;
 input_params.eta = inf;
 input_params.plot_domain = 0;
-input_params.alpha = 1e-1;
+input_params.alpha = -1e-1;
 input_params.slip = 1;
 
 problem = flat_pipe_periodic(input_params);
@@ -51,6 +51,8 @@ exact_solution_u_avg = 2*Lx*p*h^2*(alpha-h/3)/volume;
 exact_solution_u_grad_avg = [0 0; 0 0];
 exact_solution_p_avg = 0;
 exact_solution_p_grad_avg = [(2*h*Lx*p)/volume; 0];
+exact_solution_omega_avg = 0;
+exact_solution_sigma_avg = [0; 0];
 
 %% compute quantities
 [Uc, Vc, X, Y, U, V] = evaluate_velocity(solution, 200, 'fmm', 0, 'verbose', 0);
@@ -69,16 +71,20 @@ sigma = exact_solution_sigma(X,Y,p);
 
 %% compute averages
 solution.trim = 0;      % do not remove values outside the domain
-[u_avg_alt1, u_avg_alt2, u_grad_avg, p_avg, p_grad_avg] = compute_pipe_averages(solution);
+[u_avg_alt1, u_avg_alt2, u_avg_alt3, u_grad_avg, p_avg, p_grad_avg, omega_avg, sigma_avg] = compute_pipe_averages(solution);
 u_avg_alt1 = u_avg_alt1(1) + 1i*u_avg_alt1(2);
 u_avg_alt2 = u_avg_alt2(1) + 1i*u_avg_alt2(2);
+u_avg_alt3 = u_avg_alt3(1) + 1i*u_avg_alt3(2);
 
 %% print averages errors
 u_avg_alt1_err = abs(exact_solution_u_avg-u_avg_alt1)
 u_avg_alt2_err = abs(exact_solution_u_avg-u_avg_alt2)
+u_avg_alt3_err = abs(exact_solution_u_avg-u_avg_alt3)
 u_grad_avg_err = abs(exact_solution_u_grad_avg-u_grad_avg)
 p_avg_err = abs(exact_solution_p_avg-p_avg)
 p_grad_avg_err = abs(exact_solution_p_grad_avg-p_grad_avg)
+omega_avg_err = abs(exact_solution_omega_avg-omega_avg)
+sigma_avg_err = abs(exact_solution_sigma_avg-sigma_avg)
 
 %% plot velocities
 figure;
