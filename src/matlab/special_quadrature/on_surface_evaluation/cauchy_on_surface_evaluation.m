@@ -53,6 +53,11 @@ for i = 1:Nsrc
     
     
     for j = 1:3
+        
+%         if (j == 1 && local_panels(j) == npan)
+%             continue;
+%         end
+        
         local_indices = 16*(local_panels(j)-1)+1: 16*local_panels(j);
         
         za = panel_breaks_z(local_panels(j));
@@ -70,8 +75,17 @@ for i = 1:Nsrc
         % scale points
         mid = (za + zb)/2;
         len = zb - za;
+        
         nzsrc = 2*(zsrc(local_indices) - mid)/len;
         
+        if (j == 1 && local_panels(j) == npan)
+            mid = panel_breaks_z(1) - (zb - mid);
+        end
+        
+        if (j == 3 && local_panels(j) == 1)
+            mid = panel_breaks_z(end) + len + mid - za; %% NOTE: this assumes equal panel length, which might be appropriate
+        end
+       
         nz = 2*(zsrc(i)-mid)/len;
         p0 = sq.compute_exact_log(nz, nzsrc);
 
@@ -101,9 +115,18 @@ for i = 1:Nsrc
             +(sq.cauchy_integral(qsrc(local_indices), nz, nzsrc, p0));
     end
     
+    % add on regular contribution from points not on adjacent panels
     indices = 1:Nsrc;
     local_indices = [];
     for j = 1:3
+        if (j == 1 && local_panels(j) == npan)
+            continue;
+        end
+        
+        if (j == 3 && local_panels(j) == 1)
+            continue;
+        end
+        
         local_indices = [local_indices, 16*(local_panels(j)-1)+1: 16*local_panels(j)];
     end
     
