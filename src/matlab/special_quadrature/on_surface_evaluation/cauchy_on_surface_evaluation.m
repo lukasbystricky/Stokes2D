@@ -54,10 +54,6 @@ for i = 1:Nsrc
     
     for j = 1:3
         
-%         if (j == 1 && local_panels(j) == npan)
-%             continue;
-%         end
-        
         local_indices = 16*(local_panels(j)-1)+1: 16*local_panels(j);
         
         za = panel_breaks_z(local_panels(j));
