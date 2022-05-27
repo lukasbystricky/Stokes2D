@@ -1,5 +1,5 @@
 function Ic = cauchy_on_surface_evaluation(qsrc, zsrc, zpsrc, wsrc, ...
-            panel_breaks_z, type)
+            panel_breaks_z, type, periodic_rep)
 %CAUCHY_ON_SURFACE_EVALUATION evaluates the principal value of the
 %integral q(tau)/(z_i - tau), where z_i coincides with the quadrature 
 %points on the boundary. Corrects the value using special quadrature for
@@ -13,24 +13,16 @@ function Ic = cauchy_on_surface_evaluation(qsrc, zsrc, zpsrc, wsrc, ...
 % -zpsrc: dz/dt at quadrature points
 % -wsrc: quadrature weights
 % -panel_breaks_z: panel endpoints in physical space
+% -periodic_rep: boolean indicating if periodic replicates should be 
+% compensated for
 %
 %outputs:
-% -Ih: the value of the principle value of the integral at the quadrature
+% -Ic: the value of the principle value of the integral at the quadrature
 % points
 
 sq = special_quad(32);
 Nsrc = length(qsrc);
 npan = Nsrc/16;
-
-% check if boundary is a "closed curve". Used to handle periodicities.
-% Assumes that the panels are of equal length.
-panel_length = abs(panel_breaks_z(2)-panel_breaks_z(1));
-endpanel_length = abs(panel_breaks_z(end)-panel_breaks_z(1));
-if abs(panel_length-endpanel_length) > 1e-12
-    closed_curve = 0;
-else
-    closed_curve = 1;
-end
 
 Ic = zeros(Nsrc,1);
 
@@ -56,32 +48,26 @@ for i = 1:Nsrc
         
         local_indices = 16*(local_panels(j)-1)+1: 16*local_panels(j);
         
+        % endpoints of panel
         za = panel_breaks_z(local_panels(j));
-        if local_panels(j) ~= npan
-            zb = panel_breaks_z(local_panels(j)+1);
-        else
-            if closed_curve
-                zb = panel_breaks_z(1);
-            else
-                % add the difference between the current and previous panel
-                zb = panel_breaks_z(local_panels(j)) + panel_breaks_z(local_panels(j))-panel_breaks_z(local_panels(j)-1);
-            end
-        end
-        
+        zb = panel_breaks_z(local_panels(j)+1);
+
         % scale points
         mid = (za + zb)/2;
         len = zb - za;
         
         nzsrc = 2*(zsrc(local_indices) - mid)/len;
         
-        if (j == 1 && local_panels(j) == npan)
-            mid = panel_breaks_z(1) - (zb - mid);
+        if periodic_rep
+            if (j == 1 && local_panels(j) == npan)
+                mid = panel_breaks_z(1) - (zb - mid);
+            end
+
+            if (j == 3 && local_panels(j) == 1)
+                mid = panel_breaks_z(end) + mid - za;
+            end
         end
         
-        if (j == 3 && local_panels(j) == 1)
-            mid = panel_breaks_z(end) + len + mid - za; %% NOTE: this assumes equal panel length, which might be appropriate
-        end
-       
         nz = 2*(zsrc(i)-mid)/len;
         p0 = sq.compute_exact_log(nz, nzsrc);
 
@@ -115,12 +101,14 @@ for i = 1:Nsrc
     indices = 1:Nsrc;
     local_indices = [];
     for j = 1:3
-        if (j == 1 && local_panels(j) == npan)
-            continue;
-        end
-        
-        if (j == 3 && local_panels(j) == 1)
-            continue;
+        if periodic_rep
+            if (j == 1 && local_panels(j) == npan)
+                continue;
+            end
+
+            if (j == 3 && local_panels(j) == 1)
+                continue;
+            end
         end
         
         local_indices = [local_indices, 16*(local_panels(j)-1)+1: 16*local_panels(j)];
