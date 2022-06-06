@@ -1,5 +1,5 @@
 function Ih = hypersingular_on_surface_evaluation(qsrc, zsrc, zpsrc, wsrc,...
-                                panel_breaks_z, type)
+                                panel_breaks_z, type, periodic_rep)
 %HYPERSINGULAR_ON_SURFACE_EVALUATION evaluates the finite part of the
 %integral q(tau)/(z_i - tau)^2, where z_i coincides with the quadrature 
 %points on the boundary. Corrects the value using special quadrature for
@@ -71,6 +71,16 @@ for i = 1:Nsrc
         len = zb - za;
         nzsrc = 2*(zsrc(local_indices) - mid)/len;
         
+        if periodic_rep
+            if (j == 1 && local_panels(j) == npan)
+                mid = panel_breaks_z(1) - (zb - mid);
+            end
+
+            if (j == 3 && local_panels(j) == 1)
+                mid = panel_breaks_z(end) + mid - za;
+            end
+        end
+        
         nz = 2*(zsrc(i)-mid)/len;
         
         p0 = sq.compute_exact_log(nz, nzsrc);
@@ -104,7 +114,18 @@ for i = 1:Nsrc
     
     indices = 1:Nsrc;
     local_indices = [];
+    
     for j = 1:3
+        if periodic_rep
+            if (j == 1 && local_panels(j) == npan)
+                continue;
+            end
+
+            if (j == 3 && local_panels(j) == 1)
+                continue;
+            end
+        end
+        
         local_indices = [local_indices, 16*(local_panels(j)-1)+1: 16*local_panels(j)];
     end
     
