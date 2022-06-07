@@ -37,7 +37,7 @@ for i = 1:size(domain.wall_indices,1)
     else
         closed_curve = 0;
     end
-    
+
     % if problem is periodic and the domain is not a closed curve, then we
     % need to handle periodic replicates in a specific way
     periodic_rep = periodic && ~closed_curve;

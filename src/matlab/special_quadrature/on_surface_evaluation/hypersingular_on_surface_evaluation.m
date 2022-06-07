@@ -98,6 +98,7 @@ for i = 1:Nsrc
     
     indices = 1:Nsrc;
     local_indices = [];
+    
     for j = 1:3
         if periodic_rep
             if (j == 1 && local_panels(j) == npan)
