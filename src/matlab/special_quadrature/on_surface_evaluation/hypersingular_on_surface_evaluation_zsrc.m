@@ -1,7 +1,7 @@
-function Ih = hypersingular_on_surface_evaluation(qsrc, zsrc, zpsrc, wsrc,...
+function Ih = hypersingular_on_surface_evaluation_zsrc(qsrc, zsrc, zpsrc, wsrc,...
                                 panel_breaks_z, type, periodic_rep)
-%HYPERSINGULAR_ON_SURFACE_EVALUATION evaluates the finite part of the
-%integral q(tau)/(z_i - tau)^2, where z_i coincides with the quadrature 
+%HYPERSINGULAR_ON_SURFACE_EVALUATION_ZSRC evaluates the finite part of the
+%integral (conj(tau)*q(tau))/(z_i - tau)^2, where z_i coincides with the quadrature 
 %points on the boundary. Corrects the value using special quadrature for
 %points on the same panel and adjacent panels as the target point. Includes
 %the limiting value as the target point approaches the boundary from the
@@ -63,6 +63,11 @@ for i = 1:Nsrc
             if (j == 3 && local_panels(j) == 1)
                 mid = panel_breaks_z(end) + mid - za;
             end
+            
+            % shift source panel (if needed) due to periodic replicates
+            ztmp = zsrc(local_indices) - mean(zsrc(local_indices)) + mid;
+        else
+            ztmp = zsrc(local_indices);
         end
         
         nz = 2*(zsrc(i)-mid)/len;
@@ -91,8 +96,10 @@ for i = 1:Nsrc
             end
         end
         
+        qtmp = conj(ztmp).*qsrc(local_indices);
+        
         Ih(i) = Ih(i) ...
-            + sq.hypersingular_integral(qsrc(local_indices), nz, nzsrc, ...
+            + sq.hypersingular_integral(qtmp, nz, nzsrc, ...
                 p0, zb, za);        
     end
     
@@ -116,6 +123,8 @@ for i = 1:Nsrc
         indices(indices == j) = [];
     end
     
+    qtmp = conj(zsrc(indices)).*qsrc(indices);
+    
     Ih(i) = Ih(i) ...
-        + sum(qsrc(indices)./(zsrc(indices) - zsrc(i)).^2.*zpsrc(indices).*wsrc(indices));
+        + sum(qtmp./(zsrc(indices) - zsrc(i)).^2.*zpsrc(indices).*wsrc(indices));
 end

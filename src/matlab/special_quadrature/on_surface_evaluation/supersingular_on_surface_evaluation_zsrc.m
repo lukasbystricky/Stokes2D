@@ -1,7 +1,7 @@
-function Ih = hypersingular_on_surface_evaluation(qsrc, zsrc, zpsrc, wsrc,...
-                                panel_breaks_z, type, periodic_rep)
-%HYPERSINGULAR_ON_SURFACE_EVALUATION evaluates the finite part of the
-%integral q(tau)/(z_i - tau)^2, where z_i coincides with the quadrature 
+function Is = supersingular_on_surface_evaluation_zsrc(qsrc, zsrc, zpsrc, wsrc,... 
+            panel_breaks_z, type, periodic_rep)
+%SUPERSINGULAR_ON_SURFACE_EVALUATION evaluates the principal value part of 
+%the integral (conj(tau)*q(tau))/(z_i - tau)^3, where z_i coincides with the quadrature 
 %points on the boundary. Corrects the value using special quadrature for
 %points on the same panel and adjacent panels as the target point. Includes
 %the limiting value as the target point approaches the boundary from the
@@ -17,13 +17,14 @@ function Ih = hypersingular_on_surface_evaluation(qsrc, zsrc, zpsrc, wsrc,...
 % compensated for
 %
 %outputs:
-% -Ih: the value of the finite part integral at the quadrature points
+% -Is: the value of the principal value of the integral at the quadrature
+% points
 
 sq = special_quad(32);
 Nsrc = length(qsrc);
 npan = Nsrc/16;
 
-Ih = zeros(Nsrc,1);
+Is = zeros(Nsrc,1);
 
 for i = 1:Nsrc
     panel_k = ceil(i/16);
@@ -63,6 +64,11 @@ for i = 1:Nsrc
             if (j == 3 && local_panels(j) == 1)
                 mid = panel_breaks_z(end) + mid - za;
             end
+
+            % shift source panel (if needed) due to periodic replicates
+            ztmp = zsrc(local_indices) - mean(zsrc(local_indices)) + mid;
+        else
+            ztmp = zsrc(local_indices);
         end
         
         nz = 2*(zsrc(i)-mid)/len;
@@ -91,9 +97,11 @@ for i = 1:Nsrc
             end
         end
         
-        Ih(i) = Ih(i) ...
-            + sq.hypersingular_integral(qsrc(local_indices), nz, nzsrc, ...
-                p0, zb, za);        
+        qtmp = conj(ztmp).*qsrc(local_indices);
+        
+        Is(i) = Is(i) ...
+            + sq.supersingular_integral(qtmp, nz, nzsrc, p0, zb, za);
+        
     end
     
     indices = 1:Nsrc;
@@ -116,6 +124,8 @@ for i = 1:Nsrc
         indices(indices == j) = [];
     end
     
-    Ih(i) = Ih(i) ...
-        + sum(qsrc(indices)./(zsrc(indices) - zsrc(i)).^2.*zpsrc(indices).*wsrc(indices));
+    qtmp = conj(zsrc(indices)).*qsrc(indices);
+    
+    Is(i) = Is(i) ...
+        + sum(qtmp./(zsrc(i) - zsrc(indices)).^3.*zpsrc(indices).*wsrc(indices));
 end

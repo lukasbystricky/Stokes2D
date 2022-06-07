@@ -21,10 +21,11 @@ input_params = default_input_params('pouseuille_demo', 1);
 input_params.box_size = [2,2];
 input_params.h = 0.5;    % pipe walls at +-0.5
 input_params.panels = 10;
-input_params.eta = inf;
+input_params.eta = 1;
 input_params.plot_domain = 0;
-input_params.alpha = 0.0;
+input_params.alpha = -1e-1;
 input_params.slip = 1;
+%input_params.gmres_tol = 1e-8;
 
 problem = flat_pipe_periodic(input_params);
 
@@ -134,7 +135,7 @@ Sxysurf_exact = Ssurf_exact(:,3);
 Syysurf_exact = Ssurf_exact(:,4);
 
 figure;
-semilogy(abs(Sxxsurf-Sxxsurf_exact)/max(abs(Sxxsurf_exact))+eps,'p-');
+semilogy(abs(Sxxsurf-Sxxsurf_exact)/max(abs(Sxxsurf_exact))+eps,'o-');
 hold on;
 semilogy(abs(Sxysurf-Sxysurf_exact)/max(abs(Sxysurf_exact))+eps,'x-');
 semilogy(abs(Syxsurf-Syxsurf_exact)/max(abs(Syxsurf_exact))+eps,'d-');

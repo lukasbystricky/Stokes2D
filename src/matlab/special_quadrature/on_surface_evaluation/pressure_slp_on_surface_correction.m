@@ -53,41 +53,49 @@ for i = 1:size(domain.wall_indices,1)
         
         Pc(j) = Pc(j) - imag(sum(qsrc(indices_tmp).*wsrc(indices_tmp).*...
                 zpsrc(indices_tmp)./(zsrc(j) - zsrc(indices_tmp))))/(2*pi);
-        
+
         if periodic_rep
-            % We will also correct for the adjacent panels that have been
+            % we also correct for the adjacent panels that have been
             % periodically replicated later, so these need to be removed too
+            indices_tmp = [];
 
-            if (j - (i-1)*16*npan <= 16)
-               indices_tmp = indices(end-15:end);
+            if (j - (i-1)*16*npan) <= 16
+                indices_tmp = indices(end-15:end);
 
-               if (real(zsrc(indices(2))) > real(zsrc(indices(1))))
-                   Pc(j) = Pc(j) - imag(sum(qsrc(indices_tmp).*wsrc(indices_tmp).*...
-                    zpsrc(indices_tmp)./(zsrc(j) - (zsrc(indices_tmp) - solution_local.problem.Lx))))/(2*pi); %% NOTE: this only works for walls that are periodic in the x-direction!
-               else
-                   Pc(j) = Pc(j) - imag(sum(qsrc(indices_tmp).*wsrc(indices_tmp).*...
-                    zpsrc(indices_tmp)./(zsrc(j) - (zsrc(indices_tmp) + solution_local.problem.Lx))))/(2*pi);
+                if real(zsrc(indices(2))) > real(zsrc(indices(1)))
+                    ztmp = zsrc(indices_tmp) - solution_local.problem.Lx;
+                else
+                    ztmp = zsrc(indices_tmp) + solution_local.problem.Lx;
+                end
+
+            elseif (j - (i-1)*16*npan) >= (length(indices) - 15)
+                indices_tmp = indices(1:16);
+
+                if real(zsrc(indices(2))) > real(zsrc(indices(1)))
+                    ztmp = zsrc(indices_tmp) + solution_local.problem.Lx;
+                else
+                    ztmp = zsrc(indices_tmp) - solution_local.problem.Lx;
                end
             end
+            
+            if ~isempty(indices_tmp)
+                r = zsrc(j) - ztmp;
+                qtmp = qsrc(indices_tmp);
+                wtmp = wsrc(indices_tmp);
+                zptmp = zpsrc(indices_tmp);
 
-            if (j - (i-1)*16*npan >= length(indices) - 15)
-               indices_tmp = indices(1:16);
+                Ic = -sum((qtmp./r).*wtmp.*zptmp);
+                
+                Pc(j) = Pc(j) - -imag(Ic)/(2*pi);
 
-               if (real(zsrc(indices(2))) > real(zsrc(indices(1))))
-                  Pc(j) = Pc(j) - imag(sum(qsrc(indices_tmp).*wsrc(indices_tmp).*...
-                    zpsrc(indices_tmp)./(zsrc(j) - (zsrc(indices_tmp) + solution_local.problem.Lx))))/(2*pi); %% NOTE: this only works for walls that are periodic in the x-direction!
-               else
-                  Pc(j) = Pc(j) - imag(sum(qsrc(indices_tmp).*wsrc(indices_tmp).*...
-                    zpsrc(indices_tmp)./(zsrc(j) - (zsrc(indices_tmp) - solution_local.problem.Lx))))/(2*pi); 
-               end
             end
         end
 
     end    
     
     %add on special quadrature
-    Ic = cauchy_on_surface_evaluation(qsrc(indices), zsrc(indices), zpsrc(indices), wsrc(indices), panel_breaks_z, type, periodic_rep);
-    Pc(indices) = Pc(indices) + imag(Ic)/(2*pi); 
+    Ic = -cauchy_on_surface_evaluation(qsrc(indices), zsrc(indices), zpsrc(indices), wsrc(indices), panel_breaks_z, type, periodic_rep);
+    Pc(indices) = Pc(indices) + -imag(Ic)/(2*pi); 
             
     wall_start = wall_start + npan + 1;       
 end

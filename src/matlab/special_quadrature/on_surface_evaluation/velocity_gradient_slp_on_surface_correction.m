@@ -15,6 +15,7 @@ function dVh = velocity_gradient_slp_on_surface_correction(dV, btar, solution_lo
 %-dVh: corrected velocity gradient
 
 domain = solution_local.problem.domain;
+periodic = solution_local.problem.periodic;
 
 zsrc = domain.z;
 zpsrc = domain.zp;
@@ -29,11 +30,24 @@ wall_start = 1;
 for i = 1:size(domain.wall_indices,1)
     
     indices = domain.wall_indices(i,1):domain.wall_indices(i,2);
-    npan = (domain.wall_indices(i,2)-domain.wall_indices(i,1)+1)/16;
+    npan = length(indices)/16;
     
-    panel_breaks_z = domain.panel_breaks(wall_start:wall_start + npan - 1);
+    panel_breaks_z = domain.panel_breaks(wall_start:wall_start + npan);
     
-    %subract off self contribution
+    % check if boundary is a closed curve
+    if abs(panel_breaks_z(1)-panel_breaks_z(end)) < 1e-12
+        closed_curve = 1;
+    else
+        closed_curve = 0;
+    end
+    
+    % if problem is periodic and the domain is not a closed curve, then we
+    % need to handle periodic replicates in a specific way
+    periodic_rep = periodic && ~closed_curve;
+
+    % subract off contribution from the current wall, compensates for 
+    % periodic replicates due to them being included in Ewald, which will
+    % be computed later using a special quadrature rule
     for j = indices
         
         indices_tmp = indices;
@@ -49,6 +63,44 @@ for i = 1:size(domain.wall_indices,1)
         dVh(j) = dVh(j) - (-1i*conj(btar(j))/2*conj(sum((conj(zsrc(j))*qtmp./(ntmp.*r.^2) - ...
             conj(ztmp).*qtmp./(ntmp.*r.^2) + conj(qtmp)./(ntmp.*r)).*wtmp.*zptmp)) + ...
             1i*btar(j)*real(sum(qtmp./(ntmp.*r).*wtmp.*zptmp)))/(4*pi);
+        
+        if periodic_rep
+            % we also correct for the adjacent panels that have been
+            % periodically replicated later, so these need to be removed too
+            indices_tmp = [];
+
+            if (j - (i-1)*16*npan) <= 16
+                indices_tmp = indices(end-15:end);
+
+                if real(zsrc(indices(2))) > real(zsrc(indices(1)))
+                    ztmp = zsrc(indices_tmp) - solution_local.problem.Lx;
+                else
+                    ztmp = zsrc(indices_tmp) + solution_local.problem.Lx;
+                end
+
+            elseif (j - (i-1)*16*npan) >= (length(indices) - 15)
+                indices_tmp = indices(1:16);
+
+                if real(zsrc(indices(2))) > real(zsrc(indices(1)))
+                    ztmp = zsrc(indices_tmp) + solution_local.problem.Lx;
+                else
+                    ztmp = zsrc(indices_tmp) - solution_local.problem.Lx;
+               end
+            end
+            
+            if ~isempty(indices_tmp)
+                r = zsrc(j) - ztmp;
+                qtmp = qsrc(indices_tmp);
+                wtmp = wsrc(indices_tmp);
+                ntmp = nsrc(indices_tmp);
+                zptmp = zpsrc(indices_tmp);
+
+                dVh(j) = dVh(j) - (-1i*conj(btar(j))/2*conj(sum((conj(zsrc(j))*qtmp./(ntmp.*r.^2) - ...
+                    conj(ztmp).*qtmp./(ntmp.*r.^2) + conj(qtmp)./(ntmp.*r)).*wtmp.*zptmp)) + ...
+                    1i*btar(j)*real(sum(qtmp./(ntmp.*r).*wtmp.*zptmp)))/(4*pi);
+
+            end
+        end
     end
     
     %add on special quadrature
@@ -60,10 +112,10 @@ for i = 1:size(domain.wall_indices,1)
     btmp = btar(indices);
 
     dVh(indices) = dVh(indices) + (-1i*conj(btmp)/2.*conj(...
-         conj(ztmp).*hypersingular_on_surface_evaluation(qtmp./ntmp, ztmp, zptmp, wtmp, panel_breaks_z, type) - ...
-         hypersingular_on_surface_evaluation(conj(ztmp).*qtmp./ntmp, ztmp, zptmp, wtmp, panel_breaks_z, type) + ...
-         cauchy_on_surface_evaluation(conj(qtmp)./ntmp, ztmp, zptmp, wtmp, panel_breaks_z, type)) + ...
-         1i*btmp.*real(cauchy_on_surface_evaluation(qtmp./ntmp, ztmp, zptmp, wtmp, panel_breaks_z, type)))/(4*pi);
-    
+         conj(ztmp).*hypersingular_on_surface_evaluation(qtmp./ntmp, ztmp, zptmp, wtmp, panel_breaks_z, type, periodic_rep) - ...
+         hypersingular_on_surface_evaluation_zsrc(qtmp./ntmp, ztmp, zptmp, wtmp, panel_breaks_z, type, periodic_rep) + ...
+         cauchy_on_surface_evaluation(conj(qtmp)./ntmp, ztmp, zptmp, wtmp, panel_breaks_z, type, periodic_rep)) + ...
+         1i*btmp.*real(cauchy_on_surface_evaluation(qtmp./ntmp, ztmp, zptmp, wtmp, panel_breaks_z, type, periodic_rep)))/(4*pi);
+
     wall_start = wall_start + npan + 1;
 end

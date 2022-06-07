@@ -13,6 +13,7 @@ function omegac = vorticity_slp_on_surface_correction(omega, solution_local, typ
 %-omegac: corrected vorticity
 
 domain = solution_local.problem.domain;
+periodic = solution_local.problem.periodic;
 
 zsrc = domain.z;
 zpsrc = domain.zp;
@@ -29,22 +30,76 @@ for i = 1:size(domain.wall_indices,1)
     indices = domain.wall_indices(i,1):domain.wall_indices(i,2);
     npan = length(indices)/16;
     
-    panel_breaks_z = domain.panel_breaks(wall_start:wall_start + npan - 1);
+    panel_breaks_z = domain.panel_breaks(wall_start:wall_start + npan);
+
+    % check if boundary is a closed curve
+    if abs(panel_breaks_z(1)-panel_breaks_z(end)) < 1e-12
+        closed_curve = 1;
+    else
+        closed_curve = 0;
+    end
     
-    %subract off self contribution
+    % if problem is periodic and the domain is not a closed curve, then we
+    % need to handle periodic replicates in a specific way
+    periodic_rep = periodic && ~closed_curve;
+
+    % subract off contribution from the current wall, compensates for 
+    % periodic replicates due to them being included in Ewald, which will
+    % be computed later using a special quadrature rule
     for j = indices
         
         indices_tmp = indices;
         indices_tmp(indices==j) = [];
         
-        omegac(j) = omegac(j) + real(sum(qsrc(indices_tmp).*wsrc(indices_tmp).*...
-            zpsrc(indices_tmp)./(nsrc(indices_tmp).*(zsrc(indices_tmp) - zsrc(j)))))/(2*pi);
+        r = zsrc(j) - zsrc(indices_tmp);
+        qtmp = qsrc(indices_tmp);
+        wtmp = wsrc(indices_tmp);
+        zptmp = zpsrc(indices_tmp);
+        ntmp = nsrc(indices_tmp);
+        
+        omegac(j) = omegac(j) - real(sum(qtmp.*wtmp.*zptmp./(ntmp.*r)))/(2*pi);
+        
+        if periodic_rep
+            % we also correct for the adjacent panels that have been
+            % periodically replicated later, so these need to be removed too
+            indices_tmp = [];
+
+            if (j - (i-1)*16*npan) <= 16
+                indices_tmp = indices(end-15:end);
+
+                if real(zsrc(indices(2))) > real(zsrc(indices(1)))
+                    ztmp = zsrc(indices_tmp) - solution_local.problem.Lx;
+                else
+                    ztmp = zsrc(indices_tmp) + solution_local.problem.Lx;
+                end
+
+            elseif (j - (i-1)*16*npan) >= (length(indices) - 15)
+                indices_tmp = indices(1:16);
+
+                if real(zsrc(indices(2))) > real(zsrc(indices(1)))
+                    ztmp = zsrc(indices_tmp) + solution_local.problem.Lx;
+                else
+                    ztmp = zsrc(indices_tmp) - solution_local.problem.Lx;
+               end
+            end
+            
+            if ~isempty(indices_tmp)
+                r = zsrc(j) - ztmp;
+                qtmp = qsrc(indices_tmp);
+                wtmp = wsrc(indices_tmp);
+                zptmp = zpsrc(indices_tmp);
+                ntmp = nsrc(indices_tmp);
+
+                omegac(j) = omegac(j) - real(sum(qtmp.*wtmp.*zptmp./(ntmp.*r)))/(2*pi);
+
+            end
+        end
     end
     
     %add on special quadrature
     % different sign due to implementation of the Cauchy integral
     omegac(indices) = omegac(indices) + real(cauchy_on_surface_evaluation(qsrc(indices)./nsrc(indices),...
-        zsrc(indices),zpsrc(indices),wsrc(indices),panel_breaks_z,type))/(2*pi);
+        zsrc(indices),zpsrc(indices),wsrc(indices),panel_breaks_z,type,periodic_rep))/(2*pi);
      
    wall_start = wall_start + npan + 1;       
 end
