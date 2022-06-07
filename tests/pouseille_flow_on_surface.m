@@ -8,6 +8,15 @@
 %   - vorticity
 %   - stress
 
+%%%% Notes %%%%
+% DK: 2022-07-07
+% Accurate on-surface quantities for both a single-layer and combined
+% formulation for no slip BC (alpha=0). When alpha=-1e-1 the single-layer
+% formulation still yield very accurate results. However, the combined
+% formulation has trouble converging and the error in some quantities are
+% increased a couple of orders of magnitude. This holds true when using the
+% velocity gradients to directly compute the slip BC.
+
 close all;
 clearvars;
 clc;
@@ -25,7 +34,7 @@ input_params.eta = 1;
 input_params.plot_domain = 0;
 input_params.alpha = -1e-1;
 input_params.slip = 1;
-%input_params.gmres_tol = 1e-8;
+input_params.gmres_tol = 1e-12;
 
 problem = flat_pipe_periodic(input_params);
 

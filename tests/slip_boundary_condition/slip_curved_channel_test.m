@@ -1,19 +1,18 @@
-% Tests the slip boundary condition on the periodic Pouseille flow problem
-% with curved walls.
+% Tests the slip boundary condition on the periodic channel problem with
+% curved walls.
 %   1. Solve problem with non-zero slip length alpha.
 %   2. Read of Dirichlet boundary condition.
 %   3. Solve new Dirichlet problem.
 %   4. Compare solutions, which now should be equal.
 
-% Current state:
-%   eta = inf
-%       - alpha=0, amp=0 works
-%       - alpha nnz, amp=0 works
-%       - alpha=0, amp nnz works
-%       - alpha=amp=1e-5 works
-%       - alpha=amp=1e-1 works
-%   eta = 1
-%       - alpha=amp=1e-1 works (converges to 1e-10)
+%%%% Notes %%%%
+% DK: 2022-07-07
+% With alpha=-1e-1, amp=1e-1 and eta=inf or eta=1 we get unreasonable
+% solution when computing the slip BC using the stress components. If we 
+% instead directly compute it using the velocity gradients then we get a 
+% reasonable solution. Moreover, we get this latter solution in much fewer
+% GMRES iterations. Indicating that the first way of computing the slip BC
+% is incorrect and that the latter is correct.
 
 close all;
 clearvars;
@@ -21,12 +20,12 @@ clc;
 set(groot,'defaultAxesTickLabelInterpreter','latex');
 
 % parameters
-alpha = 1e-1;
-amp = 0;
+alpha = -1e-1;
+amp = 1e-1;
 
 % create input structure
 input_params = default_input_params('slip_pipe_test', 1);
-%input_params.gmres_tol = 1e-9;
+input_params.gmres_tol = 1e-9;
 
 % modify structure as needed
 input_params.box_size = [2,2];
