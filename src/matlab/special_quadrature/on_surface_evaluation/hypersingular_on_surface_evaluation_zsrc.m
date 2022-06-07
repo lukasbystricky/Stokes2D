@@ -56,16 +56,19 @@ for i = 1:Nsrc
         nzsrc = 2*(zsrc(local_indices) - mid)/len;
         
         if periodic_rep
+            % shift source panel (if needed) due to periodic replicates
+            mid_new = mid;
+            
             if (j == 1 && local_panels(j) == npan)
-                mid = panel_breaks_z(1) - (zb - mid);
-            end
-
-            if (j == 3 && local_panels(j) == 1)
-                mid = panel_breaks_z(end) + mid - za;
+                mid_new = panel_breaks_z(1) - (zb - mid);
             end
             
-            % shift source panel (if needed) due to periodic replicates
-            ztmp = zsrc(local_indices) - mean(zsrc(local_indices)) + mid;
+            if (j == 3 && local_panels(j) == 1)
+                mid_new = panel_breaks_z(end) + mid - za;
+            end
+            
+            ztmp = zsrc(local_indices) - mid + mid_new;
+            mid = mid_new;
         else
             ztmp = zsrc(local_indices);
         end
