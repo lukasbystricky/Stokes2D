@@ -32,21 +32,26 @@ for i = 1:Nsrc
     switch panel_k
         case 1
             local_panels = [npan, 1, 2];
+            next_adjacent_panel = 3;
 
         case npan - 1
             local_panels = [panel_k - 1, panel_k, panel_k + 1];
+            next_adjacent_panel = 1;
 
         case npan
             local_panels = [npan-1, npan, 1];
+            next_adjacent_panel = 2;
 
         otherwise
             local_panels = [panel_k - 1, panel_k, panel_k + 1];
+            next_adjacent_panel = panel_k + 2;
     end
     
     
     for j = 1:3
         
         local_indices = 16*(local_panels(j)-1)+1: 16*local_panels(j);
+        mask = 1:16;
         
         % endpoints of panel
         za = panel_breaks_z(local_panels(j));
@@ -62,14 +67,29 @@ for i = 1:Nsrc
             if (j == 1 && local_panels(j) == npan)
                 mid = panel_breaks_z(1) - (zb - mid);
             end
-
             if (j == 3 && local_panels(j) == 1)
                 mid = panel_breaks_z(end) + mid - za;
             end
+            
+            % correct only the closest four points on each adjacent panel
+%             if j == 1
+%                 mask = 13:16;
+%             end
+%             if j == 3
+%                 mask = 1:4;
+%             end
         end
         
         nz = 2*(zsrc(i)-mid)/len;
         p0 = sq.compute_exact_log(nz, nzsrc);
+
+        test_ind = 16*(next_adjacent_panel-1)+1: 16*next_adjacent_panel;
+        test_za = panel_breaks_z(next_adjacent_panel);
+        test_zb = panel_breaks_z(next_adjacent_panel+1);
+        exact_int = log(test_zb-zsrc(i)) - log(test_za-zsrc(i));
+        [accurate, testsum, err] = sq.sq_necessary(exact_int, zsrc(i), zsrc(test_ind), ...
+            zpsrc(test_ind), wsrc(test_ind));
+        assert(accurate,'%e',err);
 
         if j == 2 
             switch type % add limiting value if needed
@@ -95,6 +115,8 @@ for i = 1:Nsrc
         % apply product integration correction
         Ic(i) = Ic(i) ...
             +(sq.cauchy_integral(qsrc(local_indices), nz, nzsrc, p0));
+%         Ic(i) = Ic(i) ...
+%             +(sq.cauchy_integral_16(qsrc(local_indices), nz, nzsrc, p0, mask));
     end
     
     % add on regular contribution from points not on adjacent panels
@@ -111,13 +133,24 @@ for i = 1:Nsrc
             end
         end
         
-        local_indices = [local_indices, 16*(local_panels(j)-1)+1: 16*local_panels(j)];
+        tmp = 16*(local_panels(j)-1)+1: 16*local_panels(j);
+        tmp_ind = tmp;
+        
+        % correct only the closest four points on each adjacent panel
+%         if j == 1
+%             tmp_ind = tmp(end-3:end);
+%         end
+%         if j == 3
+%             tmp_ind = tmp(1:4);
+%         end
+
+        local_indices = [local_indices, tmp_ind];
     end
     
     for j = local_indices
         indices(indices == j) = [];
     end
-    
+
     Ic(i) = Ic(i) ...
         + sum(qsrc(indices)./(zsrc(i) - zsrc(indices)).*zpsrc(indices).*wsrc(indices));
 end

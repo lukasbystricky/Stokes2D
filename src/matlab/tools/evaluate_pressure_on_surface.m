@@ -37,7 +37,8 @@ if solution.problem.periodic
         q(:,1).*wazp, q(:,2).*wazp, Lx, Ly,...
         'verbose', 1)';
 
-    pslp_corrected = pressure_slp_on_surface_correction(pslp, solution_local, type);
+    %pslp_corrected = pressure_slp_on_surface_correction(pslp, solution_local, type);
+    pslp_corrected = pressure_slp_on_surface_correction_new(pslp, solution_local, type);
 
     if isinf(solution.problem.eta)
         P = pslp_corrected;

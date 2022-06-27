@@ -66,13 +66,18 @@ if nnz(problem.alpha) > 0
     t2 = n1.*sxy + n2.*syy;
 
     % tangential component of traction (\nu \dot t)
-    nudott = t1.*nu1 + t2.*nu2;
+    nudott_stress = t1.*nu1 + t2.*nu2;
     
     % using velocity gradient instead (jumps included)
-%     [ux,uy,vx,vy] = evaluate_velocity_gradient_on_surface(solution, solution, 'fluid');
-%     nudott = nu1.*(n1*2.*ux+n2.*(vx+uy)) + nu2.*(n1.*(vx+uy)+n2*2.*vy);
+    [ux,uy,vx,vy] = evaluate_velocity_gradient_on_surface(solution, solution, 'fluid');
+    nudott_grad = nu1.*(n1*2.*ux+n2.*(vx+uy)) + nu2.*(n1.*(vx+uy)+n2*2.*vy);
+    
+    % compare nudott expressions
+    nudott_diff = norm(nudott_stress-nudott_grad)
+    assert(nudott_diff < 1e-10, 'nudott calculations differ too much');
     
     % check alpha
+    nudott = nudott_grad;
     numalpha = -mean(real(udotnu))/mean(nudott);
 
     % add second term

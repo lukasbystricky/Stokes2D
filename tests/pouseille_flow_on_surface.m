@@ -27,10 +27,10 @@ set(groot,'defaultAxesTickLabelInterpreter','latex');
 input_params = default_input_params('pouseuille_demo', 1);
 
 % modify structure as needed
-input_params.box_size = [2,2];
+input_params.box_size = [1,2];
 input_params.h = 0.5;    % pipe walls at +-0.5
 input_params.panels = 10;
-input_params.eta = 1;
+input_params.eta = inf;
 input_params.plot_domain = 0;
 input_params.alpha = -1e-1;
 input_params.slip = 1;
@@ -76,6 +76,7 @@ xlabel('$n$','interpreter','latex','fontsize',16);
 xlim([1,N]);
 
 %% pressure
+solution.problem.domain.nbr_neighboring_points = 4;
 Psurf = evaluate_pressure_on_surface(solution, solution, 'fluid');
 Psurf_exact = exact_solution_p(x,y);
 

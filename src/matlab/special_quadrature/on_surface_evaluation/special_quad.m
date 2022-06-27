@@ -5,6 +5,8 @@ classdef special_quad
     properties
         L;
         Nup;
+        x;
+        w;
         xup;
         wup;
     end
@@ -14,6 +16,7 @@ classdef special_quad
         function sq = special_quad(Nup)
             sq.Nup = Nup;
             sq.L = legendre.matrix(16);
+            [sq.x, sq.w] = legendre.gauss(16);    
             [sq.xup, sq.wup] = legendre.gauss(Nup);            
         end
         
@@ -22,10 +25,17 @@ classdef special_quad
             
             cf = o.L*fsrc;
             cz = o.L*zsrc;
-            
+
             P = legendre.vec(15, o.xup);
             fsrc_up = P*cf;
             zsrc_up = P*cz;
+            
+%             poly_coeff = o.vandernewtonT(zsrc_up,fsrc_up,32);
+%             rel = min(abs(poly_coeff))/max(abs(poly_coeff));
+%             if max(abs(poly_coeff)) > 1 && rel > 1e-10
+%                 a = 0;
+%             end
+%             assert(max(abs(poly_coeff)) > 1 && rel > 1e-10, 'Cauchy integral: Polynomial coefficient too large (%e)', abs(coeff(end)));
             
             p = zeros(o.Nup,1);
             p(1) = p0;
@@ -45,7 +55,7 @@ classdef special_quad
             Ic = -(sum(fsrc_up.*w));
             
         end
-        
+
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function Ih = hypersingular_integral(o, fsrc, ztar, zsrc, p0, b, a)
             
@@ -55,10 +65,17 @@ classdef special_quad
             % upsample density and source points
             cf = o.L*fsrc;
             cz = o.L*zsrc;
-            
+
             P = legendre.vec(15, o.xup);
             fsrc_up = P*cf;
             zsrc_up = P*cz;
+            
+%             poly_coeff = o.vandernewtonT(zsrc_up,fsrc_up,32);
+%             rel = min(abs(poly_coeff))/max(abs(poly_coeff));
+%             if max(abs(poly_coeff)) > 1 && rel > 1e-10
+%                 a = 0;
+%             end
+%             assert(max(abs(poly_coeff)) > 1 && rel > 1e-10, 'Hyper integral: Polynomial coefficient too large (%e)', abs(coeff(end)));
             
             p(1) = p0;
             r(1) = -1/(1 + ztar) - 1/(1 - ztar);
@@ -86,7 +103,7 @@ classdef special_quad
         end
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        function Is = supersingular_integral(o, fsrc, ztar, nzsrc, p0, b, a)
+        function Is = supersingular_integral(o, fsrc, ztar, zsrc, p0, b, a)
             
             p = zeros(o.Nup,1);
             r = zeros(o.Nup,1);
@@ -98,11 +115,18 @@ classdef special_quad
             
             % upsample density and source points
             cf = o.L*fsrc;
-            cz = o.L*nzsrc;
-            
+            cz = o.L*zsrc;
+
             P = legendre.vec(15, o.xup);
             fsrc_up = P*cf;
-            nzsrc_up = P*cz;
+            zsrc_up = P*cz;
+            
+%             poly_coeff = o.vandernewtonT(zsrc_up,fsrc_up,32);
+%             rel = min(abs(poly_coeff))/max(abs(poly_coeff));
+%             if max(abs(poly_coeff)) > 1 && rel > 1e-10
+%                 a = 0;
+%             end
+%             assert(max(abs(poly_coeff)) > 1 && rel > 1e-10, 'Super integral: Polynomial coefficient too large (%e)', abs(coeff(end)));
             
             if abs(ztar)>1.1
                 % compute p_32, r_32, and s_32 numerically, run recursion backwards
@@ -122,7 +146,7 @@ classdef special_quad
                 end
             end
             
-            w = o.vandernewton(nzsrc_up,s,o.Nup);
+            w = o.vandernewton(zsrc_up,s,o.Nup);
             Is = -sum(4*fsrc_up/(b-a)^2.*w);
             
         end
@@ -225,6 +249,13 @@ classdef special_quad
                     a(i) = a(i)-x(k)*a(i+1);
                 end
             end
+        end
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        function [accurate, testsum, err] = sq_necessary(~, exact_int, ztar, zsrc, zpsrc, wsrc)
+            testsum = sum(zpsrc.*wsrc./(zsrc-ztar));
+            err = abs(exact_int-testsum);
+            accurate = err < 1e-14;
         end
     end
     
