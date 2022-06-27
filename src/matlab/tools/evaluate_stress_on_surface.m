@@ -48,8 +48,10 @@ if solution.problem.periodic
     sigma2_slp = sigmaxy_slp + 1i*sigmayy_slp;
     
     % correct with special quadrature
-    sigma1_slp_corrected = stress_slp_on_surface_correction(sigma1_slp, b1, solution_local, type);
-    sigma2_slp_corrected = stress_slp_on_surface_correction(sigma2_slp, b2, solution_local, type);
+    %sigma1_slp_corrected = stress_slp_on_surface_correction(sigma1_slp, b1, solution_local, type);
+    %sigma2_slp_corrected = stress_slp_on_surface_correction(sigma2_slp, b2, solution_local, type);
+    sigma1_slp_corrected = stress_slp_on_surface_correction_new(sigma1_slp, b1, solution_local, type);
+    sigma2_slp_corrected = stress_slp_on_surface_correction_new(sigma2_slp, b2, solution_local, type);
     
     if ~isinf(solution.problem.eta)
         % add on double-layer potential

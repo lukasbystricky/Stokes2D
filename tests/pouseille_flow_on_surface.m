@@ -35,6 +35,7 @@ input_params.plot_domain = 0;
 input_params.alpha = -1e-1;
 input_params.slip = 1;
 input_params.gmres_tol = 1e-12;
+input_params.nbr_neighbor_pts = 4;
 
 problem = flat_pipe_periodic(input_params);
 
@@ -76,7 +77,7 @@ xlabel('$n$','interpreter','latex','fontsize',16);
 xlim([1,N]);
 
 %% pressure
-solution.problem.domain.nbr_neighboring_points = 4;
+solution.problem.domain.nbr_neighbor_pts = 4;
 Psurf = evaluate_pressure_on_surface(solution, solution, 'fluid');
 Psurf_exact = exact_solution_p(x,y);
 
@@ -137,6 +138,7 @@ xlabel('$n$','interpreter','latex','fontsize',16);
 xlim([1,N]);
 
 %% stress
+solution.problem.domain.nbr_neighbor_pts = 4;
 [Sxxsurf, Sxysurf, Syxsurf, Syysurf] = evaluate_stress_on_surface(solution, solution, 'fluid');
 Ssurf_exact = exact_solution_sigma_surface(problem);
 Sxxsurf_exact = Ssurf_exact(:,1);

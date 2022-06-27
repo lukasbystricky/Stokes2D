@@ -118,7 +118,7 @@ for i = 1:size(domain.wall_indices,1)
 
     Ic1 = -cauchy_on_surface_evaluation(qtmp./ntmp,ztmp,zptmp,wtmp,panel_breaks_z,type,periodic_rep);
     Ic2 = -cauchy_on_surface_evaluation(conj(qtmp)./ntmp,ztmp,zptmp,wtmp,panel_breaks_z,type,periodic_rep);
-    Ih1 = hypersingular_on_surface_evaluation_zsrc(qtmp./ntmp,ztmp,zptmp,wtmp,panel_breaks_z,type,periodic_rep);
+    Ih1 = hypersingular_on_surface_evaluation_zsrc(conj(qtmp)./ntmp,ztmp,zptmp,wtmp,panel_breaks_z,type,periodic_rep);
     Ih2 = hypersingular_on_surface_evaluation(conj(qtmp)./ntmp,ztmp,zptmp,wtmp,panel_breaks_z,type,periodic_rep);
     
     sigmac(indices) = sigmac(indices) + (2*btmp.*imag(Ic1) + 1i*conj(btmp.*(Ic2+Ih1-conj(ztmp).*Ih2)))/(4*pi);

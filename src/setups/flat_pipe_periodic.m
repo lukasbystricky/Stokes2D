@@ -40,6 +40,12 @@ end
 problem.domain = discretize_domain(walls, problem.panels,...
             problem.Lx, problem.Ly);
 
+if isfield(input_params,'nbr_neighbor_pts')
+    problem.domain.nbr_neighbor_pts = input_params.nbr_neighbor_pts;
+else
+    problem.domain.nbr_neighbor_pts = 4;
+end
+
 % specify boundary conditions, here we have simple no-slip
 problem.boundary_conditions = @(z) 0*imag(z);
 
