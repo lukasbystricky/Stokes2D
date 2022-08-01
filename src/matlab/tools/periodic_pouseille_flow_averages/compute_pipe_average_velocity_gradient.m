@@ -16,8 +16,8 @@ n2 = -n2;
 [U, V] = evaluate_velocity_on_surface(solution, solution);
 
 u_grad_avg = [0 0; 0 0];
-u_grad_avg(1,:) = u_grad_avg(1,:) + [sum(U.*n1.*wazp), sum(U.*n2.*wazp)];
-u_grad_avg(2,:) = u_grad_avg(2,:) + [sum(V.*n1.*wazp), sum(V.*n2.*wazp)];
+u_grad_avg(1,:) = u_grad_avg(1,:) + [sum(n1.*U.*wazp), sum(n1.*V.*wazp)];
+u_grad_avg(2,:) = u_grad_avg(2,:) + [sum(n2.*U.*wazp), sum(n2.*V.*wazp)];
 
 % compute integral over the rest of the box using GL quadrature
 % left side, n = (-1,0)
@@ -31,8 +31,8 @@ n1 = -ones(size(y));
 n2 = zeros(size(y));
 
 [U, V] = evaluate_velocity(solution, x, y);
-u_grad_avg(1,:) = u_grad_avg(1,:) + [sum(U.*n1.*wazp), sum(U.*n2.*wazp)];
-u_grad_avg(2,:) = u_grad_avg(2,:) + [sum(V.*n1.*wazp), sum(V.*n2.*wazp)];
+u_grad_avg(1,:) = u_grad_avg(1,:) + [sum(n1.*U.*wazp), sum(n1.*V.*wazp)];
+u_grad_avg(2,:) = u_grad_avg(2,:) + [sum(n2.*U.*wazp), sum(n2.*V.*wazp)];
 
 % right side, n = (1,0)
 right_side{1} = @(T) vertical_line(T,xmax,ymin,ymax,-1);
@@ -45,8 +45,8 @@ n1 = ones(size(y));
 n2 = zeros(size(y));
 
 [U, V] = evaluate_velocity(solution, x, y);
-u_grad_avg(1,:) = u_grad_avg(1,:) + [sum(U.*n1.*wazp), sum(U.*n2.*wazp)];
-u_grad_avg(2,:) = u_grad_avg(2,:) + [sum(V.*n1.*wazp), sum(V.*n2.*wazp)];
+u_grad_avg(1,:) = u_grad_avg(1,:) + [sum(n1.*U.*wazp), sum(n1.*V.*wazp)];
+u_grad_avg(2,:) = u_grad_avg(2,:) + [sum(n2.*U.*wazp), sum(n2.*V.*wazp)];
 
 V = (xmax - xmin)*(ymax - ymin);
 u_grad_avg = u_grad_avg/V;

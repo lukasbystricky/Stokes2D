@@ -27,6 +27,7 @@ input_params.slip = 1;
 
 % initialize problem
 problem = couette(input_params);
+problem.domain.nbr_neighbor_pts = 16;
 
 % domain
 z = problem.domain.z;

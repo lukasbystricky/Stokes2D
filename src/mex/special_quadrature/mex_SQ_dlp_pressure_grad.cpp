@@ -180,15 +180,15 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                         if (!accurate) {
                             //No! First: attempt 32-point quadrature
                           
-                            Complex Ic16 = 0;
+                            Complex Is16 = 0;
                             Complex sum16;
                             
                             for (int k = 0; k<16; k++) {
                                 // pressure grad is conj(q/(z-tau)^3))
-                                Ic16 += tf[k] * tW[k] * tzp[k]/pow(z - tz[k], 3);
+                                Is16 += tf[k] * tW[k] * tzp[k]/pow(-(z - tz[k]), 3);
                             }
                             
-                            sum16 = _i*2*conj(Ic16)/pi;
+                            sum16 = _i*conj(Is16)/pi;
                             
                             //mexPrintf("y = %3.3f, px = %3.3f, py = %3.3f\n", imag(z), real(sum16), imag(sum16));
                             
@@ -202,15 +202,15 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                             if (accurate) {
                                 // 32 quad suffices!
 
-                                Complex Ic32 = 0;
+                                Complex Is32 = 0;
                                 Complex sum32;
                                 
                                 for (int k=0; k<32; k++) {
                                     // pressure grad is conj(q/(z-tau)^2))
-                                    Ic32 += tf32[k] * tW32[k] * tzp32[k]/(pow(z - tz32[k],3));
+                                    Is32 += tf32[k] * tW32[k] * tzp32[k]/(pow(-(z - tz32[k]),3));
                                 }
                                 
-                                sum32 = _i*2*conj(Ic32)/pi;
+                                sum32 = _i*conj(Is32)/pi;
                                 
                                 // add 32 point quadrature, take off existing 16 point quadrature                                
                                 Complex modif = sum32 - sum16;
@@ -245,13 +245,11 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                 Complex Is_helsing = 0;
                                 Complex f;                                
                                 for (int k = 0; k<32; k++) {                                     
-                                     //Supersingular integrals have a negative sign
-                                    //because recursion assumes t-z instead of z-t
                                     f = tf32[k];
-                                    Is_helsing -= 4*s32[k]*f/len/len;
+                                    Is_helsing += 4*s32[k]*f/len/len;
                                 }
                                 
-                                Complex modif = _i*2*conj(Is_helsing)/pi - sum16;
+                                Complex modif = _i*conj(Is_helsing)/pi - sum16;
                                 out_px[j] += real(modif);
                                 out_py[j] += imag(modif);
                             }

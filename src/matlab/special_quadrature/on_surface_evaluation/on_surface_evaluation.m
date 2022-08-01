@@ -40,7 +40,6 @@ assert(length(qsrc) == length(zsrc),'dimension of arrays not consistent');
 assert(p == 1 || p == 2 || p == 3,'incorrect p: must be 1, 2, or 3');
 assert(any(strcmp(lim_dir,{'fluid','solid','surface'})),...
     'incorrect lim_dir: must be "fluid", "solid", or "surface"');
-assert(periodic_rep && (nargin > 9),'reference cell is missing');
 
 % setup
 sq = special_quad(32);
@@ -128,7 +127,7 @@ for j = 1:panels_per_wall
         elseif p == 2
             I(tar_ind_tmp) = I(tar_ind_tmp) + sq.hypersingular_integral(qsrc_tmp2,nz,nzsrc,p0,zb,za);
         elseif p == 3
-            I(tar_ind_tmp) = I(tar_ind_tmp) - sq.supersingular_integral(qsrc_tmp2,nz,nzsrc,p0zb,za);
+            I(tar_ind_tmp) = I(tar_ind_tmp) - sq.supersingular_integral(qsrc_tmp2,nz,nzsrc,p0,zb,za);
         end
         
     end

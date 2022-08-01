@@ -25,6 +25,13 @@ end
 problem.domain = discretize_domain(problem.walls, problem.panels,...
             problem.Lx, problem.Ly);
 
+
+if isfield(input_params,'nbr_neighbor_pts')
+    problem.domain.nbr_neighbor_pts = input_params.nbr_neighbor_pts;
+else
+    problem.domain.nbr_neighbor_pts = 4;
+end
+
 % no-slip boundary conditions
 problem.boundary_conditions = @(z) 0*imag(z);
 

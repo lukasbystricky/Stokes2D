@@ -20,8 +20,8 @@ input_params.h = 0.5;    % pipe walls at +-0.5
 input_params.panels = 10;
 input_params.eta = 1;
 input_params.plot_domain = 0;
-input_params.alpha = -1e-1;
-input_params.slip = 1;
+input_params.alpha = 0;
+input_params.slip = 0;
 %input_params.gmres_tol = 1e-8;
 
 problem = flat_pipe_periodic(input_params);
@@ -53,7 +53,7 @@ exact_solution_u_grad_avg = [0 0; 0 0];
 exact_solution_p_avg = 0;
 exact_solution_p_grad_avg = [(2*h*Lx*p)/volume; 0];
 exact_solution_omega_avg = 0;
-exact_solution_sigma_avg = [0; 0];
+exact_solution_sigma_avg = [0 0; 0 0];
 
 %% compute quantities
 [Uc, Vc, X, Y, U, V] = evaluate_velocity(solution, 200, 'fmm', 0, 'verbose', 0);

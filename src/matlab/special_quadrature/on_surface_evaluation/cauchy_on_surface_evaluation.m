@@ -83,13 +83,13 @@ for i = 1:Nsrc
         nz = 2*(zsrc(i)-mid)/len;
         p0 = sq.compute_exact_log(nz, nzsrc);
 
-        test_ind = 16*(next_adjacent_panel-1)+1: 16*next_adjacent_panel;
-        test_za = panel_breaks_z(next_adjacent_panel);
-        test_zb = panel_breaks_z(next_adjacent_panel+1);
-        exact_int = log(test_zb-zsrc(i)) - log(test_za-zsrc(i));
-        [accurate, testsum, err] = sq.sq_necessary(exact_int, zsrc(i), zsrc(test_ind), ...
-            zpsrc(test_ind), wsrc(test_ind));
-        assert(accurate,'%e',err);
+%         test_ind = 16*(next_adjacent_panel-1)+1: 16*next_adjacent_panel;
+%         test_za = panel_breaks_z(next_adjacent_panel);
+%         test_zb = panel_breaks_z(next_adjacent_panel+1);
+%         exact_int = log(test_zb-zsrc(i)) - log(test_za-zsrc(i));
+%         [accurate, testsum, err] = sq.sq_necessary(exact_int, zsrc(i), zsrc(test_ind), ...
+%             zpsrc(test_ind), wsrc(test_ind));
+        %assert(accurate,'%e',err);
 
         if j == 2 
             switch type % add limiting value if needed

@@ -27,8 +27,8 @@ input_params.slip = 1;
 input_params.alpha = alpha;
 input_params.A = amp;
 input_params.d = 0.5;
-input_params.eta = inf;
-input_params.gmres_tol = 1e-10;
+input_params.eta = 1;
+input_params.gmres_tol = 1e-6;
 
 % smaller problem
 problem1 = sine_pipe_periodic(input_params);
@@ -39,8 +39,11 @@ problem1 = sine_pipe_periodic(input_params);
 % comparable
 input_params.box_size = [3,2];
 input_params.pressure_drop_x = 3*input_params.pressure_drop_x;
-input_params.panels = 30;
+input_params.panels = 3*input_params.panels;
 problem2 = sine_pipe_periodic(input_params);
+
+problem1.domain.nbr_neighbor_pts = 16;
+problem2.domain.nbr_neighbor_pts = 16;
 
 % plot domains
 figure('DefaultAxesFontSize',16);

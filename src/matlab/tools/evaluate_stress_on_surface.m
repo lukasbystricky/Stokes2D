@@ -52,7 +52,7 @@ if solution.problem.periodic
     %sigma2_slp_corrected = stress_slp_on_surface_correction(sigma2_slp, b2, solution_local, type);
     sigma1_slp_corrected = stress_slp_on_surface_correction_new(sigma1_slp, b1, solution_local, type);
     sigma2_slp_corrected = stress_slp_on_surface_correction_new(sigma2_slp, b2, solution_local, type);
-    
+
     if ~isinf(solution.problem.eta)
         % add on double-layer potential
         [sigmaxx_dlp, sigmayx_dlp] = StokesDLP_stress_ewald_2p(xsrc, ysrc, xtar(:), ytar(:),...
@@ -65,9 +65,14 @@ if solution.problem.periodic
         sigma2_dlp = sigmaxy_dlp + 1i*sigmayy_dlp;
     
         % correct with special quadrature
-        sigma1_dlp_corrected = stress_dlp_on_surface_correction(sigma1_dlp, b1, solution_local, type);
-        sigma2_dlp_corrected = stress_dlp_on_surface_correction(sigma2_dlp, b2, solution_local, type);
-
+        %sigma1_dlp_corrected2 = stress_dlp_on_surface_correction(sigma1_dlp, b1, solution_local, type);
+        %sigma2_dlp_corrected2 = stress_dlp_on_surface_correction(sigma2_dlp, b2, solution_local, type);
+        sigma1_dlp_corrected = stress_dlp_on_surface_correction_new(sigma1_dlp, b1, solution_local, type);
+        sigma2_dlp_corrected = stress_dlp_on_surface_correction_new(sigma2_dlp, b2, solution_local, type);
+        
+        %sigma1_dlp_diff = norm(sigma1_dlp_corrected2-sigma1_dlp_corrected)
+        %sigma2_dlp_diff = norm(sigma2_dlp_corrected2-sigma2_dlp_corrected)
+        
         sigma1 = solution.problem.eta*sigma1_slp_corrected + sigma1_dlp_corrected;
         sigma2 = solution.problem.eta*sigma2_slp_corrected + sigma2_dlp_corrected;
     else
@@ -85,7 +90,7 @@ else % completion formulation
     % correct using special quadrature
     sigma1_dlp_corrected = stress_dlp_on_surface_correction(sigma1_dlp, b1, solution_local, type);
     sigma2_dlp_corrected = stress_dlp_on_surface_correction(sigma2_dlp, b2, solution_local, type);
-
+        
     % add on completion flow gradients from rotlets and Stokeslets
     [sigma1_S, sigma1_R] = completion_contribution_stress(domain.centers(2:end),ztar,b1,solution.forces,solution.torques);
     [sigma2_S, sigma2_R] = completion_contribution_stress(domain.centers(2:end),ztar,b2,solution.forces,solution.torques);

@@ -20,8 +20,9 @@ u_avg = [0;0];
 
 % compute integral over boundary
 [U, V] = evaluate_velocity_on_surface(solution, solution);
-u_avg(1) = u_avg(1) + sum((x.*U.*n1 + x.*V.*n2).*wazp);
-u_avg(2) = u_avg(2) + sum((y.*V.*n1 + y.*U.*n2).*wazp);
+udotn = U.*n1 + V.*n2;
+u_avg(1) = u_avg(1) + sum(udotn.*x.*wazp);
+u_avg(2) = u_avg(2) + sum(udotn.*y.*wazp);
 
 % compute integral over the rest of the box using GL quadrature
 solution.trim = 0;
@@ -37,8 +38,9 @@ n1 = -ones(size(y));
 n2 = zeros(size(y));
 
 [U, V] = evaluate_velocity(solution, x, y);
-u_avg(1) = u_avg(1) + sum((x.*U.*n1 + x.*V.*n2).*wazp);
-u_avg(2) = u_avg(2) + sum((y.*V.*n1 + y.*U.*n2).*wazp);
+udotn = U.*n1 + V.*n2;
+u_avg(1) = u_avg(1) + sum(udotn.*x.*wazp);
+u_avg(2) = u_avg(2) + sum(udotn.*y.*wazp);
 
 % right side, n = (1,0)
 right_side{1} = @(T) vertical_line(T,xmax,ymin,ymax,-1);
@@ -51,8 +53,9 @@ n1 = ones(size(y));
 n2 = zeros(size(y));
 
 [U, V] = evaluate_velocity(solution, x, y);
-u_avg(1) = u_avg(1) + sum((x.*U.*n1 + x.*V.*n2).*wazp);
-u_avg(2) = u_avg(2) + sum((y.*V.*n1 + y.*U.*n2).*wazp);
+udotn = U.*n1 + V.*n2;
+u_avg(1) = u_avg(1) + sum(udotn.*x.*wazp);
+u_avg(2) = u_avg(2) + sum(udotn.*y.*wazp);
 
 V = (xmax - xmin)*(ymax - ymin);
 u_avg = u_avg/V;

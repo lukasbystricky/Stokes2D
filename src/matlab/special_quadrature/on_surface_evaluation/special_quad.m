@@ -40,7 +40,7 @@ classdef special_quad
             p = zeros(o.Nup,1);
             p(1) = p0;
             
-            if abs(ztar) > 1.1
+            if abs(ztar) > 1.2
                 p(end) = sum(o.xup.^(o.Nup - 1)./(o.xup - ztar).*o.wup);
                 for k = o.Nup-1:-1:2
                     p(k) = (p(k+1) - (1 - (-1)^k)/k)/ztar;
@@ -80,7 +80,7 @@ classdef special_quad
             p(1) = p0;
             r(1) = -1/(1 + ztar) - 1/(1 - ztar);
             
-            if abs(ztar) > 1.1
+            if abs(ztar) > 1.2
                 % compute p_32 and r_32 numerically, run recursion backwards
                 p(end) = sum(o.xup.^(o.Nup - 1)./(o.xup - ztar).*o.wup);
                 r(end) = sum(o.xup.^(o.Nup - 1)./(o.xup - ztar).^2.*o.wup);
@@ -128,7 +128,7 @@ classdef special_quad
 %             end
 %             assert(max(abs(poly_coeff)) > 1 && rel > 1e-10, 'Super integral: Polynomial coefficient too large (%e)', abs(coeff(end)));
             
-            if abs(ztar)>1.1
+            if abs(ztar) > 1.2
                 % compute p_32, r_32, and s_32 numerically, run recursion backwards
                 p(end) = sum(o.xup.^(o.Nup - 1)./(o.xup - ztar).*o.wup);
                 r(end) = sum(o.xup.^(o.Nup - 1)./(o.xup - ztar).^2.*o.wup);

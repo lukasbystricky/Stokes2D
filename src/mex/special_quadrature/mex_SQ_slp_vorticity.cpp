@@ -177,20 +177,16 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                             Complex Ic16 = 0;
                             Complex rho;
                             double sum16;
-                            Complex Ic1 = 0;
-                            Complex Ic2 = 0;
-                            Complex Ih1 = 0;
-                            Complex Ih2 = 0;
                             
                             double r1, r2, dens1, dens2, rsq, rdotf, bdotf, rdotb;
                             
                             for (int k = 0; k<16; k++) {
                                 // vorticity is real(int_C(q/(n*(z-tau))))/(2*pi)
                                 rho = z - tz[k];
-                                Ic16 += tf[k]/(tn[k]*rho)*tW[k]*tzp[k];
+                                Ic16 += tf[k]/(tn[k]*-rho)*tW[k]*tzp[k];
                             }
 
-                            sum16 = real(Ic16)/(2*pi);
+                            sum16 = -real(Ic16)/(2*pi);
                             
                             // upsample density
                             IPmultR(tf,tf32);
@@ -206,11 +202,11 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                 
                                 for (int k=0; k<32; k++) {
                                     // vorticity is real(int_C(q/(n*(z-tau))))/(2*pi)
-                                    rho = z - tz[k];
-                                    Ic32 += tf32[k]/(tn32[k]*rho)*tW32[k]*tzp32[k];
+                                    rho = z - tz32[k];
+                                    Ic32 += tf32[k]/(tn32[k]*-rho)*tW32[k]*tzp32[k];
                                 }
 
-                                sum32 = real(Ic32)/(2*pi);
+                                sum32 = -real(Ic32)/(2*pi);
                                 
                                 // add 32 point quadrature, take off existing 16 point quadrature
                                 double modif = sum32 - sum16;

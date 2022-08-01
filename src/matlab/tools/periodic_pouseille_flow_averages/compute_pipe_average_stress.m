@@ -16,14 +16,14 @@ n1 = -n1;
 n2 = -n2;
 
 % initialize average velocity
-sigma_avg = [0;0];
+sigma_avg = [0 0; 0 0];
 
 % compute integral over boundary
 [sxx,sxy,syx,syy] = evaluate_stress_on_surface(solution, solution, 'fluid');
 t1 = n1.*sxx + n2.*syx;
 t2 = n1.*sxy + n2.*syy;
-sigma_avg(1) = sigma_avg(1) + sum((x.*t1 + x.*t2).*wazp);
-sigma_avg(2) = sigma_avg(2) + sum((y.*t2 + y.*t1).*wazp);
+sigma_avg(1,:) = sigma_avg(1,:) + [sum(x.*t1.*wazp) sum(x.*t2.*wazp)];
+sigma_avg(2,:) = sigma_avg(2,:) + [sum(y.*t1.*wazp) sum(y.*t2.*wazp)];
 
 % compute integral over the rest of the box using GL quadrature
 solution.trim = 0;
@@ -41,8 +41,8 @@ n2 = zeros(size(y));
 [sxx,sxy,syx,syy] = evaluate_stress(solution, x, y);
 t1 = n1.*sxx + n2.*syx;
 t2 = n1.*sxy + n2.*syy;
-sigma_avg(1) = sigma_avg(1) + sum((x.*t1 + x.*t2).*wazp);
-sigma_avg(2) = sigma_avg(2) + sum((y.*t2 + y.*t1).*wazp);
+sigma_avg(1,:) = sigma_avg(1,:) + [sum(x.*t1.*wazp) sum(x.*t2.*wazp)];
+sigma_avg(2,:) = sigma_avg(2,:) + [sum(y.*t1.*wazp) sum(y.*t2.*wazp)];
 
 % right side, n = (1,0)
 right_side{1} = @(T) vertical_line(T,xmax,ymin,ymax,-1);
@@ -57,8 +57,8 @@ n2 = zeros(size(y));
 [sxx,sxy,syx,syy] = evaluate_stress(solution, x, y);
 t1 = n1.*sxx + n2.*syx;
 t2 = n1.*sxy + n2.*syy;
-sigma_avg(1) = sigma_avg(1) + sum((x.*t1 + x.*t2).*wazp);
-sigma_avg(2) = sigma_avg(2) + sum((y.*t2 + y.*t1).*wazp);
+sigma_avg(1,:) = sigma_avg(1,:) + [sum(x.*t1.*wazp) sum(x.*t2.*wazp)];
+sigma_avg(2,:) = sigma_avg(2,:) + [sum(y.*t1.*wazp) sum(y.*t2.*wazp)];
 
 V = (xmax - xmin)*(ymax - ymin);
 sigma_avg = sigma_avg/V;
