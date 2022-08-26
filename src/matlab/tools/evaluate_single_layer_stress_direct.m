@@ -3,11 +3,11 @@ ztar = xtar + 1i*ytar;
 n = -1i*zp./abs(zp);
 
 Ic1 = evaluate_cauchy_integral(xtar, ytar, z, zp, q./n, w);
+Ih1 = evaluate_hypersingular_integral(xtar, ytar, z, zp, q./n, w);
+Ih2 = evaluate_hypersingular_integral(xtar, ytar, z, zp, conj(z).*q./n, w);
 Ic2 = evaluate_cauchy_integral(xtar, ytar, z, zp, conj(q)./n, w);
-Ih1 = evaluate_hypersingular_integral(xtar, ytar, z, zp, conj(z.*q)./n, w);
-Ih2 = evaluate_hypersingular_integral(xtar, ytar, z, zp, conj(q)./n, w);
 
-sigma = (2*btar.*imag(Ic1) + 1i*conj(btar.*(Ic2+Ih1-conj(ztar).*Ih2)))/(4*pi);
+sigma = (2*btar.*imag(Ic1) + 1i*conj(btar.*(conj(ztar).*Ih1-Ih2-Ic2)))/(4*pi);
 
 end
 

@@ -180,15 +180,15 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                         if (!accurate) {
                             //No! First: attempt 32-point quadrature
                           
-                            Complex Ic16 = 0;
+                            Complex Ih16 = 0;
                             Complex sum16;
                             
                             for (int k = 0; k<16; k++) {
-                                // pressure grad is conj(q/(n*(z-tau)^2))
-                                Ic16 += tf[k] * tW[k] * tzp[k]/(tn[k]*pow(z - tz[k], 2));
+                                // pressure grad is -i*conj(Ih[f/n])/(2*pi)
+                                Ih16 += tf[k] * tW[k] * tzp[k]/(tn[k]*pow(z - tz[k], 2));
                             }
                             
-                            sum16 = -_i*conj(Ic16)/(2*pi);
+                            sum16 = -_i*conj(Ih16)/(2*pi);
                             
                             //mexPrintf("y = %3.3f, px = %3.3f, py = %3.3f\n", imag(z), real(sum16), imag(sum16));
                             
@@ -202,15 +202,15 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                             if (accurate) {
                                 // 32 quad suffices!
 
-                                Complex Ic32 = 0;
+                                Complex Ih32 = 0;
                                 Complex sum32;
                                 
                                 for (int k=0; k<32; k++) {
-                                    // pressure grad is conj(q/(n*(z-tau)^2))
-                                    Ic32 += tf32[k] * tW32[k] * tzp32[k]/(tn32[k]*pow(z - tz32[k],2));
+                                    // pressure grad is -i*conj(Ih[f/n])/(2*pi)
+                                    Ih32 += tf32[k] * tW32[k] * tzp32[k]/(tn32[k]*pow(z - tz32[k],2));
                                 }
                                 
-                                sum32 = -_i*conj(Ic32)/(2*pi);
+                                sum32 = -_i*conj(Ih32)/(2*pi);
                                 
                                 // add 32 point quadrature, take off existing 16 point quadrature                                
                                 Complex modif = sum32 - sum16;

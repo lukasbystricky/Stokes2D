@@ -41,8 +41,9 @@ if solution.problem.periodic
         'verbose', 1);
     
     % correct with special quadrature
-    omega_slp_corrected = vorticity_slp_on_surface_correction(omega_slp', solution_local, type);
-    
+    %omega_slp_corrected = vorticity_slp_on_surface_correction(omega_slp', solution_local, type);
+    omega_slp_corrected = vorticity_slp_on_surface_correction_new(omega_slp', solution_local, type);
+
     if isinf(solution.problem.eta)
         omega = omega_slp_corrected;
     else

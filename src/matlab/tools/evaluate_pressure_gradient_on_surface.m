@@ -39,7 +39,8 @@ if solution.problem.periodic
         'verbose', 1)';
 
     % correct with special quadrature
-    dpslp = pressure_gradient_slp_on_surface_correction(dpslp(:,1) + 1i*dpslp(:,2), solution_local, type);
+    %dpslp = pressure_gradient_slp_on_surface_correction(dpslp(:,1) + 1i*dpslp(:,2), solution_local, type);
+    dpslp = pressure_gradient_slp_on_surface_correction_new(dpslp(:,1) + 1i*dpslp(:,2), solution_local, type);
     
     if isinf(solution.problem.eta)
         dP = dpslp;

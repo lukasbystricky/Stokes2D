@@ -219,13 +219,13 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                     rc = z - tz[k];
 
                                     Ic1 += (tf[k]/(-tn[k]*rc))*tW[k]*tzp[k];
+                                    Ih1 += (tf[k]/(tn[k]*rc*rc))*tW[k]*tzp[k];
+                                    Ih2 += ((conj(tz[k])*tf[k])/(tn[k]*rc*rc))*tW[k]*tzp[k];
                                     Ic2 += conj(tf[k])/(-tn[k]*rc)*tW[k]*tzp[k];
-                                    Ih1 += ((conj(tz[k])*tf[k])/(tn[k]*rc*rc))*tW[k]*tzp[k];
-                                    Ih2 += (tf[k]/(tn[k]*rc*rc))*tW[k]*tzp[k];
                                 }
                             }
                             
-                            Ic16 = 2*btar*imag(Ic1) - _i*conj(btar*(-Ic2-Ih1+conj(z)*Ih2));
+                            Ic16 = 2*btar*imag(Ic1) - _i*conj(btar*(conj(z)*Ih1-Ih2-Ic2));
                             sum16 = Ic16/(4*pi);
                             
                             // upsample density
@@ -252,13 +252,13 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                         rc = z - tz32[k];
 
                                         Ic1 += (tf32[k]/(-tn32[k]*rc))*tW32[k]*tzp32[k];
+                                        Ih1 += (tf32[k]/(tn32[k]*rc*rc))*tW32[k]*tzp32[k];
+                                        Ih2 += ((conj(tz32[k])*tf32[k])/(tn32[k]*rc*rc))*tW32[k]*tzp32[k];
                                         Ic2 += conj(tf32[k])/(-tn32[k]*rc)*tW32[k]*tzp32[k];
-                                        Ih1 += ((conj(tz32[k])*tf32[k])/(tn32[k]*rc*rc))*tW32[k]*tzp32[k];
-                                        Ih2 += (tf32[k]/(tn32[k]*rc*rc))*tW32[k]*tzp32[k];
                                     }
                                 }
                                 
-                                Ic32 = 2*btar*imag(Ic1) - _i*conj(btar*(-Ic2-Ih1+conj(z)*Ih2));
+                                Ic32 = 2*btar*imag(Ic1) - _i*conj(btar*(conj(z)*Ih1-Ih2-Ic2));
                                 sum32 = Ic32/(4*pi);
                                 
                                 // add 32 point quadrature, take off existing 16 point quadrature
@@ -296,12 +296,12 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                 
                                 for (int k = 0; k<32; k++) {
                                     Ic1 += p32[k]*tf32[k]/tn32[k];
+                                    Ih1 += 2*q32[k]*tf32[k]/tn32[k]/len;
+                                    Ih2 += 2*q32[k]*(conj(tz32[k])*tf32[k])/tn32[k]/len;
                                     Ic2 += p32[k]*conj(tf32[k])/tn32[k];
-                                    Ih1 += 2*q32[k]*(conj(tz32[k])*tf32[k])/tn32[k]/len;
-                                    Ih2 += 2*q32[k]*tf32[k]/tn32[k]/len;
                                 }
 
-                                Complex sq_prod = (2*btar*imag(Ic1) - _i*conj(btar*(-Ic2-Ih1+conj(z)*Ih2)))/(4*pi);
+                                Complex sq_prod = (2*btar*imag(Ic1) - _i*conj(btar*(conj(z)*Ih1-Ih2-Ic2)))/(4*pi);
                                 
                                 Complex modif = sq_prod - sum16;
                                 

@@ -45,10 +45,10 @@ b2 = 1i*ones(size(solution_local.problem.domain.z));
     Lx, Ly,'verbose', 0);
 
 % correct with special quadrature
-ugrad_slp1 = velocity_gradient_slp_on_surface_correction(ux +...
-                1i*vx, b1, solution_local, type);
-ugrad_slp2 = velocity_gradient_slp_on_surface_correction(uy +...
-                1i*vy, b2, solution_local, type);
+%ugrad_slp1 = velocity_gradient_slp_on_surface_correction(ux+1i*vx, b1, solution_local, type);
+%ugrad_slp2 = velocity_gradient_slp_on_surface_correction(uy+1i*vy, b2, solution_local, type);
+ugrad_slp1 = velocity_gradient_slp_on_surface_correction_new(ux+1i*vx, b1, solution_local, type);
+ugrad_slp2 = velocity_gradient_slp_on_surface_correction_new(uy+1i*vy, b2, solution_local, type);
 
 if ~isinf(solution.problem.eta)
     % add on double-layer potential

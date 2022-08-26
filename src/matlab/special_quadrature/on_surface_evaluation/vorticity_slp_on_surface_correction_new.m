@@ -1,19 +1,18 @@
-function sigmac = stress_slp_on_surface_correction_new(sigma,btar,solution_local,lim_dir)
-%STRESS_SLP_ON_SURFACE_CORRECTION corrects the single-layer 
-%stress for on-surface evaluation. Adds on the jump as the target
+function omegac = vorticity_slp_on_surface_correction_new(omega, solution_local, lim_dir)
+%VORTICITY_SLP_ON_SURFACE_CORRECTION corrects the single-layer 
+%vorticity for on-surface evaluation. Adds on the jump as the target
 %approaches the boundary from different directions.
 %
 %inputs:
-% -stress: uncorrected single-layer stress evaluated at quadrature points
+% -omega: uncorrected single-layer vorticity evaluated at quadrature points
 % on surface
-% -btar: direction vector at every target point (e.g. normal vector)
-% -solution_local: solution structure containing geometry information, as 
+% -solution:local: solution structure containing geometry information, as 
 % well as the density 
 % -lim_dir: string describing from what direction the target is approaching
 % the boundary
 %
 %output:
-% -sigmac: corrected stress
+% -omegac: corrected vorticity
 
 % geometry information of local solution
 domain_local = solution_local.problem.domain;
@@ -33,7 +32,7 @@ wall_indices = domain_local.wall_indices;
 wall_start = 1;
 
 % initialize corrected quantity
-sigmac = sigma;
+omegac = omega;
 
 % loop over every wall
 for i = 1:size(domain_local.wall_indices,1)
@@ -67,12 +66,9 @@ for i = 1:size(domain_local.wall_indices,1)
         zptmp = zpsrc(indices_tmp);
         r = zsrc(j) - ztmp;
         
-        Ic1 = -sum((qtmp./(ntmp.*r)).*wtmp.*zptmp);
-        Ih1 = sum((qtmp./(ntmp.*r.^2)).*wtmp.*zptmp);
-        Ih2 = sum((conj(ztmp).*qtmp)./(ntmp.*r.^2).*wtmp.*zptmp);
-        Ic2 = -sum((conj(qtmp)./(ntmp.*r)).*wtmp.*zptmp);
-    
-        sigmac(j) = sigmac(j) - (2*btar(j)*imag(Ic1) - 1i*conj(btar(j)*(conj(zsrc(j))*Ih1-Ih2-Ic2)))/(4*pi);
+        Ic = -sum((qtmp./(ntmp.*r)).*wtmp.*zptmp);
+        
+        omegac(j) = omegac(j) - -real(Ic)/(2*pi);
 
     end
     
@@ -105,8 +101,9 @@ for i = 1:size(domain_local.wall_indices,1)
             za = panel_breaks_z(j);
             zb = panel_breaks_z(j+1);
 
-            % middle of panel
+            % middle and length of panel
             mid = (za + zb)/2;
+            len = zb - za;
             
             for k = 1:length(target_ind)
                 
@@ -114,13 +111,10 @@ for i = 1:size(domain_local.wall_indices,1)
                 tar_ind_tmp = target_ind(k);
                 ztar_tmp = find_target_pt(zsrc(tar_ind_tmp),mid,reference_cell);
                 r = ztar_tmp - ztmp;
-                
-                Ic1 = -sum((qtmp./(ntmp.*r)).*wtmp.*zptmp);
-                Ih1 = sum((qtmp./(ntmp.*r.^2)).*wtmp.*zptmp);
-                Ih2 = sum((conj(ztmp).*qtmp)./(ntmp.*r.^2).*wtmp.*zptmp);
-                Ic2 = -sum((conj(qtmp)./(ntmp.*r)).*wtmp.*zptmp);
 
-                sigmac(tar_ind_tmp) = sigmac(tar_ind_tmp) - (2*btar(tar_ind_tmp)*imag(Ic1) - 1i*conj(btar(tar_ind_tmp)*(conj(ztar_tmp)*Ih1-Ih2-Ic2)))/(4*pi);
+                Ic = -sum((qtmp./(ntmp.*r)).*wtmp.*zptmp);
+        
+                omegac(tar_ind_tmp) = omegac(tar_ind_tmp) - -real(Ic)/(2*pi);
                 
             end
         end
@@ -132,16 +126,13 @@ for i = 1:size(domain_local.wall_indices,1)
     wtmp = wsrc(thiswall);
     ntmp = nsrc(thiswall);
     zptmp = zpsrc(thiswall);
-    btmp = btar(thiswall);
-
+    
     % evaluate integral using special quadrature
-    Ic1 = on_surface_evaluation(1,qtmp./ntmp,ztmp,zptmp,wtmp,panel_breaks_z,lim_dir,nbr_neighbor_pts,periodic_rep,reference_cell);
-    Ih1_ztar_conj = on_surface_evaluation(2,qtmp./ntmp,ztmp,zptmp,wtmp,panel_breaks_z,lim_dir,nbr_neighbor_pts,periodic_rep,reference_cell,true);
-    Ih2 = on_surface_evaluation(2,conj(ztmp).*qtmp./ntmp,ztmp,zptmp,wtmp,panel_breaks_z,lim_dir,nbr_neighbor_pts,periodic_rep,reference_cell);
-    Ic2 = on_surface_evaluation(1,conj(qtmp)./ntmp,ztmp,zptmp,wtmp,panel_breaks_z,lim_dir,nbr_neighbor_pts,periodic_rep,reference_cell);
+    Ic = on_surface_evaluation(1,qtmp./ntmp,ztmp,zptmp,wtmp,panel_breaks_z,...
+        lim_dir,nbr_neighbor_pts,periodic_rep,reference_cell);
 
     % add on correction
-    sigmac(thiswall) = sigmac(thiswall) + (2*btmp.*imag(Ic1) - 1i*conj(btmp.*(Ih1_ztar_conj-Ih2-Ic2)))/(4*pi);
+    omegac(thiswall) = omegac(thiswall) + -real(Ic)/(2*pi); 
 
     % update panel count
     wall_start = wall_start + panels_per_wall + 1;

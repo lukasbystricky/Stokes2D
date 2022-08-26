@@ -135,11 +135,14 @@ for j = 1:panels_per_wall
     % add on regular contribution from non-neighboring points
     target_far_ind = setdiff(1:Nsrc,target_ind);
     
-    if j == 1
-        target_far_ind = [target_far_ind (Nsrc-(nbr_neighbor_pts-1):Nsrc)];
-    end
-    if j == panels_per_wall
-        target_far_ind = [1:nbr_neighbor_pts target_far_ind];
+    % this should only be done if curve is not closed
+    if periodic_rep
+        if j == 1
+            target_far_ind = [target_far_ind (Nsrc-(nbr_neighbor_pts-1):Nsrc)];
+        end
+        if j == panels_per_wall
+            target_far_ind = [1:nbr_neighbor_pts target_far_ind];
+        end
     end
     
     for k = target_far_ind

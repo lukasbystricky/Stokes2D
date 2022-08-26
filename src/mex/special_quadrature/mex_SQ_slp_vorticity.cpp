@@ -181,7 +181,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                             double r1, r2, dens1, dens2, rsq, rdotf, bdotf, rdotb;
                             
                             for (int k = 0; k<16; k++) {
-                                // vorticity is real(int_C(q/(n*(z-tau))))/(2*pi)
+                                // vorticity is -real(Ic[f/n])/(2*pi)
                                 rho = z - tz[k];
                                 Ic16 += tf[k]/(tn[k]*-rho)*tW[k]*tzp[k];
                             }
@@ -201,7 +201,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                 double sum32;
                                 
                                 for (int k=0; k<32; k++) {
-                                    // vorticity is real(int_C(q/(n*(z-tau))))/(2*pi)
+                                    // vorticity is -real(Ic[f/n])/(2*pi)
                                     rho = z - tz32[k];
                                     Ic32 += tf32[k]/(tn32[k]*-rho)*tW32[k]*tzp32[k];
                                 }
@@ -234,7 +234,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                 Complex Ic_helsing = 0;
                                 
                                 for (int k = 0; k<32; k++) {
-                                    // vorticity is -real(Ic[q/n](z))/(2*pi)
+                                    // vorticity is -real(Ic[f/n])/(2*pi)
                                     Ic_helsing += p32[k]*tf32[k]/tn32[k];
                                 }
 

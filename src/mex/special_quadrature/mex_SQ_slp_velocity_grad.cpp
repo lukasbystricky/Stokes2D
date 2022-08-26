@@ -200,10 +200,10 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                 rc = z - tz[k];
                                 
                                 
-                                Ic1 += conj(tf[k])/(tn[k]*rc)*tW[k]*tzp[k];
-                                Ic2 += tf[k]/(tn[k]*rc)*tW[k]*tzp[k];
+                                Ic1 += tf[k]/(tn[k]*-rc)*tW[k]*tzp[k];
                                 Ih1 += tf[k]/(tn[k]*rc*rc)*tW[k]*tzp[k];
                                 Ih2 += conj(tz[k])*tf[k]/(tn[k]*rc*rc)*tW[k]*tzp[k];
+                                Ic2 += conj(tf[k])/(tn[k]*-rc)*tW[k]*tzp[k];
                                 
                                 
                                 
@@ -213,11 +213,12 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                             //Ic16 = -(_i*conj(btar)/2*conj(conj(z)*Ih1 - Ih2 + Ic1) -
                             //                _i*btar*real(Ic2));
                             //same as above
-                            Ic16 = -(_i*conj(btar))/2 * (z*conj(Ih1)-conj(Ih2)+conj(Ic1)) + _i*btar*real(Ic2);
+                            //Ic16 = -(_i*conj(btar))/2 * (z*conj(Ih1)-conj(Ih2)+conj(Ic1)) + _i*btar*real(Ic2);
+                            Ic16 = 2*btar*real(Ic1) + conj(btar*(conj(z)*Ih1-Ih2-Ic2));
                             
                             //sum16 = Ic16real/(2*pi);
                             //old
-                            sum16 = Ic16/(4*pi);
+                            sum16 = -_i*Ic16/(8*pi);
                             
                             //new
                             //sum16 = Ic16;
@@ -234,6 +235,10 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                 Complex Ic32 = 0;
                                 double Ic32real = 0;
                                 Complex sum32;
+                                Ic1 = 0.0;
+                                Ic2 = 0.0;
+                                Ih1 = 0.0;
+                                Ih2 = 0.0;
                                 
                                 for (int k=0; k<32; k++) {
                                     // velocity gradient is given by:
@@ -245,9 +250,14 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
 //                                     Ic32 += -(rc*conj(tf32[k]*btar)/(2*conj(rc)*conj(rc))
 //                                     +_i*imag(tf32[k]*conj(btar))/conj(rc) + btar*tf32[k]/(2*rc))
 //                                     *tW32[k]*abs(tzp32[k]);
-                                    Ic32 += -(rc*conj(tf32[k]*btar)/(2*conj(rc)*conj(rc))
-                                    + (tf32[k]*conj(btar)-btar*conj(tf32[k]))/(2*conj(rc)) + btar*tf32[k]/(2*rc))
-                                    *tW32[k]*abs(tzp32[k]);
+                                    //Ic32 += -(rc*conj(tf32[k]*btar)/(2*conj(rc)*conj(rc))
+                                    //+ (tf32[k]*conj(btar)-btar*conj(tf32[k]))/(2*conj(rc)) + btar*tf32[k]/(2*rc))
+                                    //*tW32[k]*abs(tzp32[k]);
+                                    
+                                    Ic1 += tf32[k]/(tn32[k]*-rc)*tW32[k]*tzp32[k];
+                                    Ih1 += tf32[k]/(tn32[k]*rc*rc)*tW32[k]*tzp32[k];
+                                    Ih2 += conj(tz32[k])*tf32[k]/(tn32[k]*rc*rc)*tW32[k]*tzp32[k];
+                                    Ic2 += conj(tf32[k])/(tn32[k]*-rc)*tW32[k]*tzp32[k];
                                     
 //                                     r1 = real(z - tz32[k]);
 //                                     r2 = imag(z - tz32[k]);
@@ -260,7 +270,9 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                 
                                 //sum32 = Ic32real/(2*pi);
                                 //old
-                                sum32 = Ic32/(4*pi);
+                                //sum32 = Ic32/(4*pi);
+                                Ic32 = 2*btar*real(Ic1) + conj(btar*(conj(z)*Ih1-Ih2-Ic2));
+                                sum32 = -_i*Ic32/(8*pi);
                                 
                                 // add 32 point quadrature, take off existing 16 point quadrature
                                 Complex modif = sum32 - sum16;
@@ -299,8 +311,8 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                 for (int k = 0; k<32; k++) {
                                     //Cauchy integrals have a negative sign
                                     //because recursion assumes t-z instead of z-t
-                                    Ic1 -= p32[k]*conj(tf32[k])/tn32[k];
-                                    Ic2 -= p32[k]*tf32[k]/tn32[k];
+                                    Ic1 += p32[k]*conj(tf32[k])/tn32[k];
+                                    Ic2 += p32[k]*tf32[k]/tn32[k];
                                     Ih1 += 2*q32[k]*tf32[k]/tn32[k]/len;
                                     Ih2 += 2*q32[k]*conj(tz32[k])*tf32[k]/tn32[k]/len;
                                 }
@@ -312,8 +324,10 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                 //            - conj(Ih2) + conj(Ic1))/2
                                 //            - _i*btar*real(Ic2))/(4*pi);
                                 //same as above
-                                Complex sq_prod = (-(_i*conj(btar))/2 * (z*conj(Ih1)-conj(Ih2)+conj(Ic1)) + _i*btar*real(Ic2))/(4*pi);
+                                //Complex sq_prod = (-(_i*conj(btar))/2 * (z*conj(Ih1)-conj(Ih2)+conj(Ic1)) + _i*btar*real(Ic2))/(4*pi);
                                 
+                                Complex sq_prod = -_i*(2*btar*real(Ic1) + conj(btar*(conj(z)*Ih1-Ih2-Ic2)))/(8*pi);
+
                                 Complex modif = sq_prod - sum16;
 //                                 
 //                                 mexPrintf("SQ integral = (%3.3e, %3.3e)\n", real(sq_prod), imag(sq_prod));

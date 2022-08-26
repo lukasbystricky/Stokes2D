@@ -8,7 +8,7 @@ function sigmac = stress_slp_on_surface_correction(sigma, btar, solution_local, 
 %-sigma: uncorrected single-layer stress evaluated at quadrature 
 %points on surface
 %-btar: direction vector at every target point (e.g. normal vector)
-%-solution: solution structure containing geometry information, as well as
+%-solution_local: solution structure containing geometry information, as well as
 %the density 
 %
 %output:
