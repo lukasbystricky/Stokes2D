@@ -2,7 +2,8 @@ close all;
 clearvars;
 clc;
 format long;
-rng(42);
+
+rng(123445562);
 
 % create input structure
 input_params = default_input_params('channel_blobs', 1);
@@ -11,35 +12,38 @@ input_params = default_input_params('channel_blobs', 1);
 Lx = 2;
 Ly = 2;
 h = 0.5;
-npan = 10;
+npan = 20;
 
 input_params.box_size = [Lx,Ly];
 input_params.panels = npan;
 input_params.h = h;
+input_params.nbr_neighbor_pts = 4;
+input_params.gmres_tol = 1e-12;
 input_params.eta = inf;
 input_params.plot_domain = 0;
-input_params.alpha = -1e-1;
-input_params.slip = 1;
+input_params.alpha = 0;
+input_params.slip = 0;
 
 % set up radii and centers, centers given as complex numbers (x+iy)
-M = 3;              % number of blobs
-delta = 0.1;        % minimum distance between blobs/blobs and blobs/walls
-rmin = 0.1;         % minimum radius
-rmax = 0.2;         % maximium radius
+M = 20;              % number of blobs
+delta = 0.11;        % minimum distance between blobs/blobs and blobs/walls
+rmin = 0.05;         % minimum radius
+rmax = 0.15;         % maximium radius
 
 centers = zeros(M,1);
 radii = zeros(M,1);
 
 for i = 1:M
     overlap = true;
+    r = rmin + (rmax-rmin).*rand(1,1);
     
     while overlap
-        r = rmin + (rmax-rmin).*rand(1,1);
+        r = 0.99*r;
 
-        xmin = -Lx/2 + r;
-        xmax = Lx/2 - r;
-        ymin = -h/2 + r;
-        ymax = h/2 - r;
+        xmin = -Lx/2 + r + delta;
+        xmax = Lx/2 - r - delta;
+        ymin = -h + r + delta;
+        ymax = h - r - delta;
 
         cx = xmin + (xmax-xmin).*rand(1,1);
         cy = ymin + (ymax-ymin).*rand(1,1);
@@ -81,6 +85,10 @@ nu2 = imag(domain.zp)./abs(domain.zp);
 n1 = real(-1i*domain.zp)./abs(domain.zp);
 n2 = imag(-1i*domain.zp)./abs(domain.zp);
 
+figure;
+plot(domain.z,'k.');
+axis equal;
+
 %% solve the problem
 N = length(problem.domain.z);
 rhs = [zeros(N/2,1); zeros(N/2,1); zeros(N/2,1); zeros(N/2,1); 
@@ -90,7 +98,8 @@ solution = solve_stokes(problem,rhs,'fmm',0);
 solution.local_indices = 1:length(solution.q);
 
 %%
-[U,V,X,Y] = evaluate_velocity(solution, 300, 'fmm', 0, 'verbose', 0);
+[U,V,X,Y] = evaluate_velocity(solution, 1000, 'fmm', 0, 'verbose', 0);
+%%
 [Uq,Vq,Xq,Yq] = evaluate_velocity(solution, 50, 'fmm', 0, 'verbose', 0);
 [Usurf,Vsurf] = evaluate_velocity_on_surface(solution, solution);
 
@@ -114,6 +123,15 @@ contourf(X,Y,V,20);
 colorbar;
 axis equal;
 title('v');
+
+figure;
+plot(problem.domain.z,'k.');
+hold on;
+surfc(X,Y,abs(U+1i*V));
+shading interp;
+colorbar;
+axis off;
+axis equal;
 
 figure;
 quiver(Xq,Yq,Uq,Vq,2);

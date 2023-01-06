@@ -23,7 +23,7 @@ input_params.radii = [2, 0.5]; % the outer wall must be the first radii
 input_params.centers = [0, 0];
 input_params.omega = 1; % angular velocity of inner cylinder
 input_params.alpha = 0;
-input_params.slip = 1;
+input_params.slip = 0;
 
 % initialize problem
 problem = couette(input_params);

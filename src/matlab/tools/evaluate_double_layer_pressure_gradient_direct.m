@@ -1,5 +1,6 @@
 function dP = evaluate_double_layer_pressure_gradient_direct(xtar, ytar, z, zp, q, w)
-dP = -(2*1i)/pi * conj(evaluate_supersingular_integral(xtar,ytar,z,zp,q,w));
+%dP = -(2*1i)/pi * conj(evaluate_supersingular_integral(xtar,ytar,z,zp,q,w));
+dP = (1i/pi) * conj(evaluate_supersingular_integral(xtar,ytar,z,zp,q,w));
 end
 
 function  Is = evaluate_supersingular_integral(xtar, ytar, z, zp, q, w)

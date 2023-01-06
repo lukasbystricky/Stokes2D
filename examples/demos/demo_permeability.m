@@ -5,8 +5,9 @@
 % results in that paper. There they get K = (5.671e-4, 0; 0, 5.671e-4). 
 
 close all
-%clearvars
+clearvars
 clc
+format long
 
 % create input structure
 input_params = default_input_params('permeability_demo', 1);
@@ -15,6 +16,7 @@ input_params = default_input_params('permeability_demo', 1);
 input_params.box_size = [1,1];
 input_params.panels = 20;
 input_params.plot_domain = 0;
+input_params.eta = 1;
 
 % void fraction
 phi = 0.4;
@@ -24,7 +26,8 @@ input_params.radii = input_params.box_size(1)*sqrt((1-phi)/pi);
 
 % for a single circle in a doubly periodic domain it doesn't matter where
 % the center is
-input_params.centers = 0.2 + 2.3*1i;
+%input_params.centers = 0.2 + 2.3*1i;
+input_params.centers = 0;
 
 K = zeros(2,2);
 
@@ -34,8 +37,15 @@ input_params.pressure_drop_y = 0;
 
 problem = circles_periodic(input_params);
 
+problem.slip = 0;
+z = problem.domain.z;
+rhs = [real(problem.boundary_conditions(z)); 
+       imag(problem.boundary_conditions(z));
+       problem.pressure_gradient_x;
+       problem.pressure_gradient_y];
+   
 % solve the problem
-solution = solve_stokes(problem);
+solution = solve_stokes(problem,rhs);
 
 % average velocity is computed already!
 K(:,1) = solution.u_avg;
@@ -46,8 +56,15 @@ input_params.pressure_drop_y = 1;
 
 problem = circles_periodic(input_params);
 
+problem.slip = 0;
+z = problem.domain.z;
+rhs = [real(problem.boundary_conditions(z)); 
+       imag(problem.boundary_conditions(z));
+       problem.pressure_gradient_x;
+       problem.pressure_gradient_y];
+   
 % solve the problem
-solution = solve_stokes(problem);
+solution = solve_stokes(problem,rhs);
 
 K(:,2) = solution.u_avg;
 
@@ -75,8 +92,15 @@ input_params.pressure_drop_y = 0;
 
 problem = circles_periodic(input_params);
 
+problem.slip = 0;
+z = problem.domain.z;
+rhs = [real(problem.boundary_conditions(z)); 
+       imag(problem.boundary_conditions(z));
+       problem.pressure_gradient_x;
+       problem.pressure_gradient_y];
+   
 % solve the problem
-solution = solve_stokes(problem);
+solution = solve_stokes(problem,rhs);
 
 % average velocity is computed already!
 K(:,1) = solution.u_avg;
@@ -87,8 +111,15 @@ input_params.pressure_drop_y = 1;
 
 problem = circles_periodic(input_params);
 
+problem.slip = 0;
+z = problem.domain.z;
+rhs = [real(problem.boundary_conditions(z)); 
+       imag(problem.boundary_conditions(z));
+       problem.pressure_gradient_x;
+       problem.pressure_gradient_y];
+   
 % solve the problem
-solution = solve_stokes(problem);
+solution = solve_stokes(problem,rhs);
 
 K(:,2) = solution.u_avg;
 fprintf("\nSTAGGERED GRID:\n");
@@ -115,8 +146,15 @@ input_params.pressure_drop_y = 0;
 
 problem = circles_periodic(input_params);
 
+problem.slip = 0;
+z = problem.domain.z;
+rhs = [real(problem.boundary_conditions(z)); 
+       imag(problem.boundary_conditions(z));
+       problem.pressure_gradient_x;
+       problem.pressure_gradient_y];
+   
 % solve the problem
-solution = solve_stokes(problem);
+solution = solve_stokes(problem,rhs);
 
 % average velocity is computed already!
 K(:,1) = solution.u_avg;
@@ -127,8 +165,15 @@ input_params.pressure_drop_y = 1;
 
 problem = circles_periodic(input_params);
 
+problem.slip = 0;
+z = problem.domain.z;
+rhs = [real(problem.boundary_conditions(z)); 
+       imag(problem.boundary_conditions(z));
+       problem.pressure_gradient_x;
+       problem.pressure_gradient_y];
+   
 % solve the problem
-solution = solve_stokes(problem);
+solution = solve_stokes(problem,rhs);
 
 K(:,2) = solution.u_avg;
 fprintf("\nTRIANGLE:\n");

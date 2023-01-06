@@ -79,14 +79,14 @@ for i = 1:size(domain.wall_indices,1)
             
             if ~isempty(indices_tmp)
                 Ph(j) = Ph(j) - imag(sum(qsrc(indices_tmp).*wsrc(indices_tmp).*zpsrc(indices_tmp)...
-                    ./(zsrc(j) - ztmp).^2))/(2*pi);
+                    ./(zsrc(j) - ztmp).^2))/pi;
             end
         end
     end
     
     %add on special quadrature
     Ph(indices) = Ph(indices) + imag(hypersingular_on_surface_evaluation(qsrc(indices), ...
-        zsrc(indices), zpsrc(indices), wsrc(indices), panel_breaks_z, type, periodic_rep))/(2*pi);
+        zsrc(indices), zpsrc(indices), wsrc(indices), panel_breaks_z, type, periodic_rep))/pi;
     
     wall_start = wall_start + npan + 1;
 end

@@ -18,10 +18,10 @@ input_params = default_input_params('pouseuille_demo', 1);
 input_params.box_size = [2,2];
 input_params.h = 0.5;    % pipe walls at +-0.5
 input_params.panels = 10;
-input_params.eta = 1;
+input_params.eta = inf;
 input_params.plot_domain = 0;
-input_params.alpha = 0;
-input_params.slip = 0;
+input_params.alpha = -1e-1;
+input_params.slip = 1;
 %input_params.gmres_tol = 1e-8;
 
 problem = flat_pipe_periodic(input_params);
@@ -59,7 +59,7 @@ exact_solution_sigma_avg = [0 0; 0 0];
 [Uc, Vc, X, Y, U, V] = evaluate_velocity(solution, 200, 'fmm', 0, 'verbose', 0);
 [Pc, P, ~, ~] = evaluate_pressure(solution, X, Y, 'fmm', 0, 'verbose', 0);
 [Uxc, Uyc, Vxc, Vyc, Ux, Uy, Vx, Vy] = evaluate_velocity_gradient(solution, X, Y);
-[Px, Py] = evaluate_pressure_gradient(solution, X, Y);
+[Pcx, Pcy, Px, Py] = evaluate_pressure_gradient(solution, X, Y);
 [omegac, omega] = evaluate_vorticity(solution, X, Y);
 [sxxc, sxyc, syxc, syyc, sxx, sxy, syx, syy, X, Y] = evaluate_stress(solution, X, Y);
 sigma = exact_solution_sigma(X,Y,p);
@@ -192,19 +192,20 @@ title('P: log_{10}(relative error)');
 %% plot pressure gradient
 figure;
 subplot(1,2,1)
-contourf(X,Y,abs(Px + 1i*Py));
+contourf(X,Y,abs(Pcx + 1i*Pcy));
 colorbar
 axis equal
 title('nabla p');
 
 subplot(1,2,2)
-contourf(X,Y,log10(abs(Px + 1i*Py  - exact_solution_dP(X,Y))+eps));
+contourf(X,Y,log10(abs(Pcx + 1i*Pcy  - exact_solution_dP(X,Y))+eps));
 colorbar
 %caxis([-16,-1]);
 axis equal
 title('nabla p: log_{10}(relative error)');
 
 %% plot vorticity
+figure;
 subplot(1,2,1)
 contourf(X,Y,omegac);
 colorbar

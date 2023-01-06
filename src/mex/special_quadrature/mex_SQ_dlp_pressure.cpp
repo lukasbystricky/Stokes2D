@@ -176,14 +176,14 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                         if (!accurate) {
                             //No! First: attempt 32-point quadrature
                           
-                            Complex Ic16 = 0;
+                            Complex Ih16 = 0;
                             double sum16;
                             double Ic16real = 0;
                             double r1, r2, n1, n2, dens1, dens2, rsq;
                             
                             for (int k = 0; k<16; k++) {
-                                // pressure is -Ic[q/in] 
-                                Ic16 += tf[k] * tW[k] * tzp[k] /((z - tz[k])*(z - tz[k]));
+                                // pressure is mu*imag(Ih[f])/pi
+                                Ih16 += tf[k] * tW[k] * tzp[k] /((z - tz[k])*(z - tz[k]));
                                 
                                 //compute in real variables
                                 r1 = real(z - tz[k]);
@@ -197,7 +197,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                 Ic16real += (n1*dens1 + n2*dens2)/rsq - 2*(r1*n1+r2*n2)*(r1*dens1+r2*dens2)/(rsq*rsq);
                             }
                             
-                            sum16 = imag(Ic16)/(2*pi);
+                            sum16 = imag(Ih16)/pi;
 
                             // upsample density
                             IPmultR(tf,tf32);
@@ -209,13 +209,13 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                             if (accurate) {
                                 // 32 quad suffices!
                                 
-                                Complex Ic32 = 0;
+                                Complex Ih32 = 0;
                                 double Ic32real = 0;
                                 double sum32;
                                 
                                 for (int k=0; k<32; k++) {
-                                    // pressure is -real(Ic[q/in])
-                                    Ic32 += tf32[k] * tW32[k] * tzp32[k] /((z - tz32[k])*(z - tz32[k]));
+                                    // pressure is mu*imag(Ih[f])/pi
+                                    Ih32 += tf32[k] * tW32[k] * tzp32[k] /((z - tz32[k])*(z - tz32[k]));
                                     
                                     r1 = real(z - tz32[k]);
                                     r2 = imag(z - tz32[k]);
@@ -228,7 +228,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                     Ic32real += (n1*dens1 + n2*dens2)/rsq - 2*(r1*n1+r2*n2)*(r1*dens1+r2*dens2)/(rsq*rsq);
                                 }
                                 
-                                sum32 = imag(Ic32)/(2*pi);
+                                sum32 = imag(Ih32)/pi;
                                 
                                 // add 32 point quadrature, take off existing 16 point quadrature                                
                                 double modif = sum32 - sum16;
@@ -261,7 +261,7 @@ void mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[]) {
                                     Ih_helsing += 2*q32[k]*tf32[k]/len;
                                 }
                                 
-                                double modif = imag(Ih_helsing)/(2*pi) - sum16;                                
+                                double modif = imag(Ih_helsing)/pi - sum16;                                
                             
                                 out_p[j] += modif;
                             }

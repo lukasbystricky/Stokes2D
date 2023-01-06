@@ -4,7 +4,7 @@ P = zeros(size(xtar));
 for k = 1:length(xtar)
 
     rho = (xtar(k) + 1i*ytar(k)) - z;
-    P(k) = imag(sum(q.*zp.*w./(rho.^2)))/(2*pi);
+    P(k) = imag(sum(q.*zp.*w./(rho.^2)))/pi;
 end
 
 

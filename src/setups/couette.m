@@ -38,6 +38,12 @@ end
 
 problem.domain = discretize_domain(walls, problem.panels, centers);
 
+if isfield(input_params,'nbr_neighbor_pts')
+    problem.domain.nbr_neighbor_pts = input_params.nbr_neighbor_pts;
+else
+    problem.domain.nbr_neighbor_pts = 16;
+end
+
 % zero on all walls except the outer, which is given by omega*[-y, x]
 problem.boundary_conditions = ...
   @(z) omega*(abs(abs(z)-radii(2))<1e-12).*(-imag(z) + 1i*real(z));

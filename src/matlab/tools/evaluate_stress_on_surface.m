@@ -88,8 +88,10 @@ else % completion formulation
     sigma2_dlp = evaluate_double_layer_stress_on_surface_direct(xtar,ytar,zsrc,b2,domain.zp,qc,domain.quad_weights);
     
     % correct using special quadrature
-    sigma1_dlp_corrected = stress_dlp_on_surface_correction(sigma1_dlp, b1, solution_local, type);
-    sigma2_dlp_corrected = stress_dlp_on_surface_correction(sigma2_dlp, b2, solution_local, type);
+    %sigma1_dlp_corrected = stress_dlp_on_surface_correction(sigma1_dlp, b1, solution_local, type);
+    %sigma2_dlp_corrected = stress_dlp_on_surface_correction(sigma2_dlp, b2, solution_local, type);
+    sigma1_dlp_corrected = stress_dlp_on_surface_correction_new(sigma1_dlp, b1, solution_local, type);
+    sigma2_dlp_corrected = stress_dlp_on_surface_correction_new(sigma2_dlp, b2, solution_local, type);
         
     % add on completion flow gradients from rotlets and Stokeslets
     [sigma1_S, sigma1_R] = completion_contribution_stress(domain.centers(2:end),ztar,b1,solution.forces,solution.torques);

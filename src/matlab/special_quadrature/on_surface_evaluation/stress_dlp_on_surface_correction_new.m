@@ -4,7 +4,7 @@ function sigmac = stress_dlp_on_surface_correction_new(sigma,btar,solution_local
 %approaches the boundary from different directions.
 %
 %inputs:
-% -stress: uncorrected single-layer stress evaluated at quadrature points
+% -sigma: uncorrected double-layer stress evaluated at quadrature points
 % on surface
 % -btar: direction vector at every target point (e.g. normal vector)
 % -solution:local: solution structure containing geometry information, as 
@@ -72,7 +72,7 @@ for i = 1:size(domain_local.wall_indices,1)
         Is1 = -sum((conj(ztmp).*qtmp./r.^3).*wtmp.*zptmp);
         Is2 = -sum((qtmp./r.^3).*wtmp.*zptmp);
         
-        sigmac(j) = sigmac(j) - (-(btar(j)*imag(Ih1)/2 - 1i*conj(btar(j)*(Ih2+Is1-conj(zsrc(j))*Is2)))/pi);
+        sigmac(j) = sigmac(j) - (-(btar(j)*imag(Ih1) - 1i*conj(btar(j)*(Ih2+Is1-conj(zsrc(j))*Is2)))/pi);
 
     end
     
@@ -120,7 +120,7 @@ for i = 1:size(domain_local.wall_indices,1)
                 Is1 = -sum((conj(ztmp).*qtmp./r.^3).*wtmp.*zptmp);
                 Is2 = -sum((qtmp./r.^3).*wtmp.*zptmp);
 
-                sigmac(tar_ind_tmp) = sigmac(tar_ind_tmp) - (-(btar(tar_ind_tmp)*imag(Ih1)/2 - 1i*conj(btar(j)*(Ih2+Is1-conj(ztar_tmp)*Is2)))/pi);
+                sigmac(tar_ind_tmp) = sigmac(tar_ind_tmp) - (-(btar(tar_ind_tmp)*imag(Ih1) - 1i*conj(btar(j)*(Ih2+Is1-conj(ztar_tmp)*Is2)))/pi);
                 
             end
         end
@@ -141,7 +141,7 @@ for i = 1:size(domain_local.wall_indices,1)
     Is2_ztar_conj = on_surface_evaluation(3,qtmp,ztmp,zptmp,wtmp,panel_breaks_z,lim_dir,nbr_neighbor_pts,periodic_rep,reference_cell,true);
     
     % add on correction
-    sigmac(thiswall) = sigmac(thiswall) + (-(btmp.*imag(Ih1)/2 - 1i*conj(btmp.*(Ih2+Is1-Is2_ztar_conj)))/pi);
+    sigmac(thiswall) = sigmac(thiswall) + (-(btmp.*imag(Ih1) - 1i*conj(btmp.*(Ih2+Is1-Is2_ztar_conj)))/pi);
 
     % update panel count
     wall_start = wall_start + panels_per_wall + 1;

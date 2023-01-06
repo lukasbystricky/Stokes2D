@@ -32,9 +32,9 @@ input_params.h = 0.5;    % pipe walls at +-0.5
 input_params.panels = 5;
 input_params.eta = inf;
 input_params.plot_domain = 0;
-input_params.alpha = -1e-5;
-input_params.slip = 0;
-input_params.gmres_tol = 1e-10;
+input_params.alpha = -0.4;
+input_params.slip = 1;
+input_params.gmres_tol = 1e-12;
 input_params.nbr_neighbor_pts = 4;
 
 problem = flat_pipe_periodic(input_params);

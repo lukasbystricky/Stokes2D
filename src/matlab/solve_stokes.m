@@ -27,10 +27,10 @@ nsrc = length(z);
 if problem.periodic
     if problem.slip
         X = gmres(@(x) matvec_combined_slip(x, problem), rhs, [], ...
-            problem.gmres_tol, min(length(rhs),1000));
+            problem.gmres_tol, min(length(rhs),3000));
     else
         X = gmres(@(x) matvec_combined(x, problem.domain, problem.eta), rhs, [], ...
-        problem.gmres_tol, min(length(rhs),500));
+        problem.gmres_tol, min(length(rhs),1000));
     end
 else
     % add rows for net force and torque on inner walls

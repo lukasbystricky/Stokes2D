@@ -41,5 +41,3 @@ if problem.plot_domain
     pause;
     disp('Continuing...');
 end
-
-

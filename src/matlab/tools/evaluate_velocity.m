@@ -152,6 +152,12 @@ else
         
         udlp = -udlp1 - 1i*udlp2;
     end
+    
+    % using expression from SQ (differs with minus sign compared to
+    % previously used FMM above)
+    %udlp = evaluate_double_layer_velocity_direct(X(:), Y(:), domain.z, domain.zp,...
+    %    solution.q(:,1)+1i*solution.q(:,2), domain.quad_weights);
+    
     disp('Beginning special quadrature...');
     
     % correct using special quadrature
