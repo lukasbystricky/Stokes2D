@@ -8,6 +8,6 @@ for i = 1:length(zsrc)
     
     uS = uS + (-log(abs(r))*forces(i) + real(r*conj(forces))./conj(r)) /4/pi;
                     
-    uR = uR + (-imag(r) + 1i*real(r))*torques(i)./abs(r).^2/2/pi;
+    uR = uR + (imag(r) - 1i*real(r))*torques(i)./abs(r).^2/4/pi;
 end
 

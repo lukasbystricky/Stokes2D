@@ -10,5 +10,5 @@ for i = 1:length(zsrc)
         (forces(i)*conj(btar)-btar*conj(forces(i)))./(2*conj(r)) + ...
         (btar*forces(i))./(2*r));
 
-    duR = duR - 1i*2*torques(i)*conj(btar./r.^2)/(4*pi);
+    duR = duR + 1i*torques(i)*conj(btar./r.^2)/(4*pi);
 end
