@@ -90,7 +90,7 @@ n_outer1 = n1(outer_wall_indices);
 n_outer2 = n2(outer_wall_indices);
 qw_outer1 = real(qwazp(outer_wall_indices));
 qw_outer2 = imag(qwazp(outer_wall_indices));
-N0 = (n_outer1 + 1i*n_outer2).*(n_outer1.*qw_outer1 + n_outer2.*qw_outer2);
+N0 = (n_outer1 + 1i*n_outer2).*sum((n_outer1.*qw_outer1 + n_outer2.*qw_outer2));
 
 u(outer_wall_indices) = u(outer_wall_indices) + N0;
 
