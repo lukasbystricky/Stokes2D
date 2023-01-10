@@ -182,9 +182,8 @@ u1 = real(u);
 u2 = imag(u);
 u1_corrected = real(u_corrected);
 u2_corrected = imag(u_corrected);
-fmm = 0;
 
-if solution.problem.periodic && solution.trim
+if solution.trim
     % find points inside domain by applying stresslet identity
     if solution.problem.periodic
         [test1, test2] = StokesDLP_ewald_2p(xsrc, ysrc, X(:), Y(:), n1, n2,...
@@ -207,25 +206,27 @@ if solution.problem.periodic && solution.trim
             test1 = -test1(length(xsrc)+1:end);
             test2 = -test2(length(xsrc)+1:end);
         else
-            test1 = zeros(numel(q1),1);
-            test2 = zeros(numel(q1),1);
-            for k = 1:numel(q1)
+            test1 = zeros(numel(X),1);
+            test2 = zeros(numel(X),1);
+            for k = 1:numel(X)
 
 
-                rx = xsrc(k) - xsrc;
-                ry = ysrc(k) - ysrc;
+                rx = X(k) - xsrc;
+                ry = Y(k) - ysrc;
                 rho4 = (rx.^2 + ry.^2).^2;
 
-                rdotq = rx.*ones(numel(q1)).*weights;
+                rdotq = rx.*ones(numel(xsrc),1).*weights;
                 rdotn = rx.*n1 + ry.*n2;
 
                 test1(k) = 4*sum(rdotn.*rdotq./rho4.*rx);
                 test2(k) = 4*sum(rdotn.*rdotq./rho4.*ry);
             end
 
-            test1 = test1/4/pi;
-            test2 = test2/4/pi;         
+            test1 = -test1/4/pi;
+            test2 = -test2/4/pi;
         end
+        Xtar_sq = X;
+        Ytar_sq = Y;
     end
 
     %correct using special quadrature
