@@ -29,20 +29,12 @@ end
 A1 = (a+b)/2;
 A2 = (a-b)/2;
 
-
 if dir == 1
-%     z = R*exp(1i*T)+center;
-%     zp = 1i*R*exp(1i*T);
-%     zpp = -R*exp(1i*T);
     z = (A1*exp(1i*T)+A2*exp(-1i*T))*exp(1i*theta)+center;
     zp = 1i*((A1*exp(1i*T)-A2*exp(-1i*T)))*exp(1i*theta);
     zpp = (-A1*exp(1i*T)-A2*exp(-1i*T))*exp(1i*theta);
 else
-%     z = R*exp(-1i*T)+center;
-%     zp = -1i*R*exp(-1i*T);
-%     zpp = R*exp(-1i*T);
     z = (A1*exp(-1i*T)+A2*exp(1i*T))*exp(1i*theta)+center;
     zp = 1i*((-A1*exp(-1i*T)+A2*exp(1i*T)))*exp(1i*theta);
     zpp = (-A1*exp(-1i*T)-A2*exp(1i*T))*exp(1i*theta);
-
 end   
