@@ -107,6 +107,6 @@ for i = 1:n_inner_walls
 
     m(2*N+i) = sum(real(qw_wall)) - F1(i);
     m(2*N+n_inner_walls+i) = sum(imag(qw_wall)) - F2(i);
-    m(2*N+2*n_inner_walls+i) = sum(-real(qw_wall).*(y_wall - c2) + ...
+    m(2*N+2*n_inner_walls+i) = sum(real(qw_wall).*(y_wall - c2) -...
         imag(qw_wall).*(x_wall - c1)) - T(i);
 end
