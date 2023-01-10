@@ -32,25 +32,19 @@ z = problem.domain.z;
 
 rhs = [real(problem.boundary_conditions(z));... 
        imag(problem.boundary_conditions(z))];
-solution = solve_stokes(problem,rhs,'fmm',0);
+solution = solve_stokes(problem,rhs,'fmm',1);
 solution.local_indices = 1:length(solution.q);
+solution.trim = 1;
 
 %% off-surface
 % grid in polar coordinates with M number of radial and angular points
-M = 200;
-r = linspace(input_params.radii(2)+1e-1, input_params.radii(1) - 1e-1, M);
-h = (2*pi)/M;
-theta = (0:h:2*pi);
-[R, T] = meshgrid(r, theta);
+M = 100;
 
-X = R.*cos(T);
-Y = R.*sin(T);
-
-[Uc, Vc, X, Y, U, V] = evaluate_velocity(solution, X, Y, 'fmm', 0, 'verbose', 1);
+[Uc, Vc, X, Y, U, V] = evaluate_velocity(solution, M, 'fmm', 1, 'verbose', 1);
 [Pc, P, ~, ~] = evaluate_pressure(solution, X, Y, 'fmm', 0, 'verbose', 1);
 [Uxc, Uyc, Vxc, Vyc, Ux, Uy, Vx, Vy] = evaluate_velocity_gradient(solution, X, Y);
 [Pxc, Pyc, Px, Py, ~, ~] = evaluate_pressure_gradient(solution, X, Y);
-[omegac, ~, X, Y] = evaluate_vorticity(solution, X, Y);
+[omegac, ~, ~, ~] = evaluate_vorticity(solution, X, Y);
 [sxxc, sxyc, syxc, syyc, sxx, sxy, syx, syy] = evaluate_stress(solution, X, Y);
 
 % Stresses from velocity gradient (correct)
@@ -81,7 +75,7 @@ exact_solution_uy = @(x,y) B*(y.^2-x.^2)./(x.^2+y.^2).^2 - A;
 exact_solution_vx = @(x,y) B*(y.^2-x.^2)./(x.^2+y.^2).^2 + A;
 exact_solution_vy = @(x,y) -(2*B*x.*y)./(x.^2+y.^2).^2;
 exact_solution_avg_velocity = pi*(A*(ro^2-ri^2)+2*B*log(ro/ri));
-exact_solution_vorticity = @(x,y) 2*A*ones(length(x),length(y)-1);
+exact_solution_vorticity = @(x,y) 2*A*ones(length(x),length(y));
 sigma = exact_solution_sigma(X,Y,A,B);
 
 %% on-surface

@@ -44,11 +44,9 @@ else
     problem.domain.nbr_neighbor_pts = 16;
 end
 
-% zero on all walls except the outer, which is given by omega*[-y, x]
+% zero on all walls except the inner, which is given by omega*[-y, x]
 problem.boundary_conditions = ...
   @(z) omega*(abs(abs(z)-radii(2))<1e-12).*(-imag(z) + 1i*real(z));
-% problem.boundary_conditions = ...
-%   @(z) (-imag(z) + 1i*real(z))./(abs(z).^2);
 
 if problem.plot_domain
     plot_domain(problem);
