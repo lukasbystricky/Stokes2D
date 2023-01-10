@@ -12,7 +12,7 @@ function [z,zp,zpp] = geometry_circle(R,center,T,varargin)
 %       zp, function returning first derivative at t
 %       zpp, function returning second derivative at t
 %       
-% Updated: -
+% Updated: - David Jan 10, 2023
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if nargin > 3
     if varargin{1} == 1
@@ -31,5 +31,5 @@ if dir == 1
 else
     z = R*exp(-1i*T)+center;
     zp = -1i*R*exp(-1i*T);
-    zpp = R*exp(-1i*T);
+    zpp = -R*exp(-1i*T);
 end   

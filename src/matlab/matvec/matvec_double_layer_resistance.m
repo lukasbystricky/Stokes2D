@@ -36,7 +36,6 @@ q2 = q(N+1:2*N);
 qc = q1 + 1i*q2;
 qwazp = qc.*domain.wazp;
 outer_wall_indices = domain.wall_indices(1,1):domain.wall_indices(1,2);
-inner_wall_indices = domain.wall_indices(2,1):domain.wall_indices(end,2);
 
 if fmm
     [u1, u2] = stokesDLPfmm(real(qwazp(:)),imag(qwazp(:)),x(:),y(:),n1(:),n2(:));
@@ -66,24 +65,8 @@ end
 u = -u1 + -1i*u2;
 
 %% diagonal elements of the double-layer
-
-% NB: Not 100% sure why we have to split into the two cases here and not in
-% periodic case
-quad_weights_in = domain.quad_weights(inner_wall_indices);
-zp_in = domain.zp(inner_wall_indices);
-zpp_in = domain.zpp(inner_wall_indices);
-qc_in = qc(inner_wall_indices);
-quad_weights_out = domain.quad_weights(outer_wall_indices);
-zp_out = domain.zp(outer_wall_indices);
-zpp_out = domain.zpp(outer_wall_indices);
-qc_out = qc(outer_wall_indices);
-
-u(inner_wall_indices) = u(inner_wall_indices) + quad_weights_in.*...
-    (qc_in.*imag(zpp_in./zp_in) + ...
-    conj(qc_in).*imag(zpp_in.*conj(zp_in))./conj(zp_in).^2)/(4*pi);
-u(outer_wall_indices) = u(outer_wall_indices) - quad_weights_out.*...
-    (qc_out.*imag(zpp_out./zp_out) + ...
-    conj(qc_out).*imag(zpp_out.*conj(zp_out))./conj(zp_out).^2)/(4*pi);
+u = u + domain.quad_weights.*(qc.*imag(domain.zpp./domain.zp) + ...
+        conj(qc).*imag(domain.zpp.*conj(domain.zp))./conj(domain.zp).^2)/(4*pi);
 
 %% remove container nullspace
 n_outer1 = n1(outer_wall_indices);
