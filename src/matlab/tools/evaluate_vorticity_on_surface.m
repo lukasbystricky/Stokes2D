@@ -53,11 +53,13 @@ if solution.problem.periodic
             'verbose', 1);
         
         % correct with special quadrature
-        omega_dlp_corrected = vorticity_dlp_on_surface_correction(omega_dlp', solution_local, type);
+        %omega_dlp_corrected = vorticity_dlp_on_surface_correction(omega_dlp', solution_local, type);
+        omega_dlp_corrected = vorticity_dlp_on_surface_correction_new(omega_dlp', solution_local, type);
         
         omega = omega_dlp_corrected + solution.problem.eta*omega_slp_corrected;
     end
 else
+    % this has to be looked over
     omega_dlp = zeros(N,1);
     for k = 1:N
         % skip self interaction term
