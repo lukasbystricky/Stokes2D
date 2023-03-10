@@ -48,7 +48,7 @@ e_slp = zeros(size(Pslp));
 e_dlp = zeros(size(Pdlp));
 for i = 1:length(Pslp)
     e_slp(i) = min(Pslp(i), abs(Pslp(i) - 1));
-    e_dlp(i) = min(abs(Pdlp(i)), abs(Pdlp(i) - 1));
+    e_dlp(i) = min(abs(Pdlp(i)), abs(Pdlp(i) - 2));
 end
 
 % on-surface
@@ -56,7 +56,7 @@ e_slp_on = zeros(size(Pslp_on));
 e_dlp_on = zeros(size(Pdlp_on));
 for i = 1:length(Pslp_on)
     e_slp_on(i) = min(Pslp_on(i), abs(Pslp_on(i) - 0.5));
-    e_dlp_on(i) = min(abs(Pdlp_on(i)), abs(Pdlp_on(i) - 0.5));
+    e_dlp_on(i) = min(abs(Pdlp_on(i)), abs(Pdlp_on(i) - 1));
 end
 
 %% Plot

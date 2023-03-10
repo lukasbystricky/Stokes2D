@@ -51,7 +51,7 @@ for i = 1:size(domain.wall_indices,1)
         indices_tmp(indices==j) = [];
         
         Ph(j) = Ph(j) - imag(sum(qsrc(indices_tmp).*wsrc(indices_tmp).*zpsrc(indices_tmp)...
-            ./(zsrc(j) - zsrc(indices_tmp)).^2))/(2*pi);
+            ./(zsrc(j) - zsrc(indices_tmp)).^2))/pi;
         
         if periodic_rep
             % we also correct for the adjacent panels that have been

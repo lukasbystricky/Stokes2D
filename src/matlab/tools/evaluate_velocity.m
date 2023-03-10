@@ -246,8 +246,6 @@ if solution.trim
     u1(outside) = nan;
     u2(outside) = nan;
 
-    X(outside) = nan;
-    Y(outside) = nan;
 end
 
 U1c = reshape(u1_corrected, size(X));
