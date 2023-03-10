@@ -1,4 +1,4 @@
-% Poster figures
+% Poster/presentation figures
 close all
 clearvars
 clc
@@ -7,7 +7,7 @@ clc
 input_params = default_input_params('couette', 0);
 
 % modify structure as needed, or add additional problem-dependent params
-input_params.panels = [22,11];%40 20
+input_params.panels = [22,11];
 input_params.plot_domain = 0;
 
 % set up radii and centers, centers given as complex numbers (x+iy)
@@ -40,16 +40,9 @@ Y = R.*sin(T);
 [Pxc, Pyc, Px, Py, ~, ~] = evaluate_pressure_gradient(solution, X, Y);
 
 %% Plot
-close all;
 save_fig = 0;
 pub_fig = 0;
-
-c1 = [161 63 54];
-c2 = [212 123 93];
-c3 = [214 176 155];
-c4 = [170 179 194];
-c5 = [91 118 161];
-c6 = [29 51 101];
+trim_fig = 0;
 
 R = [29 91 170 214 212 161]./255*1.15;
 G = [51 118 179 176 123 63]./255*1.15;
@@ -70,14 +63,16 @@ plot(problem.domain.z,'k.');
 hold on
 [C,h]=contourf(X,Y,log10(E_reg_quad),M);
 set(h,'LineColor','none');
-xlabel(colorbar(), 'log_{10} E_{abs}');
+xlabel(colorbar('fontsize',10), 'log_{10} E_{abs}');
 caxis([-15 0]);
 colormap([R(:), G(:), B(:)]);
-%ax = gca;
-%ax.XLim = [0 2];
-%ax.YLim = [0 2];
 axis off;
 axis equal;
+if trim_fig
+    ax = gca;
+    ax.XLim = [0 2];
+    ax.YLim = [0 2];
+end
 
 sfigure(2);
 if pub_fig
@@ -87,14 +82,16 @@ plot(problem.domain.z,'k.');
 hold on
 [c2,h2]=contourf(X,Y,log10(E_sq),M);
 set(h2,'LineColor','none');
-xlabel(colorbar(), 'log_{10} E_{abs}');
+xlabel(colorbar('fontsize',10), 'log_{10} E_{abs}','fontsize',10);
 caxis([-15 0]);
-colormap([R(:), G(:), B(:)]);
+c = colormap([R(:), G(:), B(:)]);
 axis off;
 axis equal;
-%ax = gca;
-%ax.XLim = [0 2];
-%ax.YLim = [0 2];
+if trim_fig
+    ax = gca;
+    ax.XLim = [0 2];
+    ax.YLim = [0 2];
+end
 
 if save_fig
     printpdf(1,'taylor_couette_reg_quad');
@@ -105,7 +102,7 @@ function publication_fig
 set(gcf,'PaperPositionMode','auto')
 P = get(gcf,'Position');
 set(gcf,'Position',[P(1) P(2) 275 220])
-set(gca,'FontName','Times','FontSize',8)
+set(gca,'FontName','Times','FontSize',10)
 box off
 end
 
